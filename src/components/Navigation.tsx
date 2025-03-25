@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import logo from '../assets/logo.jpeg'
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -13,9 +14,13 @@ export const Navigation = () => {
         <div className="flex justify-between items-center">
           <Link 
             to="/" 
-            className="text-2xl font-bold text-gray-800 hover:opacity-80 transition-opacity"
+            className="flex items-center hover:opacity-80 transition-opacity"
           >
-            RIA FACILE
+            <img 
+              src={logo}
+              alt="RIA Facile Logo" 
+              className="h-12 w-auto object-contain"
+            />
           </Link>
 
           <div className="relative">
@@ -73,15 +78,6 @@ export const Navigation = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   Quiz
-                </Link>
-                <Link
-                  to="/articles"
-                  className={`block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors ${
-                    isActive('/articles') ? 'bg-gray-100 font-medium' : ''
-                  }`}
-                  onClick={() => setIsOpen(false)}
-                >
-                  Articles
                 </Link>
                 <Link
                   to="/contact"

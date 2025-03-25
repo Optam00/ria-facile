@@ -1,108 +1,103 @@
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { ReactNode } from 'react'
+import logo from '../assets/logo.jpeg'
+import consulterImage from '../assets/consulter.jpeg'
+import quizImage from '../assets/quiz.jpeg'
+import accueilImage from '../assets/accueil.jpeg'
+import { Button } from '@/components/Button'
+
+interface SectionProps {
+  children: ReactNode
+  isReversed?: boolean
+  className?: string
+}
+
+const Section = ({ children, isReversed = false, className = '' }: SectionProps) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{ duration: 0.8 }}
+      className={`py-24 ${className}`}
+    >
+      <div className={`max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center ${isReversed ? 'lg:flex-row-reverse' : ''}`}>
+        {children}
+      </div>
+    </motion.div>
+  )
+}
 
 export const HomePage = () => {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] p-4">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-800 text-center mb-4">
-          Bienvenue sur RIA Facile
-        </h1>
-        <p className="text-xl text-gray-600 text-center mb-12 max-w-3xl mx-auto">
-          Votre guide interactif pour comprendre et maîtriser le Règlement européen sur l'Intelligence Artificielle
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Consulter Section */}
-          <div 
-            onClick={() => navigate('/consulter')}
-            className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
+    <div className="min-h-screen space-y-12">
+      {/* Hero Section */}
+      <Section className="bg-gradient-to-b from-blue-50 via-white/80 to-white mt-4 rounded-[3rem] min-h-[400px] flex items-center">
+        <div className="lg:px-8 py-4 lg:max-w-[520px] mx-auto text-center">
+          <motion.h1 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-4xl font-bold mb-6 leading-tight text-[#774792]"
           >
-            <div className="flex items-center mb-4">
-              <svg className="w-8 h-8 text-indigo-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-              <h2 className="text-2xl font-bold text-gray-800">Consulter le RIA</h2>
-            </div>
-            <p className="text-gray-600 mb-4">
-              Parcourez le Règlement sur l'Intelligence Artificielle article par article. Une lecture claire et structurée pour comprendre chaque aspect du règlement.
-            </p>
-            <span className="text-indigo-500 font-medium flex items-center group">
-              Accéder au règlement
-              <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </span>
-          </div>
-
-          {/* Quiz Section */}
-          <div 
-            onClick={() => navigate('/quiz')}
-            className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
+            Comprenez et appliquez le Règlement IA en toute simplicité
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-xl text-gray-600 mb-8"
           >
-            <div className="flex items-center mb-4">
-              <svg className="w-8 h-8 text-blue-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <h2 className="text-2xl font-bold text-gray-800">Quiz Interactif</h2>
-            </div>
-            <p className="text-gray-600 mb-4">
-              Testez vos connaissances sur le RIA avec notre quiz interactif ! Plus de 150 questions couvrant tous les aspects du règlement, des explications détaillées et un système de badges pour suivre votre progression.
-            </p>
-            <span className="text-blue-500 font-medium flex items-center group">
-              Commencer le quiz
-              <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </span>
-          </div>
-
-          {/* Articles Section */}
-          <div 
-            onClick={() => navigate('/articles')}
-            className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
-          >
-            <div className="flex items-center mb-4">
-              <svg className="w-8 h-8 text-purple-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15M9 11l3 3m0 0l3-3m-3 3V8" />
-              </svg>
-              <h2 className="text-2xl font-bold text-gray-800">Articles</h2>
-            </div>
-            <p className="text-gray-600 mb-4">
-              Restez informé avec nos articles d'analyse et de décryptage. Comprendre les implications concrètes du RIA, ses évolutions et son impact sur votre activité n'aura jamais été aussi simple.
-            </p>
-            <span className="text-purple-500 font-medium flex items-center group">
-              Lire nos articles
-              <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </span>
-          </div>
-
-          {/* Contact Section */}
-          <div 
-            onClick={() => navigate('/contact')}
-            className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
-          >
-            <div className="flex items-center mb-4">
-              <svg className="w-8 h-8 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <h2 className="text-2xl font-bold text-gray-800">Contact</h2>
-            </div>
-            <p className="text-gray-600 mb-4">
-              Une question ? Un besoin spécifique ? Notre équipe est là pour vous accompagner dans votre compréhension du RIA. N'hésitez pas à nous contacter pour toute demande d'information.
-            </p>
-            <span className="text-green-500 font-medium flex items-center group">
-              Nous contacter
-              <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </span>
-          </div>
+            RIA Facile a été créé pour vous aider dans votre mise en conformité au règlement européen sur l'intelligence artificielle (RIA, AI act, IA act).
+          </motion.p>
         </div>
-      </div>
+        <div className="relative h-full lg:h-[400px] bg-white rounded-3xl overflow-hidden flex items-center justify-center shadow-lg shadow-purple-100/50">
+          <img src={accueilImage} alt="Intelligence Artificielle et Réglementation" className="object-contain w-full h-full p-8" />
+        </div>
+      </Section>
+
+      {/* Consulter Section */}
+      <Section className="bg-white/80 backdrop-blur-sm rounded-[3rem]">
+        <div className="relative h-[400px] bg-white rounded-3xl overflow-hidden flex items-center justify-center shadow-lg shadow-indigo-100/50 lg:ml-12">
+          <img src={consulterImage} alt="Consultation du RIA" className="object-contain w-full h-full p-8" />
+        </div>
+        <div className="lg:pl-12">
+          <h2 className="text-4xl font-bold mb-6 text-[#774792]">Consultez le RIA en détail</h2>
+          <p className="text-lg text-gray-600 mb-10">
+            Une consultation intuitive du texte officiel du règlement IA, et bientôt des options supplémentaires !
+          </p>
+          <button 
+            onClick={() => navigate('/consulter')}
+            className="w-full lg:w-auto bg-gradient-to-r from-[#6366F1] to-[#774792] text-white text-xl px-12 py-4 rounded-full flex items-center justify-center gap-2 hover:opacity-90 transition-all duration-300 shadow-lg group"
+          >
+            Explorer le règlement
+            <span className="text-2xl transform transition-transform group-hover:translate-x-1">→</span>
+          </button>
+        </div>
+      </Section>
+
+      {/* Quiz Section */}
+      <Section className="bg-white/80 backdrop-blur-sm rounded-[3rem]">
+        <div className="lg:pl-12">
+          <h2 className="text-4xl font-bold mb-6 text-[#774792]">Testez vos connaissances</h2>
+          <p className="text-lg text-gray-600 mb-10">
+            Plus de 150 questions interactives, des explications détaillées et un système de badges pour évaluer et améliorer votre maîtrise du RIA.
+          </p>
+          <button 
+            onClick={() => navigate('/quiz')}
+            className="w-full lg:w-auto bg-gradient-to-r from-[#6366F1] to-[#774792] text-white text-xl px-12 py-4 rounded-full flex items-center justify-center gap-2 hover:opacity-90 transition-all duration-300 shadow-lg group"
+          >
+            Démarrer le quiz
+            <span className="text-2xl transform transition-transform group-hover:translate-x-1">→</span>
+          </button>
+        </div>
+        <div className="relative h-[400px] bg-white rounded-3xl overflow-hidden flex items-center justify-center shadow-lg shadow-indigo-100/50 lg:mr-12">
+          <img src={quizImage} alt="Quiz RIA" className="object-contain w-full h-full p-8" />
+        </div>
+      </Section>
     </div>
   )
 } 

@@ -15,9 +15,9 @@ interface ArticleType {
 }
 
 interface SectionType {
+  id_section: number
   titre: string
   id_chapitre: number
-  id_section: number
   articles?: ArticleType[]
 }
 
@@ -47,6 +47,7 @@ interface SommaireProps {
   onChapitreClick: (id: number) => void
   onArticleClick: (article: ArticleType) => void
   onAnnexeClick?: (annexe: AnnexeType, subdivision?: SubdivisionType) => void
+  onSectionClick: (section: SectionType) => void
   defaultOpen?: boolean
   forceOpen?: boolean
 }
@@ -56,12 +57,19 @@ export const Sommaire: React.FC<SommaireProps> = ({
   onChapitreClick, 
   onArticleClick,
   onAnnexeClick,
+  onSectionClick,
   defaultOpen = false,
   forceOpen = false
 }) => {
-  const [isConsiderantsOpen, setIsConsiderantsOpen] = useState(defaultOpen)
-  const [isDispositifOpen, setIsDispositifOpen] = useState(defaultOpen)
-  const [isAnnexesOpen, setIsAnnexesOpen] = useState(defaultOpen)
+  const [isConsiderantsOpen, setIsConsiderantsOpen] = useState(() => {
+    const saved = localStorage.getItem('isConsiderantsOpen')
+    return saved ? JSON.parse(saved) : defaultOpen
+  })
+  const [isDispositifOpen, setIsDispositifOpen] = useState(true)
+  const [isAnnexesOpen, setIsAnnexesOpen] = useState(() => {
+    const saved = localStorage.getItem('isAnnexesOpen')
+    return saved ? JSON.parse(saved) : defaultOpen
+  })
   const [openChapitres, setOpenChapitres] = useState<number[]>([])
   const [considerants, setConsiderants] = useState<ConsiderantType[]>([])
   const [chapitres, setChapitres] = useState<ChapitreType[]>([])
@@ -270,6 +278,14 @@ export const Sommaire: React.FC<SommaireProps> = ({
     fetchAnnexes()
   }, [])
 
+  // Sauvegarder l'état d'ouverture dans le localStorage
+  useEffect(() => {
+    localStorage.setItem('isConsiderantsOpen', JSON.stringify(isConsiderantsOpen))
+    localStorage.setItem('isDispositifOpen', JSON.stringify(isDispositifOpen))
+    localStorage.setItem('isAnnexesOpen', JSON.stringify(isAnnexesOpen))
+    localStorage.setItem('openChapitres', JSON.stringify(openChapitres))
+  }, [isConsiderantsOpen, isDispositifOpen, isAnnexesOpen, openChapitres])
+
   return (
     <div className="text-sm space-y-2">
       {/* Section Considérants */}
@@ -350,16 +366,16 @@ export const Sommaire: React.FC<SommaireProps> = ({
             ) : chapitres.length === 0 ? (
               <p className="text-gray-400 text-xs">Chargement...</p>
             ) : (
-              <div className="flex flex-col space-y-1">
-                {chapitres.map((chapitre) => (
-                  <div key={chapitre.id_chapitre} className="flex flex-col">
+              <div className="flex flex-col space-y-0.5">
+                {chapitres.map(chapitre => (
+                  <div key={chapitre.id_chapitre} className="mb-1">
                     <button
                       onClick={() => toggleChapitre(chapitre.id_chapitre)}
-                      className="flex items-center text-left px-2 py-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors text-xs w-full"
+                      className="flex items-center gap-2 w-full text-left hover:bg-gray-50 rounded px-2 py-0.5"
                     >
                       <svg
-                        className={`w-3 h-3 mr-1 transform transition-transform ${
-                          openChapitres.includes(chapitre.id_chapitre) ? 'rotate-90' : ''
+                        className={`w-4 h-4 shrink-0 transition-transform ${
+                          openChapitres.includes(chapitre.id_chapitre) ? 'transform rotate-90' : ''
                         }`}
                         fill="none"
                         stroke="currentColor"
@@ -372,36 +388,44 @@ export const Sommaire: React.FC<SommaireProps> = ({
                           d="M9 5l7 7-7 7"
                         />
                       </svg>
-                      {chapitre.titre}
+                      <span className="text-[13px] font-medium">{chapitre.titre}</span>
                     </button>
-                    
+
                     {openChapitres.includes(chapitre.id_chapitre) && (
-                      <div className="ml-4 mt-1 space-y-1">
-                        {/* Articles directement dans le chapitre */}
-                        {chapitre.articles && chapitre.articles.map((article, index) => (
+                      <div className="ml-6 mt-0.5 space-y-0.5">
+                        {chapitre.sections?.map(section => (
+                          <div key={section.id_section}>
+                            <button
+                              onClick={() => onSectionClick({
+                                id_section: section.id_section,
+                                titre: section.titre,
+                                id_chapitre: section.id_chapitre
+                              })}
+                              className="text-[13px] text-gray-900 hover:text-gray-900 hover:bg-gray-50 w-full text-left px-2 py-0.5 rounded"
+                            >
+                              {section.titre}
+                            </button>
+                            <div className="ml-4 space-y-0.5">
+                              {section.articles?.map(article => (
+                                <button
+                                  key={article.id_article}
+                                  onClick={() => onArticleClick(article)}
+                                  className="text-[13px] text-gray-900 hover:text-gray-900 hover:bg-gray-50 w-full text-left px-2 py-0.5 rounded"
+                                >
+                                  {article.numero} - {article.titre}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                        {chapitre.articles?.map(article => (
                           <button
-                            key={`article-${chapitre.id_chapitre}-${index}`}
+                            key={article.id_article}
                             onClick={() => onArticleClick(article)}
-                            className="text-left px-2 py-1 text-gray-500 hover:bg-gray-100 rounded transition-colors text-xs w-full"
+                            className="text-[13px] text-gray-900 hover:text-gray-900 hover:bg-gray-50 w-full text-left px-2 py-0.5 rounded"
                           >
                             {article.numero} - {article.titre}
                           </button>
-                        ))}
-
-                        {/* Sections avec leurs articles */}
-                        {chapitre.sections && chapitre.sections.map((section, sectionIndex) => (
-                          <div key={`section-${section.id_section}`} className="space-y-1">
-                            <div className="text-gray-600 text-xs font-medium pl-2">{section.titre}</div>
-                            {section.articles && section.articles.map((article, articleIndex) => (
-                              <button
-                                key={`article-${section.id_section}-${articleIndex}`}
-                                onClick={() => onArticleClick(article)}
-                                className="text-left pl-4 py-1 text-gray-500 hover:bg-gray-100 rounded transition-colors text-xs w-full"
-                              >
-                                {article.numero} - {article.titre}
-                              </button>
-                            ))}
-                          </div>
                         ))}
                       </div>
                     )}
@@ -449,27 +473,37 @@ export const Sommaire: React.FC<SommaireProps> = ({
                   <div key={annexe.numero}>
                     {annexe.subdivisions ? (
                       <div>
-                        <button
-                          onClick={() => toggleChapitre(annexe.numero)}
-                          className="flex items-center text-left px-2 py-1 text-gray-600 hover:bg-gray-100 rounded transition-colors text-xs w-full"
-                        >
-                          <svg
-                            className={`w-3 h-3 mr-1 transform transition-transform ${
-                              openChapitres.includes(annexe.numero) ? 'rotate-90' : ''
-                            }`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                        <div className="flex items-center w-full">
+                          <button
+                            onClick={() => toggleChapitre(annexe.numero)}
+                            className="p-2 hover:bg-gray-100 rounded transition-colors"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5l7 7-7 7"
-                            />
-                          </svg>
-                          {annexe.titre}
-                        </button>
+                            <svg
+                              className={`w-4 h-4 transform transition-transform ${
+                                openChapitres.includes(annexe.numero) ? 'rotate-90' : ''
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5l7 7-7 7"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => {
+                              toggleChapitre(annexe.numero);
+                              onAnnexeClick?.(annexe);
+                            }}
+                            className="flex-1 text-left px-2 py-1 text-gray-600 hover:bg-gray-100 rounded transition-colors text-xs"
+                          >
+                            {annexe.titre}
+                          </button>
+                        </div>
                         {openChapitres.includes(annexe.numero) && (
                           <div className="ml-4 mt-1 space-y-1">
                             {annexe.subdivisions.map((subdivision, index) => (

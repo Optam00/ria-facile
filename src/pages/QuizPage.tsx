@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import { motion } from 'framer-motion'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -63,7 +64,7 @@ export const QuizPage = () => {
       
       const shuffledQuestions = data
         .sort(() => Math.random() - 0.5)
-        .slice(0, Math.min(20, data.length))
+        .slice(0, Math.min(10, data.length))
 
       setQuestions(shuffledQuestions)
       setLoading(false)
@@ -85,12 +86,20 @@ export const QuizPage = () => {
   }
 
   const handleNextQuestion = () => {
-    if (currentQuestion < 19) {
+    if (currentQuestion < 9) {
       setCurrentQuestion(currentQuestion + 1)
       setSelectedAnswer(null)
       setShowExplanation(false)
     } else {
       setQuizCompleted(true)
+    }
+  }
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1)
+      setSelectedAnswer(null)
+      setShowExplanation(false)
     }
   }
 
@@ -123,7 +132,7 @@ export const QuizPage = () => {
   }
 
   if (quizCompleted) {
-    const percentage = (score / 20) * 100
+    const percentage = (score / 10) * 100
     let badge = ""
     if (percentage >= 80) {
       badge = "🏆 Expert du RIA"
@@ -136,7 +145,7 @@ export const QuizPage = () => {
     }
 
     const handleShare = () => {
-      const text = `${badge} - J'ai obtenu ${score}/20 au quiz sur le Règlement européen sur l'Intelligence Artificielle ! Testez vos connaissances sur https://riafacile.com #RIA #IA #Europe`
+      const text = `${badge} - J'ai obtenu ${score}/10 au quiz sur le Règlement européen sur l'Intelligence Artificielle ! Testez vos connaissances sur https://riafacile.com #RIA #IA #Europe`
       window.open(`https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`, '_blank')
     }
 
@@ -174,7 +183,7 @@ export const QuizPage = () => {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="text-4xl font-bold text-gray-800">{score}/20</div>
+                    <div className="text-4xl font-bold text-gray-800">{score}/10</div>
                     <div className="text-sm text-gray-600">{percentage}%</div>
                   </div>
                 </div>
@@ -219,12 +228,9 @@ export const QuizPage = () => {
     <div className="min-h-screen p-4">
       <div className="max-w-3xl mx-auto">
         <div className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white">
-          <div className="mb-6 flex justify-between items-center text-gray-800">
+          <div className="mb-6">
             <span className="text-base font-semibold bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-lg shadow-sm">
-              Question {currentQuestion + 1}/20
-            </span>
-            <span className="text-base font-semibold bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-lg shadow-sm">
-              Score : {score}/{selectedAnswer !== null ? currentQuestion + 1 : currentQuestion}
+              Question {currentQuestion + 1}/10
             </span>
           </div>
           
@@ -271,12 +277,27 @@ export const QuizPage = () => {
                     <p className="text-sm leading-relaxed text-gray-700">{questions[currentQuestion].Explication}</p>
                   </div>
                   
-                  <button
-                    onClick={handleNextQuestion}
-                    className="w-full bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 text-gray-800 font-semibold py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md border border-blue-200"
-                  >
-                    {currentQuestion < 19 ? 'Question suivante' : 'Terminer le quiz'}
-                  </button>
+                  <div className="flex justify-center mt-8">
+                    <button
+                      onClick={handleNextQuestion}
+                      disabled={!selectedAnswer}
+                      className="px-6 py-2 bg-[#774792] text-white rounded-lg hover:bg-[#8a5ba3] transition-colors disabled:opacity-50"
+                    >
+                      {currentQuestion < 9 ? 'Question suivante' : 'Terminer le quiz'}
+                    </button>
+                  </div>
+
+                  {/* Bouton discret pour consulter le RIA */}
+                  <div className="mt-8 text-center">
+                    <a 
+                      href="/consulter" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-gray-600 hover:text-gray-800 transition-colors px-4 py-2 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200"
+                    >
+                      Consulter le règlement IA dans un autre onglet
+                    </a>
+                  </div>
                 </div>
               )}
             </>
