@@ -1,31 +1,7 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { ReactNode } from 'react'
 import accueilImage from '../assets/accueil.jpg'
 import consulterImage from '../assets/consulter.jpg'
 import quizImage from '../assets/quiz.jpg'
-
-interface SectionProps {
-  children: ReactNode
-  isReversed?: boolean
-  className?: string
-}
-
-const Section = ({ children, isReversed = false, className = '' }: SectionProps) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.8 }}
-      className={`py-24 ${className}`}
-    >
-      <div className={`max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center ${isReversed ? 'lg:flex-row-reverse' : ''}`}>
-        {children}
-      </div>
-    </motion.div>
-  )
-}
 
 export const HomePage = () => {
   return (
