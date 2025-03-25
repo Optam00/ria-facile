@@ -497,7 +497,7 @@ export const ConsulterPage = () => {
       if (!articlesData || articlesData.length === 0) throw new Error('Aucun article trouvé')
 
       // Trier les articles en extrayant le numéro
-      const sortedArticles = (articlesData as unknown as ArticleWithChapter[]).sort((a, b) => {
+      const sortedArticles = articlesData.sort((a, b) => {
         const numA = parseInt(a.numero.replace(/[^0-9]/g, ''))
         const numB = parseInt(b.numero.replace(/[^0-9]/g, ''))
         return numA - numB
@@ -513,7 +513,7 @@ export const ConsulterPage = () => {
           titre: firstArticle.titre,
           numero: firstArticle.numero,
           contenu: firstArticle.contenu,
-          chapitre_titre: firstArticle.chapitre?.titre || '',
+          chapitre_titre: firstArticle.chapitre ? firstArticle.chapitre.titre : '',
           section_titre: section.titre
         })
       }
