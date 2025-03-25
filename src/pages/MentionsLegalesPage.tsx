@@ -1,5 +1,3 @@
-import React from 'react'
-
 export const MentionsLegalesPage = () => {
   return (
     <div className="min-h-[calc(100vh-5rem)] p-4">

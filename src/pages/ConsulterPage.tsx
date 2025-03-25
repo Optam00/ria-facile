@@ -50,7 +50,7 @@ interface SectionData {
   titre: string
 }
 
-interface ArticleData {
+interface ArticleWithChapter {
   id_article: number
   titre: string
   numero: string
@@ -101,9 +101,8 @@ export const ConsulterPage = () => {
     const savedFont = localStorage.getItem('fontFamily')
     return savedFont || 'sans'
   })
-  const [textAlign, setTextAlign] = useState<'left' | 'justify'>(() => {
-    const savedAlign = localStorage.getItem('textAlign')
-    return (savedAlign as 'left' | 'justify') || 'left'
+  const [textAlign] = useState<'left' | 'justify'>(() => {
+    return localStorage.getItem('textAlign') as 'left' | 'justify' || 'justify'
   })
   const [showTextSettings, setShowTextSettings] = useState(false)
   const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -498,7 +497,7 @@ export const ConsulterPage = () => {
       if (!articlesData || articlesData.length === 0) throw new Error('Aucun article trouvé')
 
       // Trier les articles en extrayant le numéro
-      const sortedArticles = articlesData.sort((a, b) => {
+      const sortedArticles = (articlesData as unknown as ArticleWithChapter[]).sort((a, b) => {
         const numA = parseInt(a.numero.replace(/[^0-9]/g, ''))
         const numB = parseInt(b.numero.replace(/[^0-9]/g, ''))
         return numA - numB
@@ -507,18 +506,17 @@ export const ConsulterPage = () => {
       // Prendre le premier article
       const firstArticle = sortedArticles[0]
 
-      console.log('Articles triés:', sortedArticles.map(a => a.numero))
-      console.log('Premier article sélectionné:', firstArticle.numero)
-
       setSelectedSection(sectionData)
-      setSelectedArticle({
-        id_article: firstArticle.id_article,
-        titre: firstArticle.titre,
-        numero: firstArticle.numero,
-        contenu: firstArticle.contenu,
-        chapitre_titre: firstArticle.chapitre?.titre,
-        section_titre: section.titre
-      })
+      if (firstArticle) {
+        setSelectedArticle({
+          id_article: firstArticle.id_article,
+          titre: firstArticle.titre,
+          numero: firstArticle.numero,
+          contenu: firstArticle.contenu,
+          chapitre_titre: firstArticle.chapitre?.titre || '',
+          section_titre: section.titre
+        })
+      }
       updateURL('section', section.id_section)
     } catch (err) {
       console.error('Erreur lors de la récupération de la section:', err)
@@ -556,27 +554,9 @@ export const ConsulterPage = () => {
     fontFamily: getFontFamily(fontFamily),
   }
 
-  const textContainerStyle = {
-    whiteSpace: 'pre',
-  }
-
-  const contentWrapperStyle = {
-    width: '100%',
-    maxWidth: '100%',
-    overflowX: 'hidden',
-  }
-
   const paragraphStyle = {
     fontSize: `${fontSize}px`,
     fontFamily: getFontFamily(fontFamily),
-  }
-
-  const formatContent = (content: string) => {
-    return content.split('\n').map((line, index) => (
-      <p key={index} style={paragraphStyle}>
-        {line}
-      </p>
-    ))
   }
 
   const startResizing = (e: React.MouseEvent) => {
@@ -629,6 +609,22 @@ export const ConsulterPage = () => {
       document.removeEventListener('keydown', handleEscapeKey)
     }
   }, [isFullscreen])
+
+  const firstArticle = selectedArticle ? {
+    chapitre_titre: selectedArticle.chapitre_titre || '',
+    section_titre: selectedArticle.section_titre || '',
+    numero: selectedArticle.numero || '',
+    titre: selectedArticle.titre || '',
+    contenu: selectedArticle.contenu || ''
+  } : null
+
+  const breadcrumbData = firstArticle ? {
+    chapitre_titre: firstArticle.chapitre_titre,
+    section_titre: firstArticle.section_titre,
+    numero: firstArticle.numero,
+    titre: firstArticle.titre,
+    contenu: firstArticle.contenu
+  } : null
 
   return (
     <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-white p-0' : 'min-h-[calc(100vh-1rem)] p-0'}`}>

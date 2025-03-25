@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { motion } from 'framer-motion'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -92,14 +91,6 @@ export const QuizPage = () => {
       setShowExplanation(false)
     } else {
       setQuizCompleted(true)
-    }
-  }
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1)
-      setSelectedAnswer(null)
-      setShowExplanation(false)
     }
   }
 
