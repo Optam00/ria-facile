@@ -11,7 +11,7 @@ export const ContactForm = () => {
     e.preventDefault()
     
     // Création de l'URL mailto avec les données du formulaire
-    const mailtoUrl = `mailto:matthieu.polaina@gmail.com?subject=${encodeURIComponent(`[RIA Facile] ${subject}`)}&body=${encodeURIComponent(message)}\n\nDe: ${email}`
+    const mailtoUrl = `mailto:ria-facile@outlook.fr?subject=${encodeURIComponent(`[RIA Facile] ${subject}`)}&body=${encodeURIComponent(`${message}\n\nDe: ${email}`)}`
     
     // Ouvre le client email
     window.location.href = mailtoUrl
@@ -27,7 +27,7 @@ export const ContactForm = () => {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-ria-light mb-2">
-            Votre email
+            Votre email*
           </label>
           <input
             type="email"
@@ -42,7 +42,7 @@ export const ContactForm = () => {
 
         <div>
           <label htmlFor="subject" className="block text-sm font-medium text-ria-light mb-2">
-            Objet
+            Objet*
           </label>
           <input
             type="text"
@@ -57,7 +57,7 @@ export const ContactForm = () => {
 
         <div>
           <label htmlFor="message" className="block text-sm font-medium text-ria-light mb-2">
-            Message
+            Message*
           </label>
           <textarea
             id="message"
@@ -77,6 +77,10 @@ export const ContactForm = () => {
           Envoyer le message
         </button>
       </form>
+
+      <p className="mt-4 text-sm text-ria-light opacity-70">
+        * indique les champs obligatoires
+      </p>
     </div>
   )
 } 

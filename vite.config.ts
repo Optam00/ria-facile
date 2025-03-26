@@ -6,20 +6,8 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true,
-    port: 3002,
-    strictPort: true,
-    cors: true,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    },
-    proxy: {
-      '/api': {
-        target: 'https://ria-facile.vercel.app',
-        changeOrigin: true,
-        secure: true,
-      }
-    }
+    port: 3000,
+    host: true
   },
   resolve: {
     alias: {

@@ -11,33 +11,19 @@ export const ContactPage = () => {
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setSending(true)
-    setError(null)
-
-    try {
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, subject, message }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de l'envoi du message")
-      }
-
-      setSent(true)
-      setEmail('')
-      setSubject('')
-      setMessage('')
-    } catch (err) {
-      setError('Une erreur est survenue. Veuillez réessayer.')
-    } finally {
-      setSending(false)
-    }
+    
+    // Création de l'URL mailto avec les données du formulaire
+    const mailtoUrl = `mailto:ria-facile@outlook.fr?subject=${encodeURIComponent(`[RIA Facile] ${subject}`)}&body=${encodeURIComponent(`${message}\n\nDe: ${email}`)}`
+    
+    // Ouvre le client email
+    window.location.href = mailtoUrl
+    
+    // Réinitialise le formulaire
+    setEmail('')
+    setSubject('')
+    setMessage('')
   }
 
   return (
@@ -146,12 +132,12 @@ export const ContactPage = () => {
                     className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-colors shadow-sm"
                   >
                     <option value="">Sélectionnez un sujet</option>
-                    <option value="conformite">Être accompagné dans ma conformité IA</option>
-                    <option value="formation">Être formé au règlement IA</option>
-                    <option value="bug">Signaler un bug</option>
-                    <option value="amelioration">Suggérer une amélioration de RIA Facile</option>
-                    <option value="partenariat">Proposer un partenariat</option>
-                    <option value="autre">Autre</option>
+                    <option value="Être accompagné dans ma conformité IA">Être accompagné dans ma conformité IA</option>
+                    <option value="Être formé au règlement IA">Être formé au règlement IA</option>
+                    <option value="Signaler un bug">Signaler un bug</option>
+                    <option value="Suggérer une amélioration">Suggérer une amélioration de RIA Facile</option>
+                    <option value="Proposer un partenariat">Proposer un partenariat</option>
+                    <option value="Autre">Autre</option>
                   </select>
                 </motion.div>
 
