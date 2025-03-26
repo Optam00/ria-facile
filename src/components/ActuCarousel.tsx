@@ -8,13 +8,14 @@ export const ActuCarousel = () => {
   const [actus, setActus] = useState<Actu[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [mobileIndex, setMobileIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchActus = async () => {
       try {
         console.log('Tentative de récupération des actualités...');
         const { data, error } = await supabase
-          .from('actu')
+          .from('Actu')
           .select('*')
           .order('Date', { ascending: false })
           .limit(9);
@@ -26,15 +27,14 @@ export const ActuCarousel = () => {
             details: error.details,
             hint: error.hint
           });
-          return;
-        }
-
-        if (data) {
+        } else if (data) {
           console.log('Actualités récupérées:', data.length);
           setActus(data);
         }
       } catch (e) {
         console.error('Erreur inattendue lors de la récupération:', e);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -57,10 +57,28 @@ export const ActuCarousel = () => {
     }
   };
 
-  if (actus.length === 0) return null;
+  // Si on est en chargement, on affiche un placeholder
+  if (isLoading) {
+    return (
+      <div className="w-full bg-gradient-to-r from-blue-600 to-[#774792] text-white py-4 md:py-6 rounded-lg mt-0 -mb-6">
+        <div className="max-w-[90rem] mx-auto px-2 md:px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-center">
+              <div className="animate-pulse text-center">
+                <h2 className="text-xl md:text-2xl font-bold tracking-tight">Chargement des actualités...</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Si on n'a pas d'actualités après le chargement, on n'affiche rien
+  if (!isLoading && actus.length === 0) return null;
 
   const currentActus = actus.slice(currentPage * 3, (currentPage * 3) + 3);
-  const mobileActu = actus[mobileIndex]; // Utiliser l'index mobile pour accéder à n'importe quel article
+  const mobileActu = actus[mobileIndex];
 
   return (
     <div className="w-full bg-gradient-to-r from-blue-600 to-[#774792] text-white py-4 md:py-6 rounded-lg mt-0 -mb-6">
