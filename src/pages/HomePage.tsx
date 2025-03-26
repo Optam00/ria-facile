@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import consulterImage from '../assets/consulter.jpeg'
 import quizImage from '../assets/quiz.jpeg'
 import msgImage from '../assets/msg.jpeg'
+import accueilImage from '../assets/accueil.jpeg'
 
 export const HomePage = () => {
   return (
@@ -18,8 +19,12 @@ export const HomePage = () => {
                 RIA Facile a été créé pour vous aider dans votre mise en conformité au règlement européen sur l'intelligence artificielle (RIA, AI act, IA act).
               </p>
             </div>
-            <div className="h-64 md:h-96 bg-gray-100 rounded-2xl">
-              {/* Emplacement pour l'image du bandeau */}
+            <div className="h-64 md:h-96 rounded-2xl overflow-hidden">
+              <img 
+                src={accueilImage}
+                alt="Présentation RIA Facile"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>
