@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+const API_URL = import.meta.env.DEV 
+  ? 'https://ria-facile.vercel.app/api/send-email'
+  : '/api/send-email'
+
 export const ContactForm = () => {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -16,7 +20,7 @@ export const ContactForm = () => {
     setError(null)
 
     try {
-      const response = await fetch('/api/send-email', {
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,8 +32,10 @@ export const ContactForm = () => {
         }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Erreur lors de l\'envoi du message')
+        throw new Error(data.error || 'Erreur lors de l\'envoi du message')
       }
 
       setSent(true)
@@ -37,7 +43,8 @@ export const ContactForm = () => {
       setSubject('')
       setMessage('')
     } catch (err) {
-      setError('Une erreur est survenue. Veuillez réessayer.')
+      console.error('Erreur détaillée:', err)
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue. Veuillez réessayer.')
     } finally {
       setSending(false)
     }
