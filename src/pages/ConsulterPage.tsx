@@ -48,6 +48,25 @@ interface ChapitreData {
 
 interface SectionData {
   titre: string
+  id_section: number
+}
+
+interface ArticleData {
+  id_article: number
+  titre: string
+  numero: string
+  contenu: string
+  chapitre: ChapitreData
+}
+
+interface SupabaseArticleResponse {
+  id_article: number
+  titre: string
+  numero: string
+  contenu: string
+  chapitre: {
+    titre: string
+  } | null
 }
 
 interface ArticleWithChapter {
@@ -497,7 +516,7 @@ export const ConsulterPage = () => {
       if (!articlesData || articlesData.length === 0) throw new Error('Aucun article trouvé')
 
       // Trier les articles en extrayant le numéro
-      const sortedArticles = articlesData.sort((a, b) => {
+      const sortedArticles = (articlesData as unknown as SupabaseArticleResponse[]).sort((a, b) => {
         const numA = parseInt(a.numero.replace(/[^0-9]/g, ''))
         const numB = parseInt(b.numero.replace(/[^0-9]/g, ''))
         return numA - numB
@@ -513,7 +532,7 @@ export const ConsulterPage = () => {
           titre: firstArticle.titre,
           numero: firstArticle.numero,
           contenu: firstArticle.contenu,
-          chapitre_titre: firstArticle.chapitre ? firstArticle.chapitre.titre : '',
+          chapitre_titre: firstArticle.chapitre?.titre || '',
           section_titre: section.titre
         })
       }
