@@ -2,8 +2,10 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function POST(request) {
-  if (request.method === 'OPTIONS') {
+export const runtime = 'edge';
+
+export async function POST(req) {
+  if (req.method === 'OPTIONS') {
     return new Response(null, {
       headers: {
         'Access-Control-Allow-Origin': '*',
@@ -14,12 +16,17 @@ export async function POST(request) {
   }
 
   try {
-    const { email, subject, message } = await request.json();
+    const { email, subject, message } = await req.json();
 
     if (!email || !subject || !message) {
-      return Response.json(
-        { error: 'Email, subject, and message are required' },
-        { status: 400 }
+      return new Response(
+        JSON.stringify({ error: 'Email, subject, and message are required' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
     }
 
@@ -37,12 +44,25 @@ export async function POST(request) {
       `,
     });
 
-    return Response.json({ success: true, data });
+    return new Response(
+      JSON.stringify({ success: true, data }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error sending email:', error);
-    return Response.json(
-      { error: error.message || 'Failed to send email' },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: error.message || 'Failed to send email' }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     );
   }
 } 
