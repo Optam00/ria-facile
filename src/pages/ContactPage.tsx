@@ -17,7 +17,7 @@ export const ContactPage = () => {
     setError(null)
 
     try {
-      const response = await fetch('/api/send-email', {
+      const response = await fetch('http://localhost:3001/api/send-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
