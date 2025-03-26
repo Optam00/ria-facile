@@ -3,10 +3,14 @@ import consulterImage from '../assets/consulter.jpeg'
 import quizImage from '../assets/quiz.jpeg'
 import msgImage from '../assets/msg.jpeg'
 import accueilImage from '../assets/accueil.jpeg'
+import { ActuCarousel } from '../components/ActuCarousel'
 
 export const HomePage = () => {
   return (
     <div className="min-h-screen">
+      {/* Carrousel d'actualités */}
+      <ActuCarousel />
+
       {/* Bandeau */}
       <div className="max-w-7xl mx-auto px-4 py-16 mb-12">
         <div className="bg-white rounded-3xl shadow-lg p-8">
