@@ -5,13 +5,19 @@ import quizImage from '../assets/quiz.jpeg'
 
 export const HomePage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 py-12 px-4">
+      <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Consulter le RIA */}
           <Link to="/consulter" className="group">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-transform duration-300 group-hover:scale-105">
-              <img src={consulterImage} alt="Consulter le RIA" className="w-full h-48 object-cover p-8" />
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105">
+              <div className="aspect-w-16 aspect-h-9 bg-gray-100">
+                <img 
+                  src={consulterImage} 
+                  alt="Consulter le RIA" 
+                  className="w-full h-64 object-contain p-4" 
+                />
+              </div>
               <div className="p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">Consulter le RIA</h2>
                 <p className="text-gray-600">
@@ -23,8 +29,14 @@ export const HomePage = () => {
 
           {/* Quiz */}
           <Link to="/quiz" className="group">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-transform duration-300 group-hover:scale-105">
-              <img src={quizImage} alt="Quiz sur le RIA" className="w-full h-48 object-cover p-8" />
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105">
+              <div className="aspect-w-16 aspect-h-9 bg-gray-100">
+                <img 
+                  src={quizImage} 
+                  alt="Quiz sur le RIA" 
+                  className="w-full h-64 object-contain p-4" 
+                />
+              </div>
               <div className="p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">Quiz sur le RIA</h2>
                 <p className="text-gray-600">
@@ -34,10 +46,16 @@ export const HomePage = () => {
             </div>
           </Link>
 
-          {/* Accueil */}
+          {/* Contact */}
           <Link to="/contact" className="group">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-transform duration-300 group-hover:scale-105">
-              <img src={accueilImage} alt="Nous contacter" className="w-full h-48 object-cover p-8" />
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105">
+              <div className="aspect-w-16 aspect-h-9 bg-gray-100">
+                <img 
+                  src={accueilImage} 
+                  alt="Nous contacter" 
+                  className="w-full h-64 object-contain p-4" 
+                />
+              </div>
               <div className="p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">Nous contacter</h2>
                 <p className="text-gray-600">
