@@ -1,4 +1,7 @@
 import { Link } from 'react-router-dom'
+import accueilImage from '../assets/accueil.jpeg'
+import consulterImage from '../assets/consulter.jpeg'
+import quizImage from '../assets/quiz.jpeg'
 
 export const HomePage = () => {
   return (
@@ -10,7 +13,7 @@ export const HomePage = () => {
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105">
               <div className="aspect-w-16 aspect-h-9 bg-gray-100">
                 <img 
-                  src="/images/consulter.jpeg" 
+                  src={consulterImage} 
                   alt="Consulter le RIA" 
                   className="w-full h-64 object-contain p-4" 
                 />
@@ -29,7 +32,7 @@ export const HomePage = () => {
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105">
               <div className="aspect-w-16 aspect-h-9 bg-gray-100">
                 <img 
-                  src="/images/quiz.jpeg" 
+                  src={quizImage} 
                   alt="Quiz sur le RIA" 
                   className="w-full h-64 object-contain p-4" 
                 />
@@ -48,7 +51,7 @@ export const HomePage = () => {
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105">
               <div className="aspect-w-16 aspect-h-9 bg-gray-100">
                 <img 
-                  src="/images/accueil.jpeg" 
+                  src={accueilImage} 
                   alt="Nous contacter" 
                   className="w-full h-64 object-contain p-4" 
                 />
