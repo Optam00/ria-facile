@@ -1,12 +1,6 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request) {
   try {
@@ -19,12 +13,11 @@ export async function POST(request) {
       );
     }
 
-    await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+    await resend.emails.send({
+      from: 'RIA Facile <contact@riafacile.com>',
       to: 'matthieu.polaina@gmail.com',
-      replyTo: email,
+      reply_to: email,
       subject: `[RIA Facile] ${subject}`,
-      text: `Message de : ${email}\n\n${message}`,
       html: `
         <h2>Nouveau message de RIA Facile</h2>
         <p><strong>De :</strong> ${email}</p>
