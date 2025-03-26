@@ -10,12 +10,12 @@ export const HomePage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Consulter le RIA */}
           <Link to="/consulter" className="group h-full">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105 h-full flex flex-col">
-              <div className="flex-shrink-0">
+            <div className="bg-white rounded-3xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105 h-full flex flex-col">
+              <div className="flex-shrink-0 p-6 pt-8">
                 <img 
                   src={consulterImage} 
                   alt="Consulter le RIA" 
-                  className="w-full h-64 object-contain" 
+                  className="w-full h-48 object-contain" 
                 />
               </div>
               <div className="p-6 flex-grow">
@@ -29,12 +29,12 @@ export const HomePage = () => {
 
           {/* Quiz */}
           <Link to="/quiz" className="group h-full">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105 h-full flex flex-col">
-              <div className="flex-shrink-0">
+            <div className="bg-white rounded-3xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105 h-full flex flex-col">
+              <div className="flex-shrink-0 p-6 pt-8">
                 <img 
                   src={quizImage} 
                   alt="Quiz sur le RIA" 
-                  className="w-full h-64 object-contain" 
+                  className="w-full h-48 object-contain" 
                 />
               </div>
               <div className="p-6 flex-grow">
@@ -48,12 +48,12 @@ export const HomePage = () => {
 
           {/* Contact */}
           <Link to="/contact" className="group h-full">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105 h-full flex flex-col">
-              <div className="flex-shrink-0">
+            <div className="bg-white rounded-3xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105 h-full flex flex-col">
+              <div className="flex-shrink-0 p-6 pt-8">
                 <img 
                   src={accueilImage} 
                   alt="Nous contacter" 
-                  className="w-full h-64 object-contain" 
+                  className="w-full h-48 object-contain" 
                 />
               </div>
               <div className="p-6 flex-grow">
