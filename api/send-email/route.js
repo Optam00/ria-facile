@@ -14,7 +14,7 @@ export async function POST(request) {
     }
 
     await resend.emails.send({
-      from: 'RIA Facile <contact@riafacile.com>',
+      from: 'Resend <onboarding@resend.dev>',
       to: 'matthieu.polaina@gmail.com',
       reply_to: email,
       subject: `[RIA Facile] ${subject}`,
