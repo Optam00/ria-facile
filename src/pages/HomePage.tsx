@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
-import accueilImage from '../assets/accueil.jpeg'
 import consulterImage from '../assets/consulter.jpeg'
 import quizImage from '../assets/quiz.jpeg'
+import msgImage from '../assets/msg.jpeg'
 
 export const HomePage = () => {
   return (
@@ -51,7 +51,7 @@ export const HomePage = () => {
             <div className="bg-white rounded-3xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105 h-full flex flex-col">
               <div className="flex-shrink-0 p-6 pt-8">
                 <img 
-                  src={accueilImage} 
+                  src={msgImage} 
                   alt="Nous contacter" 
                   className="w-full h-48 object-contain" 
                 />
