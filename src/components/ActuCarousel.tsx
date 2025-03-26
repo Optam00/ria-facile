@@ -9,11 +9,16 @@ export const ActuCarousel = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [mobileIndex, setMobileIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchActus = async () => {
       try {
-        console.log('Tentative de récupération des actualités...');
+        console.log('ActuCarousel - Début de la récupération des actualités');
+        console.log('ActuCarousel - Client Supabase initialisé:', !!supabase);
+
         const { data, error } = await supabase
           .from('Actu')
           .select('*')
@@ -21,24 +26,48 @@ export const ActuCarousel = () => {
           .limit(9);
 
         if (error) {
-          console.error('Erreur Supabase:', {
+          console.error('ActuCarousel - Erreur Supabase:', {
             message: error.message,
             code: error.code,
             details: error.details,
             hint: error.hint
           });
-        } else if (data) {
-          console.log('Actualités récupérées:', data.length);
+          if (isMounted) {
+            setError(error.message);
+          }
+          return;
+        }
+
+        console.log('ActuCarousel - Données reçues:', {
+          success: !!data,
+          count: data?.length || 0,
+          firstItem: data?.[0] ? { 
+            id: data[0].id,
+            titre: data[0].Titre,
+            date: data[0].Date
+          } : null
+        });
+
+        if (data && isMounted) {
           setActus(data);
         }
       } catch (e) {
-        console.error('Erreur inattendue lors de la récupération:', e);
+        console.error('ActuCarousel - Erreur inattendue:', e);
+        if (isMounted) {
+          setError(e instanceof Error ? e.message : 'Erreur inconnue');
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchActus();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handlePrevious = () => {
@@ -74,8 +103,31 @@ export const ActuCarousel = () => {
     );
   }
 
+  // Si on a une erreur, on l'affiche
+  if (error) {
+    return (
+      <div className="w-full bg-gradient-to-r from-blue-600 to-[#774792] text-white py-4 md:py-6 rounded-lg mt-0 -mb-6">
+        <div className="max-w-[90rem] mx-auto px-2 md:px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-xl md:text-2xl font-bold tracking-tight text-red-300">
+                  Impossible de charger les actualités
+                </h2>
+                <p className="mt-2 text-sm text-white/80">{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Si on n'a pas d'actualités après le chargement, on n'affiche rien
-  if (!isLoading && actus.length === 0) return null;
+  if (!isLoading && actus.length === 0) {
+    console.log('ActuCarousel - Aucune actualité disponible');
+    return null;
+  }
 
   const currentActus = actus.slice(currentPage * 3, (currentPage * 3) + 3);
   const mobileActu = actus[mobileIndex];
