@@ -8,14 +8,14 @@ export const HomePage = () => {
   return (
     <div className="min-h-screen">
       {/* Bandeau */}
-      <div className="w-full bg-white py-16 mb-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      <div className="max-w-7xl mx-auto px-4 py-16 mb-12">
+        <div className="bg-white rounded-3xl shadow-lg p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center">
             <div className="space-y-6">
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: '#774792' }}>
                 Comprenez et appliquez le Règlement IA en toute simplicité
               </h1>
-              <p className="text-lg text-gray-600">
+              <p className="text-xl text-gray-600">
                 RIA Facile a été créé pour vous aider dans votre mise en conformité au règlement européen sur l'intelligence artificielle (RIA, AI act, IA act).
               </p>
             </div>
