@@ -17,15 +17,9 @@ export async function POST(request) {
     const { email, subject, message } = await request.json();
 
     if (!email || !subject || !message) {
-      return new Response(
-        JSON.stringify({ error: 'Email, subject, and message are required' }), 
-        { 
-          status: 400, 
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          }
-        }
+      return Response.json(
+        { error: 'Email, subject, and message are required' },
+        { status: 400 }
       );
     }
 
@@ -43,27 +37,12 @@ export async function POST(request) {
       `,
     });
 
-    return new Response(
-      JSON.stringify({ success: true, data }), 
-      { 
-        status: 200, 
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        }
-      }
-    );
+    return Response.json({ success: true, data });
   } catch (error) {
     console.error('Error sending email:', error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'Failed to send email' }), 
-      { 
-        status: 500, 
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        }
-      }
+    return Response.json(
+      { error: error.message || 'Failed to send email' },
+      { status: 500 }
     );
   }
 } 

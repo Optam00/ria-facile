@@ -1,10 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const API_URL = import.meta.env.DEV 
-  ? 'https://ria-facile.vercel.app/api/send-email'
-  : '/api/send-email'
-
 export const ContactForm = () => {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -20,7 +16,7 @@ export const ContactForm = () => {
     setError(null)
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

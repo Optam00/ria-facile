@@ -12,6 +12,13 @@ export default defineConfig({
     cors: true,
     headers: {
       'Access-Control-Allow-Origin': '*'
+    },
+    proxy: {
+      '/api': {
+        target: 'https://ria-facile.vercel.app',
+        changeOrigin: true,
+        secure: true,
+      }
     }
   },
   resolve: {
