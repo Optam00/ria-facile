@@ -1,34 +1,24 @@
+import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
-export async function POST(req) {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
-    });
-  }
-
+export async function POST(request) {
   try {
-    const { email, subject, message } = await req.json();
+    const body = await request.json();
+    const { email, subject, message } = body;
 
     if (!email || !subject || !message) {
-      return new Response(
-        JSON.stringify({ error: 'Email, subject, and message are required' }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
+      return NextResponse.json(
+        { error: 'Email, subject, and message are required' },
+        { status: 400 }
       );
     }
+
+    console.log('Sending email with Resend...', { email, subject });
 
     const data = await resend.emails.send({
       from: 'Resend <onboarding@resend.dev>',
@@ -44,25 +34,17 @@ export async function POST(req) {
       `,
     });
 
-    return new Response(
-      JSON.stringify({ success: true, data }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+    console.log('Email sent successfully', data);
+
+    return NextResponse.json(
+      { success: true, data },
+      { status: 200 }
     );
   } catch (error) {
     console.error('Error sending email:', error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'Failed to send email' }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+    return NextResponse.json(
+      { error: error.message || 'Failed to send email' },
+      { status: 500 }
     );
   }
 } 
