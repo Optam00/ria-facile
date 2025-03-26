@@ -28,7 +28,7 @@ export async function POST(request) {
 
     const emailData = {
       from: 'onboarding@resend.dev',
-      to: 'contact@riafacile.com',
+      to: 'matthieu.polaina@gmail.com',
       reply_to: email,
       subject: `[RIA Facile] ${subject}`,
       html: `
