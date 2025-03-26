@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
-import accueilImage from '../assets/accueil.jpg'
-import consulterImage from '../assets/consulter.jpg'
-import quizImage from '../assets/quiz.jpg'
+import accueilImage from '@/assets/accueil.jpg'
+import consulterImage from '@/assets/consulter.jpg'
+import quizImage from '@/assets/quiz.jpg'
 
 export const HomePage = () => {
   return (
