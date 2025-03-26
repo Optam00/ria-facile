@@ -12,8 +12,9 @@ export const ActuCarousel = () => {
   useEffect(() => {
     const fetchActus = async () => {
       try {
+        console.log('Tentative de récupération des actualités...');
         const { data, error } = await supabase
-          .from('Actu')
+          .from('actu')
           .select('*')
           .order('Date', { ascending: false })
           .limit(9);
@@ -29,6 +30,7 @@ export const ActuCarousel = () => {
         }
 
         if (data) {
+          console.log('Actualités récupérées:', data.length);
           setActus(data);
         }
       } catch (e) {
