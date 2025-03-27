@@ -240,10 +240,12 @@ export const QuizPage = () => {
                     onClick={() => handleAnswerSelect(answer)}
                     disabled={selectedAnswer !== null}
                     className={`w-full p-4 text-left rounded-xl text-gray-700 text-sm transition-all duration-300 transform hover:scale-[1.01] ${
-                      selectedAnswer === answer
+                      selectedAnswer !== null
                         ? answer === questions[currentQuestion].BR
                           ? 'bg-green-50 text-green-800 border-2 border-green-200 shadow-md'
-                          : 'bg-red-50 text-red-800 border-2 border-red-200 shadow-md'
+                          : selectedAnswer === answer
+                            ? 'bg-red-50 text-red-800 border-2 border-red-200 shadow-md'
+                            : 'bg-white shadow-md border border-gray-200'
                         : 'bg-white hover:bg-gray-50 shadow-md border border-gray-200 hover:border-blue-200'
                     }`}
                   >
