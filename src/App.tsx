@@ -8,6 +8,7 @@ import { LegalNoticePage } from './pages/LegalNoticePage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { HomePage } from './pages/HomePage'
 import { ConsulterPage } from './pages/ConsulterPage'
+import { ActualitesPage } from './pages/ActualitesPage'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/consulter" element={<ConsulterPage />} />
             <Route path="/mentions-legales" element={<LegalNoticePage />} />
             <Route path="/politique-de-confidentialite" element={<PrivacyPage />} />
+            <Route path="/actualites" element={<ActualitesPage />} />
           </Routes>
         </div>
         <Footer />
