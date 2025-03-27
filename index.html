@@ -5,14 +5,39 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RIA Facile</title>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7QV1MCQ879"></script>
+    
+    <!-- Tarteaucitron -->
+    <link rel="stylesheet" type="text/css" href="/tarteaucitron/tarteaucitron.css">
+    <script src="/tarteaucitron/tarteaucitron.js"></script>
+    <script src="/tarteaucitron/tarteaucitron.services.js"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+      tarteaucitron.init({
+        "privacyUrl": "/politique-de-confidentialite", /* URL de votre politique de confidentialité */
+        "hashtag": "#tarteaucitron", /* Ouvrir le panneau avec ce hashtag */
+        "cookieName": "tarteaucitron", /* Nom du cookie */
+        "orientation": "middle", /* Position de la bannière (top - bottom - middle - popup) */
+        "groupServices": false, /* Grouper les services par catégorie */
+        "showAlertSmall": false, /* Afficher le petit bandeau en bas à droite */
+        "cookieslist": true, /* Afficher la liste des cookies */
+        "closePopup": false, /* Afficher un bouton pour fermer la popup */
+        "showIcon": true, /* Afficher l'icône TarteAuCitron */
+        "iconPosition": "BottomRight", /* Position de l'icône (BottomRight, BottomLeft, TopRight, TopLeft) */
+        "adblocker": false, /* Afficher un message si un adblocker est détecté */
+        "DenyAllCta": true, /* Afficher le bouton "Tout refuser" */
+        "AcceptAllCta": true, /* Afficher le bouton "Tout accepter" */
+        "highPrivacy": true, /* Désactiver le consentement automatique */
+        "handleBrowserDNTRequest": false, /* Répondre au signal DNT */
+        "removeCredit": false, /* Retirer le lien vers tarteaucitron.js */
+        "moreInfoLink": true, /* Afficher le lien "En savoir plus" */
+        "useExternalCss": false, /* Utiliser un fichier CSS externe */
+        "readmoreLink": "/politique-de-confidentialite", /* Changer le lien "En savoir plus" */
+        "mandatory": true /* Afficher un message sur les cookies obligatoires */
+      });
 
-      gtag('config', 'G-7QV1MCQ879');
+      // Configuration de Google Analytics
+      tarteaucitron.user.gtagUa = 'G-7QV1MCQ879';
+      tarteaucitron.user.gtagMore = function () { /* add here your optionnal gtag() */ };
+      (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
     </script>
   </head>
   <body>
