@@ -17,12 +17,6 @@ export const Footer = () => {
           >
             Politique de confidentialité
           </Link>
-          <Link 
-            to="/cookies" 
-            className="text-gray-600 hover:text-gray-800 transition-colors text-sm"
-          >
-            Politique cookies
-          </Link>
         </div>
       </div>
     </footer>
