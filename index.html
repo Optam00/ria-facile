@@ -12,24 +12,47 @@
       console.log('Début du chargement de Tarteaucitron');
     </script>
     <script src="/tarteaucitron/tarteaucitron.js"></script>
+    <script src="/tarteaucitron/tarteaucitron.services.js"></script>
     <script src="/tarteaucitron/tarteaucitron.fr.js"></script>
     <script>
       console.log('Tarteaucitron chargé:', typeof tarteaucitron !== 'undefined');
-    </script>
-    <script src="/tarteaucitron/tarteaucitron.services.js"></script>
-    <script>
-      console.log('Services Tarteaucitron chargés');
+      console.log('Mode:', import.meta.env.MODE);
       
-      if (typeof tarteaucitron !== 'undefined') {
+      // Ne charger Tarteaucitron qu'en production
+      if (import.meta.env.MODE === 'production' && typeof tarteaucitron !== 'undefined') {
+        // Configuration du Google Consent Mode
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+
+        // Configuration initiale du Consent Mode
+        gtag('consent', 'default', {
+          'ad_storage': 'denied',
+          'analytics_storage': 'denied',
+          'functionality_storage': 'denied',
+          'personalization_storage': 'denied',
+          'security_storage': 'granted',
+          'wait_for_update': 500
+        });
+
+        // Configuration de base de Google Analytics
+        gtag('js', new Date());
+        gtag('config', 'G-7QV1MCQ879', {
+          'anonymize_ip': true,
+          'cookie_flags': 'SameSite=None;Secure',
+          'restrict_data_processing': true
+        });
+
         tarteaucitron.init({
-          "privacyUrl": "/politique-de-confidentialite",
+          "privacyUrl": "/cookies",
           "hashtag": "#tarteaucitron",
           "cookieName": "tarteaucitron",
-          "orientation": "middle",
+          "orientation": "popup",
           "groupServices": false,
-          "showAlertSmall": false,
+          "showAlertSmall": true,
           "cookieslist": true,
-          "closePopup": false,
+          "closePopup": true,
           "showIcon": true,
           "iconPosition": "BottomRight",
           "adblocker": false,
@@ -40,20 +63,46 @@
           "removeCredit": false,
           "moreInfoLink": true,
           "useExternalCss": false,
-          "readmoreLink": "/politique-de-confidentialite",
-          "mandatory": true
+          "readmoreLink": "/cookies",
+          "mandatory": true,
+          "lang": "fr"
         });
 
         console.log('Tarteaucitron initialisé');
 
-        // Configuration de Google Analytics
+        // Configuration de Google Analytics avec Consent Mode
         tarteaucitron.user.gtagUa = 'G-7QV1MCQ879';
-        tarteaucitron.user.gtagMore = function () { };
+        tarteaucitron.user.gtagMore = function () {
+          // Configuration supplémentaire pour le respect de la vie privée
+          gtag('set', 'allow_google_signals', false);
+          gtag('set', 'allow_ad_personalization_signals', false);
+        };
         (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
         
-        console.log('Google Analytics configuré dans Tarteaucitron');
+        // Mise à jour du consentement en fonction du choix de l'utilisateur
+        tarteaucitron.user.gtagConsent = function (consent) {
+          if (consent) {
+            gtag('consent', 'update', {
+              'ad_storage': 'denied', // On refuse toujours la pub
+              'analytics_storage': 'granted',
+              'functionality_storage': 'granted',
+              'personalization_storage': 'denied', // On refuse toujours la personnalisation
+              'security_storage': 'granted'
+            });
+          } else {
+            gtag('consent', 'update', {
+              'ad_storage': 'denied',
+              'analytics_storage': 'denied',
+              'functionality_storage': 'denied',
+              'personalization_storage': 'denied',
+              'security_storage': 'granted'
+            });
+          }
+        };
+        
+        console.log('Google Analytics configuré avec Consent Mode');
       } else {
-        console.error('Tarteaucitron n\'est pas chargé correctement');
+        console.log('Tarteaucitron désactivé en développement');
       }
     </script>
   </head>
