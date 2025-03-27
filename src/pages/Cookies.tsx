@@ -1,6 +1,22 @@
 import React from 'react';
 
+declare global {
+  interface Window {
+    tarteaucitron: {
+      userInterface: {
+        openPanel: () => void;
+      };
+    }
+  }
+}
+
 const Cookies: React.FC = () => {
+  const openCookiesPanel = () => {
+    if (typeof window !== 'undefined' && window.tarteaucitron) {
+      window.tarteaucitron.userInterface.openPanel();
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="bg-white rounded-lg shadow-sm p-8">
@@ -71,11 +87,7 @@ const Cookies: React.FC = () => {
             en cliquant sur l'icône de cookies en bas à droite de votre écran.
           </p>
           <button 
-            onClick={() => {
-              if (typeof tarteaucitron !== 'undefined') {
-                tarteaucitron.userInterface.openPanel();
-              }
-            }}
+            onClick={openCookiesPanel}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
           >
             Gérer mes préférences
