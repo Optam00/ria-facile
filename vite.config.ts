@@ -24,6 +24,8 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 1000,
-    sourcemap: true
-  }
+    sourcemap: true,
+    copyPublicDir: true
+  },
+  publicDir: 'public'
 }) 
