@@ -13,5 +13,17 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src')
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['tailwindcss']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000,
+    sourcemap: true
   }
 }) 
