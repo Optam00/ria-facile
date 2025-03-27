@@ -5,15 +5,34 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RIA Facile</title>
-    
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7QV1MCQ879"></script>
+
+    <!-- Tarteaucitron -->
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.14.0/tarteaucitron.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.14.0/tarteaucitron.services.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.14.0/lang/tarteaucitron.fr.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.14.0/css/tarteaucitron.css">
     <script>
+      tarteaucitron.init({
+        "privacyUrl": "/politique-de-confidentialite",
+        "hashtag": "#tarteaucitron",
+        "cookieName": "tarteaucitron",
+        "lang": "fr"
+      });
+
+      // Google Analytics avec Consent Mode
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-7QV1MCQ879');
+      
+      // Configuration par défaut - consentement refusé
+      gtag('consent', 'default', {
+        'analytics_storage': 'denied'
+      });
+
+      // Configuration de GA
+      tarteaucitron.user.gtagUa = 'G-7QV1MCQ879';
+      (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
     </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7QV1MCQ879"></script>
   </head>
   <body>
     <div id="root"></div>

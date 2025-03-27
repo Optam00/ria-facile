@@ -76,6 +76,53 @@ export const PrivacyPage = () => {
               </div>
             </section>
 
+            {/* Les cookies */}
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-gray-800">Les cookies</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-800">Qu'est-ce qu'un cookie ?</h3>
+                  <p className="text-gray-700 mb-4">
+                    Un cookie est un petit fichier texte déposé sur votre terminal (ordinateur, tablette ou mobile) lors de la visite d'un site web. Il permet au site de mémoriser des informations sur votre visite, comme vos préférences de langue et d'autres paramètres.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-800">Les cookies que nous utilisons</h3>
+                  <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                    <li>
+                      <strong>Cookie de consentement (tarteaucitron) :</strong>
+                      <ul className="list-none ml-4 mt-2">
+                        <li><strong>Finalité :</strong> Stocker vos choix en matière de cookies</li>
+                        <li><strong>Durée de conservation :</strong> 365 jours</li>
+                        <li><strong>Base légale :</strong> Intérêt légitime, à savoir le bon fonctionnement du site web</li>
+                      </ul>
+                    </li>
+                    <li>
+                      <strong>Cookies Google Analytics :</strong>
+                      <ul className="list-none ml-4 mt-2">
+                        <li><strong>Finalité :</strong> Mesurer l'audience du site et comprendre son utilisation</li>
+                        <li><strong>Durée de conservation :</strong> Maximum 13 mois</li>
+                        <li><strong>Base légale :</strong> Votre consentement</li>
+                        <li><strong>Politique de confidentialité :</strong> <a href="https://policies.google.com/privacy" className="text-[#774792] hover:underline" target="_blank" rel="noopener noreferrer">https://policies.google.com/privacy</a></li>
+                      </ul>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-800">Gestion des cookies</h3>
+                  <p className="text-gray-700 mb-4">
+                    Vous pouvez à tout moment revoir et modifier vos choix en matière de cookies en cliquant sur l'icône présente en bas à droite de votre écran. Par défaut, les cookies non essentiels sont désactivés et ne sont déposés qu'après avoir obtenu votre consentement explicite.
+                  </p>
+                  <p className="text-gray-700">
+                    En cas de refus des cookies d'analyse, nous collectons uniquement des données anonymes qui ne permettent pas de vous identifier.
+                  </p>
+                </div>
+              </div>
+            </section>
+
             {/* Les droits concernant vos données */}
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-gray-800">Les droits concernant vos données</h2>
