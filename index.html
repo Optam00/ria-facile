@@ -7,14 +7,32 @@
     <title>RIA Facile</title>
     
     <!-- Tarteaucitron -->
-    <link rel="stylesheet" type="text/css" href="/tarteaucitron/tarteaucitron.css">
-    <script src="/tarteaucitron/tarteaucitron.js"></script>
-    <script src="/tarteaucitron/tarteaucitron.services.js"></script>
-    <script src="/tarteaucitron/tarteaucitron.fr.js"></script>
+    <link rel="stylesheet" type="text/css" href="./tarteaucitron/tarteaucitron.css">
+    <script src="./tarteaucitron/tarteaucitron.js"></script>
+    <script src="./tarteaucitron/tarteaucitron.services.js"></script>
+    <script src="./tarteaucitron/tarteaucitron.fr.js"></script>
     <script>
+      console.log('Chargement de la page...');
+      
+      // Vérifie si Tarteaucitron est chargé
+      function checkTarteaucitron() {
+        console.log('Vérification de Tarteaucitron...');
+        if (typeof tarteaucitron === 'undefined') {
+          console.error('Tarteaucitron n\'est pas chargé !');
+          return false;
+        }
+        console.log('Tarteaucitron est chargé');
+        return true;
+      }
+
       // Fonction d'initialisation de Tarteaucitron
       function initTarteaucitron() {
-        console.log('Initialisation de Tarteaucitron...');
+        console.log('Tentative d\'initialisation de Tarteaucitron...');
+        
+        if (!checkTarteaucitron()) {
+          console.error('Impossible d\'initialiser Tarteaucitron car il n\'est pas chargé');
+          return;
+        }
         
         tarteaucitron.init({
           "privacyUrl": "/cookie-settings",
@@ -41,6 +59,8 @@
           "bodyPosition": "bottom"
         });
 
+        console.log('Configuration de Tarteaucitron terminée');
+
         // Configuration de Google Analytics avec Consent Mode
         tarteaucitron.user.gtagUa = 'G-7QV1MCQ879';
         tarteaucitron.user.gtagMore = function () {
@@ -48,10 +68,15 @@
           gtag('set', 'allow_ad_personalization_signals', false);
         };
         (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
+        
+        console.log('Configuration de Google Analytics terminée');
       }
 
       // Initialisation après le chargement de la page
-      window.addEventListener('load', initTarteaucitron);
+      window.addEventListener('load', function() {
+        console.log('Event load déclenché');
+        setTimeout(initTarteaucitron, 1000); // Délai d'une seconde pour s'assurer que tout est chargé
+      });
     </script>
   </head>
   <body>
