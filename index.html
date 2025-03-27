@@ -8,36 +8,52 @@
     
     <!-- Tarteaucitron -->
     <link rel="stylesheet" type="text/css" href="/tarteaucitron/tarteaucitron.css">
+    <script>
+      console.log('Début du chargement de Tarteaucitron');
+    </script>
     <script src="/tarteaucitron/tarteaucitron.js"></script>
+    <script>
+      console.log('Tarteaucitron chargé:', typeof tarteaucitron !== 'undefined');
+    </script>
     <script src="/tarteaucitron/tarteaucitron.services.js"></script>
     <script>
-      tarteaucitron.init({
-        "privacyUrl": "/politique-de-confidentialite", /* URL de votre politique de confidentialité */
-        "hashtag": "#tarteaucitron", /* Ouvrir le panneau avec ce hashtag */
-        "cookieName": "tarteaucitron", /* Nom du cookie */
-        "orientation": "middle", /* Position de la bannière (top - bottom - middle - popup) */
-        "groupServices": false, /* Grouper les services par catégorie */
-        "showAlertSmall": false, /* Afficher le petit bandeau en bas à droite */
-        "cookieslist": true, /* Afficher la liste des cookies */
-        "closePopup": false, /* Afficher un bouton pour fermer la popup */
-        "showIcon": true, /* Afficher l'icône TarteAuCitron */
-        "iconPosition": "BottomRight", /* Position de l'icône (BottomRight, BottomLeft, TopRight, TopLeft) */
-        "adblocker": false, /* Afficher un message si un adblocker est détecté */
-        "DenyAllCta": true, /* Afficher le bouton "Tout refuser" */
-        "AcceptAllCta": true, /* Afficher le bouton "Tout accepter" */
-        "highPrivacy": true, /* Désactiver le consentement automatique */
-        "handleBrowserDNTRequest": false, /* Répondre au signal DNT */
-        "removeCredit": false, /* Retirer le lien vers tarteaucitron.js */
-        "moreInfoLink": true, /* Afficher le lien "En savoir plus" */
-        "useExternalCss": false, /* Utiliser un fichier CSS externe */
-        "readmoreLink": "/politique-de-confidentialite", /* Changer le lien "En savoir plus" */
-        "mandatory": true /* Afficher un message sur les cookies obligatoires */
-      });
+      console.log('Services Tarteaucitron chargés');
+      
+      if (typeof tarteaucitron !== 'undefined') {
+        tarteaucitron.init({
+          "privacyUrl": "/politique-de-confidentialite",
+          "hashtag": "#tarteaucitron",
+          "cookieName": "tarteaucitron",
+          "orientation": "middle",
+          "groupServices": false,
+          "showAlertSmall": false,
+          "cookieslist": true,
+          "closePopup": false,
+          "showIcon": true,
+          "iconPosition": "BottomRight",
+          "adblocker": false,
+          "DenyAllCta": true,
+          "AcceptAllCta": true,
+          "highPrivacy": true,
+          "handleBrowserDNTRequest": false,
+          "removeCredit": false,
+          "moreInfoLink": true,
+          "useExternalCss": false,
+          "readmoreLink": "/politique-de-confidentialite",
+          "mandatory": true
+        });
 
-      // Configuration de Google Analytics
-      tarteaucitron.user.gtagUa = 'G-7QV1MCQ879';
-      tarteaucitron.user.gtagMore = function () { /* add here your optionnal gtag() */ };
-      (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
+        console.log('Tarteaucitron initialisé');
+
+        // Configuration de Google Analytics
+        tarteaucitron.user.gtagUa = 'G-7QV1MCQ879';
+        tarteaucitron.user.gtagMore = function () { };
+        (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
+        
+        console.log('Google Analytics configuré dans Tarteaucitron');
+      } else {
+        console.error('Tarteaucitron n\'est pas chargé correctement');
+      }
     </script>
   </head>
   <body>
