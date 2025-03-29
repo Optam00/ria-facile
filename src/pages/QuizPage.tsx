@@ -136,7 +136,7 @@ export const QuizPage = () => {
     }
 
     const handleShare = () => {
-      const text = `${badge} - J'ai obtenu ${score}/10 au quiz sur le Règlement européen sur l'Intelligence Artificielle ! Testez vos connaissances sur https://riafacile.com #RIA #IA #Europe`
+      const text = `${badge} - J'ai obtenu ${score}/10 au quiz sur le Règlement européen sur l'Intelligence Artificielle !\n\nTestez vos connaissances sur https://www.ria-facile.com/quiz #RIA #AIact #IAact #IA`
       window.open(`https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`, '_blank')
     }
 
