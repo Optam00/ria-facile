@@ -106,6 +106,10 @@ export const ConsulterPage = () => {
   const [visa, setVisa] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [allConsiderants, setAllConsiderants] = useState<ConsiderantContent[]>([])
+  const [allArticles, setAllArticles] = useState<ArticleContent[]>([])
+  const [allAnnexes, setAllAnnexes] = useState<AnnexeContent[]>([])
+  const [isLoadingFullContent, setIsLoadingFullContent] = useState(false)
   const [selectedConsiderant, setSelectedConsiderant] = useState<ConsiderantContent | null>(null)
   const [selectedChapitre, setSelectedChapitre] = useState<ChapitreContent | null>(null)
   const [selectedArticle, setSelectedArticle] = useState<ArticleContent | null>(null)
@@ -607,6 +611,104 @@ export const ConsulterPage = () => {
     document.removeEventListener('mouseup', stopResizing)
   }
 
+  // Fonction pour charger tout le contenu
+  const loadFullContent = async () => {
+    setIsLoadingFullContent(true)
+    try {
+      // Charger les considérants
+      const { data: considerants, error: considerantsError } = await supabase
+        .from('considerant')
+        .select('*')
+        .order('numero')
+      
+      if (considerantsError) throw considerantsError
+      setAllConsiderants(considerants)
+
+      // Charger les articles avec leurs relations
+      const { data: articles, error: articlesError } = await supabase
+        .from('article')
+        .select(`
+          *,
+          chapitre:id_chapitre(titre),
+          section:id_section(titre)
+        `)
+        .order('id_article')
+      
+      if (articlesError) throw articlesError
+      setAllArticles(articles.map(article => ({
+        id_article: article.id_article,
+        titre: article.titre,
+        numero: article.numero,
+        contenu: article.contenu,
+        chapitre_titre: article.chapitre?.titre,
+        section_titre: article.section?.titre
+      })))
+
+      // Charger les annexes avec leur contenu complet
+      console.log('Début de la récupération des annexes...')
+      const { data: annexes, error: annexesError } = await supabase
+        .from('annexe')
+        .select('*')
+        .order('numero', { ascending: true })
+      
+      if (annexesError) {
+        console.error('Erreur lors du chargement des annexes:', annexesError)
+        throw annexesError
+      }
+
+      // Transformer les annexes de la même manière que handleAnnexeClick
+      const transformedAnnexes = annexes?.map(annexe => {
+        console.log('Traitement de l\'annexe:', annexe.numero)
+        
+        // Parser les subdivisions
+        let parsedSubdivisions = null
+        try {
+          if (annexe.subdivision) {
+            parsedSubdivisions = JSON.parse(annexe.subdivision as string)
+            console.log('Subdivisions parsées:', parsedSubdivisions)
+          }
+        } catch (err) {
+          console.error('Erreur parsing subdivision pour annexe', annexe.numero, err)
+        }
+
+        // Si l'annexe a des subdivisions, on retourne une annexe pour chaque subdivision
+        if (parsedSubdivisions && Array.isArray(parsedSubdivisions) && parsedSubdivisions.length > 0) {
+          return parsedSubdivisions.map(sub => ({
+            numero: annexe.numero,
+            titre: annexe.titre,
+            contenu: sub.contenu,
+            subdivision: [sub]
+          }))
+        }
+        
+        // Si l'annexe a un contenu direct, on le retourne
+        if (annexe.contenu) {
+          return [{
+            numero: annexe.numero,
+            titre: annexe.titre,
+            contenu: annexe.contenu
+          }]
+        }
+
+        return []
+      }).flat()
+
+      console.log('Annexes transformées:', transformedAnnexes)
+      setAllAnnexes(transformedAnnexes || [])
+
+    } catch (err) {
+      console.error('Erreur lors du chargement du contenu complet:', err)
+      setError('Impossible de charger tout le contenu')
+    } finally {
+      setIsLoadingFullContent(false)
+    }
+  }
+
+  // Charger le contenu complet quand on passe en mode défilement
+  useEffect(() => {
+    loadFullContent()
+  }, [])
+
   // Nettoyage des événements au démontage du composant
   useEffect(() => {
     return () => {
@@ -774,35 +876,58 @@ export const ConsulterPage = () => {
                     onNext={selectedConsiderant ? navigateToNextConsiderant : navigateToNextArticle}
                   />
                 )}
-                <button
-                  onClick={() => setIsFullscreen(!isFullscreen)}
-                  className={`hidden lg:flex p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg hover:bg-gray-50 transition-colors items-center gap-2 ${selectedConsiderant || selectedArticle ? '' : 'ml-auto'}`}
-                  title={isFullscreen ? "Quitter le mode plein écran" : "Passer en mode plein écran"}
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    onClick={() => setIsFullscreen(!isFullscreen)}
+                    className="hidden lg:flex p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg hover:bg-gray-50 transition-colors items-center gap-2"
+                    title={isFullscreen ? "Quitter le mode plein écran" : "Passer en mode plein écran"}
                   >
-                    {isFullscreen ? (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      {isFullscreen ? (
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 20h6M4 15v5h5m6 0h5v-5M4 9V4h5m6 0h5v5"
+                        />
+                      ) : (
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 16V20h4M21 16v4h-4M3 8V4h4M21 8V4h-4"
+                        />
+                      )}
+                    </svg>
+                    <span className="text-sm">{isFullscreen ? "Réduire" : "Plein écran"}</span>
+                  </button>
+
+                  <button
+                    onClick={() => window.open('https://eur-lex.europa.eu/legal-content/FR/TXT/PDF/?uri=OJ:L_202401689', '_blank')}
+                    className="hidden lg:flex p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg hover:bg-gray-50 transition-colors items-center gap-2"
+                    title="Consulter le PDF officiel"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M9 20h6M4 15v5h5m6 0h5v-5M4 9V4h5m6 0h5v5"
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                       />
-                    ) : (
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 16V20h4M21 16v4h-4M3 8V4h4M21 8V4h-4"
-                      />
-                    )}
-                  </svg>
-                  <span className="text-sm">{isFullscreen ? "Réduire" : "Plein écran"}</span>
-                </button>
+                    </svg>
+                    <span className="text-sm">PDF officiel</span>
+                  </button>
+                </div>
               </div>
               {loadingContent ? (
                 <p className="text-gray-400 text-sm">Chargement...</p>
@@ -838,47 +963,46 @@ export const ConsulterPage = () => {
               ) : selectedConsiderant ? (
                 <div className="relative mt-4 px-6">
                   <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`} style={contentStyle}>
-                    <h2 className="text-lg font-medium mb-4">
-                      Considérant {selectedConsiderant.numero}
-                    </h2>
+                    <div className="mb-4">
+                      <h2 className="text-xl font-medium mb-2 flex flex-wrap items-start gap-x-4">
+                        <span className="shrink-0">Considérant {selectedConsiderant.numero}</span>
+                      </h2>
+                    </div>
                     <div className="break-words whitespace-pre-wrap">
                       {selectedConsiderant.contenu}
                     </div>
                   </div>
-                  <div className="mt-8">
+                  <div className="mt-12 mb-8">
                     <NavigationButtons 
                       onPrevious={navigateToPreviousConsiderant}
                       onNext={navigateToNextConsiderant}
                     />
                   </div>
                 </div>
-              ) : selectedChapitre ? (
-                <div className="px-6">
-                  <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`} style={contentStyle}>
-                    <h2 className="text-lg font-medium mb-4">
-                      {selectedChapitre.titre}
-                    </h2>
-                    <div className="break-words whitespace-pre-wrap">
-                      {selectedChapitre.contenu}
-                    </div>
-                  </div>
-                </div>
               ) : selectedAnnexe ? (
                 <div className="relative mt-4 px-6">
                   <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`} style={contentStyle}>
-                    <h2 className="text-lg font-medium mb-4">
-                      Annexe {selectedAnnexe.numero} - {selectedAnnexe.titre}
-                      {selectedAnnexe.subdivision && (
-                        <div className="text-base font-normal mt-2">
-                          {selectedAnnexe.subdivision[0].titre_section}
-                        </div>
-                      )}
-                    </h2>
-                    <div className="w-full max-w-full">
-                      <div className="break-words whitespace-pre-wrap">
-                        {selectedAnnexe.contenu}
-                      </div>
+                    <div className="mb-4">
+                      <h2 className="text-xl font-medium mb-2 flex flex-wrap items-start gap-x-4">
+                        <span className="shrink-0">Annexe {selectedAnnexe.numero}</span>
+                        <span className="flex-1">{selectedAnnexe.titre}</span>
+                      </h2>
                     </div>
+                    <div className="break-words whitespace-pre-wrap">
+                      {selectedAnnexe.contenu}
+                    </div>
+                    {selectedAnnexe.subdivision && selectedAnnexe.subdivision.length > 0 && (
+                      <div className="mt-8">
+                        {selectedAnnexe.subdivision.map((sub, index) => (
+                          <div key={index} className="mb-6">
+                            <h3 className="text-lg font-medium mb-2">{sub.titre_section}</h3>
+                            <div className="break-words whitespace-pre-wrap">
+                              {sub.contenu}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : selectedSection ? (
