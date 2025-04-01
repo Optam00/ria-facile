@@ -8,7 +8,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.licdn.com; img-src 'self' data: https: http:; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.supabase.co https://*.supabase.net; frame-src 'self' https://www.linkedin.com; object-src 'none'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://cdn.jsdelivr.net https://*.linkedin.com https://*.licdn.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.licdn.com https://static.licdn.com; img-src 'self' data: https: http:; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com https://*.supabase.co https://*.supabase.net https://*.linkedin.com https://*.licdn.com; frame-src 'self' https://www.linkedin.com https://*.linkedin.com; object-src 'none'"
         },
         {
           "key": "X-Content-Type-Options",
