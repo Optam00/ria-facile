@@ -5,13 +5,38 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7QV1MCQ879"></script>
+    <!-- Tarteaucitron -->
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/lang/tarteaucitron.fr.js"></script>
+    <script src="/js/tarteaucitron.services.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/css/tarteaucitron.css">
+    
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-7QV1MCQ879');
+      tarteaucitron.init({
+        "privacyUrl": "/politique-de-confidentialite",
+        "bodyPosition": "top",
+        "hashtag": "#tarteaucitron",
+        "cookieName": "tarteaucitron",
+        "orientation": "middle",
+        "groupServices": false,
+        "showDetailsOnClick": true,
+        "showIcon": true,
+        "iconPosition": "BottomRight",
+        "DenyAllCta": true,
+        "AcceptAllCta": true,
+        "highPrivacy": true,
+        "removeCredit": false,
+        "moreInfoLink": true,
+        "useExternalCss": false,
+        "useExternalJs": false,
+        "mandatory": true,
+        "mandatoryCta": true,
+        "googleConsentMode": true,
+        "lang": "fr"
+      });
+
+      // Configuration de Google Analytics via tarteaucitron
+      (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
     </script>
     
     <!-- Méta-tags de base -->
