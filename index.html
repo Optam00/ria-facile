@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Tarteaucitron -->
-    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/lang/tarteaucitron.fr.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/css/tarteaucitron.css">
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.services.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/lang/tarteaucitron.fr.js"></script>
+    
     <style>
       #tarteaucitronRoot {
         position: fixed;
@@ -17,8 +19,16 @@
       .tarteaucitronLine {
         border-bottom: none !important;
       }
+      #tarteaucitronIcon {
+        position: fixed !important;
+        bottom: 0 !important;
+        right: 0 !important;
+      }
     </style>
+    
     <script>
+      window.tarteaucitronForceLanguage = 'fr';
+      
       tarteaucitron.init({
         "privacyUrl": "/politique-de-confidentialite",
         "hashtag": "#tarteaucitron",
