@@ -21,7 +21,6 @@
     <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/lang/tarteaucitron.fr.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.services.js"></script>
-    <script src="/js/tarteaucitron.services.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/css/tarteaucitron.css">
     
     <script>
@@ -48,12 +47,10 @@
         "lang": "fr",
         "adblocker": false,
         "handleBrowserDNTRequest": false,
-        "cookieslist": true,
-        "cookieDomain": ".ria-facile.com"
+        "cookieslist": true
       });
 
-      // Attendre que tarteaucitron soit prêt avant d'ajouter les services
-      tarteaucitron.job = tarteaucitron.job || [];
+      // Configuration de Google Analytics
       tarteaucitron.user.gtagId = 'G-7QV1MCQ879';
       tarteaucitron.job.push('gtag');
     </script>
