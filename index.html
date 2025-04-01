@@ -6,18 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Tarteaucitron -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/css/tarteaucitron.css">
-    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.services.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/lang/tarteaucitron.fr.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.9.5/css/tarteaucitron.css">
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.9.5/tarteaucitron.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.9.5/lang/tarteaucitron.fr.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.9.5/tarteaucitron.services.js"></script>
     
     <style>
       #tarteaucitronRoot {
-        position: fixed;
-        z-index: 999999;
+        position: fixed !important;
+        z-index: 999999 !important;
       }
-      .tarteaucitronLine {
-        border-bottom: none !important;
+      #tarteaucitronAlertBig {
+        position: fixed !important;
+        bottom: 0 !important;
+        width: 100% !important;
       }
       #tarteaucitronIcon {
         position: fixed !important;
@@ -27,15 +29,16 @@
     </style>
     
     <script>
-      window.tarteaucitronForceLanguage = 'fr';
-      
       tarteaucitron.init({
         "privacyUrl": "/politique-de-confidentialite",
+        "bodyPosition": "bottom",
         "hashtag": "#tarteaucitron",
         "cookieName": "tarteaucitron",
         "orientation": "bottom",
         "groupServices": false,
-        "showDetailsOnClick": true,
+        "serviceDefaultState": "wait",
+        "showAlertSmall": false,
+        "cookieslist": true,
         "showIcon": true,
         "iconPosition": "BottomRight",
         "adblocker": false,
@@ -47,25 +50,15 @@
         "moreInfoLink": true,
         "useExternalCss": false,
         "useExternalJs": false,
-        "googleConsentMode": true,
         "mandatory": true,
         "mandatoryCta": true,
         "lang": "fr"
       });
-
-      // Google Analytics avec Consent Mode
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      
-      // Configuration par défaut - consentement refusé
-      gtag('consent', 'default', {
-        'analytics_storage': 'denied',
-        'ad_storage': 'denied',
-        'ad_user_data': 'denied',
-        'ad_personalization': 'denied'
-      });
     </script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7QV1MCQ879"></script>
+    <script src="/js/analytics.js"></script>
     
     <!-- Méta-tags de base -->
     <title>RIA Facile - Quiz sur le Règlement européen sur l'Intelligence Artificielle</title>
@@ -94,10 +87,6 @@
     <meta property="article:author" content="RIA Facile" />
     <meta property="article:section" content="Quiz" />
     <meta name="linkedin:owner" content="RIA Facile" />
-    
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7QV1MCQ879"></script>
-    <script src="/js/analytics.js"></script>
   </head>
   <body>
     <div id="root"></div>
