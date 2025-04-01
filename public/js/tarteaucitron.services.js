@@ -13,4 +13,10 @@ tarteaucitron.services.gtag = {
             gtag('config', 'G-7QV1MCQ879', { 'anonymize_ip': true });
         });
     }
+};
+
+// Configuration de Google Analytics
+tarteaucitron.user.gtagId = 'G-7QV1MCQ879';
+tarteaucitron.user.gtagMore = function () {
+    // Cette fonction sera appelée quand gtag sera chargé
 }; 
