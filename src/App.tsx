@@ -9,6 +9,7 @@ import { PrivacyPage } from './pages/PrivacyPage'
 import { HomePage } from './pages/HomePage'
 import { ConsulterPage } from './pages/ConsulterPage'
 import { ActualitesPage } from './pages/ActualitesPage'
+import { QuizResultPage } from './pages/QuizResultPage'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/quiz" element={<QuizIntroPage />} />
             <Route path="/quiz/questions" element={<QuizPage />} />
+            <Route path="/quiz/resultat" element={<QuizResultPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/consulter" element={<ConsulterPage />} />
             <Route path="/mentions-legales" element={<LegalNoticePage />} />
