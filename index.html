@@ -6,39 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Tarteaucitron -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.9.5/css/tarteaucitron.css">
-    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.9.5/tarteaucitron.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.9.5/lang/tarteaucitron.fr.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.9.5/tarteaucitron.services.js"></script>
-    
-    <style>
-      #tarteaucitronRoot {
-        position: fixed !important;
-        z-index: 999999 !important;
-      }
-      #tarteaucitronAlertBig {
-        position: fixed !important;
-        bottom: 0 !important;
-        width: 100% !important;
-      }
-      #tarteaucitronIcon {
-        position: fixed !important;
-        bottom: 0 !important;
-        right: 0 !important;
-      }
-    </style>
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.services.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/lang/tarteaucitron.fr.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/css/tarteaucitron.css">
     
     <script>
       tarteaucitron.init({
         "privacyUrl": "/politique-de-confidentialite",
-        "bodyPosition": "bottom",
         "hashtag": "#tarteaucitron",
         "cookieName": "tarteaucitron",
-        "orientation": "bottom",
+        "orientation": "middle",
         "groupServices": false,
-        "serviceDefaultState": "wait",
-        "showAlertSmall": false,
-        "cookieslist": true,
+        "showDetailsOnClick": true,
         "showIcon": true,
         "iconPosition": "BottomRight",
         "adblocker": false,
