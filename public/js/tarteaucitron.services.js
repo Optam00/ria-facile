@@ -18,12 +18,14 @@ tarteaucitron.services.gtag = {
 // Configuration de Google Analytics avec Google Consent Mode
 tarteaucitron.user.gtagId = 'G-7QV1MCQ879';
 tarteaucitron.user.gtagMore = function () {
-    // Configuration du Consent Mode
-    gtag('consent', 'default', {
-        'ad_storage': 'denied',
-        'analytics_storage': 'denied',
-        'functionality_storage': 'denied',
-        'personalization_storage': 'denied',
-        'security_storage': 'granted'
-    });
+    // Mise à jour du consentement en fonction du choix de l'utilisateur
+    if (tarteaucitron.state.gtag === true) {
+        gtag('consent', 'update', {
+            'analytics_storage': 'granted'
+        });
+    } else {
+        gtag('consent', 'update', {
+            'analytics_storage': 'denied'
+        });
+    }
 }; 
