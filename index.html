@@ -30,12 +30,28 @@
         "moreInfoLink": true,
         "useExternalCss": false,
         "useExternalJs": false,
+        "googleConsentMode": true,
         "mandatory": true,
         "mandatoryCta": true,
         "lang": "fr"
       });
 
-      // Google Analytics
+      // Google Analytics avec Consent Mode
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      
+      // Configuration par défaut - consentement refusé
+      gtag('consent', 'default', {
+        'analytics_storage': 'denied',
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied'
+      });
+
+      gtag('config', 'G-7QV1MCQ879');
+
+      // Configuration de GA via Tarteaucitron
       tarteaucitron.user.gtagUa = 'G-7QV1MCQ879';
       (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
     </script>
