@@ -6,20 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Tarteaucitron -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/css/tarteaucitron.css">
     <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.js"></script>
-
-    <script type="text/javascript">
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.services.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/lang/tarteaucitron.fr.js"></script>
+    
+    <script>
       tarteaucitron.init({
         "privacyUrl": "/politique-de-confidentialite",
-        "bodyPosition": "top",
         "hashtag": "#tarteaucitron",
         "cookieName": "tarteaucitron",
         "orientation": "middle",
         "groupServices": false,
         "showDetailsOnClick": true,
-        "serviceDefaultState": "wait",
-        "showAlertSmall": false,
-        "cookieslist": true,
         "showIcon": true,
         "iconPosition": "BottomRight",
         "adblocker": false,
@@ -33,21 +32,16 @@
         "useExternalJs": false,
         "mandatory": true,
         "mandatoryCta": true,
-        "googleConsentMode": true,
         "lang": "fr"
       });
-    </script>
 
-    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/lang/tarteaucitron.fr.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/tarteaucitron.services.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/AmauriC/tarteaucitron.js@1.19.0/css/tarteaucitron.css">
-
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7QV1MCQ879"></script>
-    <script>
+      // Google Analytics
       tarteaucitron.user.gtagUa = 'G-7QV1MCQ879';
       (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
     </script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7QV1MCQ879"></script>
     
     <!-- Méta-tags de base -->
     <title>RIA Facile - Quiz sur le Règlement européen sur l'Intelligence Artificielle</title>
