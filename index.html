@@ -33,11 +33,17 @@
         "mandatory": true,
         "mandatoryCta": true,
         "googleConsentMode": true,
-        "lang": "fr"
+        "lang": "fr",
+        "adblocker": false,
+        "handleBrowserDNTRequest": false,
+        "cookieslist": true,
+        "cookieDomain": ".ria-facile.com"
       });
 
-      // Configuration de Google Analytics via tarteaucitron
-      (tarteaucitron.job = tarteaucitron.job || []).push('gtag');
+      // Attendre que tarteaucitron soit prêt avant d'ajouter les services
+      tarteaucitron.job = tarteaucitron.job || [];
+      tarteaucitron.user.gtagId = 'G-7QV1MCQ879';
+      tarteaucitron.job.push('gtag');
     </script>
     
     <!-- Méta-tags de base -->

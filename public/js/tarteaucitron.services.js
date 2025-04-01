@@ -15,8 +15,15 @@ tarteaucitron.services.gtag = {
     }
 };
 
-// Configuration de Google Analytics
+// Configuration de Google Analytics avec Google Consent Mode
 tarteaucitron.user.gtagId = 'G-7QV1MCQ879';
 tarteaucitron.user.gtagMore = function () {
-    // Cette fonction sera appelée quand gtag sera chargé
+    // Configuration du Consent Mode
+    gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'analytics_storage': 'denied',
+        'functionality_storage': 'denied',
+        'personalization_storage': 'denied',
+        'security_storage': 'granted'
+    });
 }; 
