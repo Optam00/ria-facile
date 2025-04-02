@@ -1,6 +1,6 @@
-import express from 'express'
-import { renderPage } from 'vite-plugin-ssr/server'
-import compression from 'compression'
+const express = require('express')
+const { renderPage } = require('vite-plugin-ssr/server')
+const compression = require('compression')
 
 const isProduction = process.env.NODE_ENV === 'production'
 const root = process.cwd()
