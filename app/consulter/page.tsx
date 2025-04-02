@@ -1,5 +1,6 @@
+import React from 'react'
 import type { Metadata } from 'next'
-import { ConsulterPage } from '@/pages/ConsulterPage'
+import { ConsulterPage } from '../components/ConsulterPage'
 
 export const metadata: Metadata = {
   title: 'Consulter le règlement IA de façon simple et interactive (RIA, IA Act, AI Act)',

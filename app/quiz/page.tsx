@@ -1,5 +1,6 @@
+import React from 'react'
 import type { Metadata } from 'next'
-import { QuizIntroPage } from '@/pages/QuizIntroPage'
+import { QuizIntroPage } from '../components/QuizIntroPage'
 
 export const metadata: Metadata = {
   title: 'Testez vos connaissances sur le Règlement IA (RIA, AI act, IA act)',
