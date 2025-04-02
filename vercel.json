@@ -1,20 +1,5 @@
 {
-  "routes": [
-    {
-      "src": "/quiz",
-      "dest": "/index.html",
-      "headers": {
-        "Link": "</quiz.html>; rel=preload; as=document"
-      }
-    },
-    {
-      "src": "/consulter",
-      "dest": "/index.html",
-      "headers": {
-        "Link": "</consulter.html>; rel=preload; as=document"
-      }
-    }
-  ],
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {
       "source": "/(.*)",
@@ -33,6 +18,5 @@
         }
       ]
     }
-  ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  ]
 }
