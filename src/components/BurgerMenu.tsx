@@ -1,7 +1,7 @@
 import React, { useState, useEffect, cloneElement } from 'react';
 
 interface BurgerMenuProps {
-  children: React.ReactElement;
+  children: React.ReactElement<{ defaultOpen?: boolean; forceOpen?: boolean }>;
   buttonClassName?: string;
 }
 
