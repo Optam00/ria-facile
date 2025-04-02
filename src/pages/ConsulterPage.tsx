@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { Sommaire } from '@/components/Sommaire'
 import { BurgerMenu } from '@/components/BurgerMenu'
 import { TextSettings } from '@/components/TextSettings'
+import { Helmet } from 'react-helmet'
 
 interface ConsiderantContent {
   numero: number
@@ -748,92 +749,179 @@ export const ConsulterPage = () => {
   } : null
 
   return (
-    <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-white p-0' : 'min-h-[calc(100vh-1rem)] p-0'}`}>
-      <div className={`${isFullscreen ? 'h-full overflow-hidden' : 'max-w-6xl mx-auto'}`}>
-        <div className={`white-container ${isFullscreen ? '' : 'rounded-2xl shadow-lg'} min-h-[70vh] relative`}>
-          {/* Menu Burger et paramètres pour mobile */}
-          <div className="lg:hidden px-1 mb-1">
-            <div className="flex items-center justify-between mt-1">
-              <div className="flex items-center gap-2">
-                <BurgerMenu buttonClassName="bg-white shadow-none">
-                  <div className={`${isFullscreen ? 'max-h-[calc(100vh-12rem)]' : 'max-h-[calc(100vh-8rem)]'} overflow-y-auto pr-2 custom-scrollbar`}>
-                    <Sommaire 
-                      onConsiderantClick={handleConsiderantClick}
-                      onChapitreClick={handleChapitreClick}
-                      onArticleClick={handleArticleClick}
-                      onAnnexeClick={handleAnnexeClick}
-                      onSectionClick={handleSectionClick}
-                    />
+    <>
+      <Helmet>
+        <title>Consulter le règlement IA de façon simple et interactive (RIA, IA Act, AI Act)</title>
+        <meta name="description" content="Plus besoin de se battre avec le pdf officiel, vous pouvez désormais consulter le règlement grâce à un sommaire interactif" />
+        <meta property="og:title" content="Consulter le règlement IA de façon simple et interactive (RIA, IA Act, AI Act)" />
+        <meta property="og:description" content="Plus besoin de se battre avec le pdf officiel, vous pouvez désormais consulter le règlement grâce à un sommaire interactif" />
+      </Helmet>
+      <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-white p-0' : 'min-h-[calc(100vh-1rem)] p-0'}`}>
+        <div className={`${isFullscreen ? 'h-full overflow-hidden' : 'max-w-6xl mx-auto'}`}>
+          <div className={`white-container ${isFullscreen ? '' : 'rounded-2xl shadow-lg'} min-h-[70vh] relative`}>
+            {/* Menu Burger et paramètres pour mobile */}
+            <div className="lg:hidden px-1 mb-1">
+              <div className="flex items-center justify-between mt-1">
+                <div className="flex items-center gap-2">
+                  <BurgerMenu buttonClassName="bg-white shadow-none">
+                    <div className={`${isFullscreen ? 'max-h-[calc(100vh-12rem)]' : 'max-h-[calc(100vh-8rem)]'} overflow-y-auto pr-2 custom-scrollbar`}>
+                      <Sommaire 
+                        onConsiderantClick={handleConsiderantClick}
+                        onChapitreClick={handleChapitreClick}
+                        onArticleClick={handleArticleClick}
+                        onAnnexeClick={handleAnnexeClick}
+                        onSectionClick={handleSectionClick}
+                      />
+                    </div>
+                  </BurgerMenu>
+                </div>
+
+                <button
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  className="flex p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg hover:bg-gray-50 transition-colors items-center gap-2"
+                  title={isFullscreen ? "Quitter le mode plein écran" : "Passer en mode plein écran"}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    {isFullscreen ? (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 20h6M4 15v5h5m6 0h5v-5M4 9V4h5m6 0h5v5"
+                      />
+                    ) : (
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 16V20h4M21 16v4h-4M3 8V4h4M21 8V4h-4"
+                      />
+                    )}
+                  </svg>
+                  <span className="text-sm">{isFullscreen ? "Réduire" : "Plein écran"}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-[auto,1fr] gap-1 p-0">
+              {/* Sommaire pour desktop */}
+              <div 
+                ref={sidebarRef}
+                className="hidden lg:block bg-white bg-opacity-90 backdrop-blur-sm p-3 rounded-2xl shadow-lg sticky top-4 self-start relative"
+                style={{ width: `${sidebarWidth}px` }}
+              >
+                {/* Barre de redimensionnement */}
+                <div
+                  className={`absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-blue-500 transition-colors ${isResizingActive ? 'bg-blue-500' : 'bg-transparent'}`}
+                  onMouseDown={startResizing}
+                />
+                <div className="flex items-center gap-2 mb-2 border-b pb-1">
+                  <h2 className="font-medium text-gray-800">Sommaire interactif</h2>
+                </div>
+                <div className={`${isFullscreen ? 'max-h-[calc(100vh-12rem)]' : 'max-h-[calc(100vh-8rem)]'} overflow-y-auto pr-2 custom-scrollbar`}>
+                  <Sommaire 
+                    onConsiderantClick={handleConsiderantClick}
+                    onChapitreClick={handleChapitreClick}
+                    onArticleClick={handleArticleClick}
+                    onAnnexeClick={handleAnnexeClick}
+                    onSectionClick={handleSectionClick}
+                  />
+                </div>
+
+                <div className="mt-2 border-t pt-2 relative">
+                  <div className="bg-white rounded-lg shadow-lg">
+                    <button
+                      onClick={() => setShowTextSettings(!showTextSettings)}
+                      className="w-full p-2 flex items-center gap-2 justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg
+                          className="w-4 h-4 text-gray-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                          />
+                        </svg>
+                        <span className="text-sm text-gray-600 font-medium">Affichage</span>
+                      </div>
+                      {showTextSettings && (
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      )}
+                    </button>
+                    {showTextSettings && (
+                      <div className="absolute bottom-full mb-1 left-0 right-0 p-3 bg-white rounded-lg shadow-lg border z-50">
+                        <TextSettings
+                          fontSize={fontSize}
+                          fontFamily={fontFamily}
+                          onFontSizeChange={setFontSize}
+                          onFontFamilyChange={setFontFamily}
+                        />
+                      </div>
+                    )}
                   </div>
-                </BurgerMenu>
+                </div>
               </div>
 
-              <button
-                onClick={() => setIsFullscreen(!isFullscreen)}
-                className="flex p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg hover:bg-gray-50 transition-colors items-center gap-2"
-                title={isFullscreen ? "Quitter le mode plein écran" : "Passer en mode plein écran"}
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  {isFullscreen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 20h6M4 15v5h5m6 0h5v-5M4 9V4h5m6 0h5v5"
-                    />
-                  ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 16V20h4M21 16v4h-4M3 8V4h4M21 8V4h-4"
+              {/* Contenu */}
+              <div className={`col-span-1 ${isFullscreen ? 'p-8 h-[calc(100vh-2rem)] overflow-y-auto' : 'lg:pt-2'}`}>
+                <div className="flex justify-between items-center mb-4">
+                  {(selectedConsiderant || selectedArticle) && (
+                    <NavigationButtons 
+                      onPrevious={selectedConsiderant ? navigateToPreviousConsiderant : navigateToPreviousArticle}
+                      onNext={selectedConsiderant ? navigateToNextConsiderant : navigateToNextArticle}
                     />
                   )}
-                </svg>
-                <span className="text-sm">{isFullscreen ? "Réduire" : "Plein écran"}</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-[auto,1fr] gap-1 p-0">
-            {/* Sommaire pour desktop */}
-            <div 
-              ref={sidebarRef}
-              className="hidden lg:block bg-white bg-opacity-90 backdrop-blur-sm p-3 rounded-2xl shadow-lg sticky top-4 self-start relative"
-              style={{ width: `${sidebarWidth}px` }}
-            >
-              {/* Barre de redimensionnement */}
-              <div
-                className={`absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-blue-500 transition-colors ${isResizingActive ? 'bg-blue-500' : 'bg-transparent'}`}
-                onMouseDown={startResizing}
-              />
-              <div className="flex items-center gap-2 mb-2 border-b pb-1">
-                <h2 className="font-medium text-gray-800">Sommaire interactif</h2>
-              </div>
-              <div className={`${isFullscreen ? 'max-h-[calc(100vh-12rem)]' : 'max-h-[calc(100vh-8rem)]'} overflow-y-auto pr-2 custom-scrollbar`}>
-                <Sommaire 
-                  onConsiderantClick={handleConsiderantClick}
-                  onChapitreClick={handleChapitreClick}
-                  onArticleClick={handleArticleClick}
-                  onAnnexeClick={handleAnnexeClick}
-                  onSectionClick={handleSectionClick}
-                />
-              </div>
-
-              <div className="mt-2 border-t pt-2 relative">
-                <div className="bg-white rounded-lg shadow-lg">
-                  <button
-                    onClick={() => setShowTextSettings(!showTextSettings)}
-                    className="w-full p-2 flex items-center gap-2 justify-between"
-                  >
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 ml-auto">
+                    <button
+                      onClick={() => setIsFullscreen(!isFullscreen)}
+                      className="hidden lg:flex p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg hover:bg-gray-50 transition-colors items-center gap-2"
+                      title={isFullscreen ? "Quitter le mode plein écran" : "Passer en mode plein écran"}
+                    >
                       <svg
-                        className="w-4 h-4 text-gray-600"
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        {isFullscreen ? (
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 20h6M4 15v5h5m6 0h5v-5M4 9V4h5m6 0h5v5"
+                          />
+                        ) : (
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 16V20h4M21 16v4h-4M3 8V4h4M21 8V4h-4"
+                          />
+                        )}
+                      </svg>
+                      <span className="text-sm">{isFullscreen ? "Réduire" : "Plein écran"}</span>
+                    </button>
+
+                    <button
+                      onClick={() => window.open('https://eur-lex.europa.eu/legal-content/FR/TXT/PDF/?uri=OJ:L_202401689', '_blank')}
+                      className="hidden lg:flex p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg hover:bg-gray-50 transition-colors items-center gap-2"
+                      title="Consulter le PDF officiel"
+                    >
+                      <svg
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -842,202 +930,123 @@ export const ConsulterPage = () => {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                         />
                       </svg>
-                      <span className="text-sm text-gray-600 font-medium">Affichage</span>
-                    </div>
-                    {showTextSettings && (
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    )}
-                  </button>
-                  {showTextSettings && (
-                    <div className="absolute bottom-full mb-1 left-0 right-0 p-3 bg-white rounded-lg shadow-lg border z-50">
-                      <TextSettings
-                        fontSize={fontSize}
-                        fontFamily={fontFamily}
-                        onFontSizeChange={setFontSize}
-                        onFontFamilyChange={setFontFamily}
-                      />
-                    </div>
-                  )}
+                      <span className="text-sm">PDF officiel</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Contenu */}
-            <div className={`col-span-1 ${isFullscreen ? 'p-8 h-[calc(100vh-2rem)] overflow-y-auto' : 'lg:pt-2'}`}>
-              <div className="flex justify-between items-center mb-4">
-                {(selectedConsiderant || selectedArticle) && (
-                  <NavigationButtons 
-                    onPrevious={selectedConsiderant ? navigateToPreviousConsiderant : navigateToPreviousArticle}
-                    onNext={selectedConsiderant ? navigateToNextConsiderant : navigateToNextArticle}
-                  />
-                )}
-                <div className="flex items-center gap-2 ml-auto">
-                  <button
-                    onClick={() => setIsFullscreen(!isFullscreen)}
-                    className="hidden lg:flex p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg hover:bg-gray-50 transition-colors items-center gap-2"
-                    title={isFullscreen ? "Quitter le mode plein écran" : "Passer en mode plein écran"}
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      {isFullscreen ? (
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 20h6M4 15v5h5m6 0h5v-5M4 9V4h5m6 0h5v5"
-                        />
-                      ) : (
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 16V20h4M21 16v4h-4M3 8V4h4M21 8V4h-4"
-                        />
-                      )}
-                    </svg>
-                    <span className="text-sm">{isFullscreen ? "Réduire" : "Plein écran"}</span>
-                  </button>
-
-                  <button
-                    onClick={() => window.open('https://eur-lex.europa.eu/legal-content/FR/TXT/PDF/?uri=OJ:L_202401689', '_blank')}
-                    className="hidden lg:flex p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg hover:bg-gray-50 transition-colors items-center gap-2"
-                    title="Consulter le PDF officiel"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <span className="text-sm">PDF officiel</span>
-                  </button>
-                </div>
-              </div>
-              {loadingContent ? (
-                <p className="text-gray-400 text-sm">Chargement...</p>
-              ) : selectedArticle ? (
-                <div className="relative mt-4 px-6">
-                  <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`} style={contentStyle}>
-                    <div className="mb-4">
-                      <div className="text-sm mb-3">
-                        {selectedArticle.chapitre_titre}
-                        {selectedArticle.section_titre && (
-                          <>
-                            <span className="mx-2">›</span>
-                            <span className="font-medium">{selectedArticle.section_titre}</span>
-                          </>
-                        )}
+                {loadingContent ? (
+                  <p className="text-gray-400 text-sm">Chargement...</p>
+                ) : selectedArticle ? (
+                  <div className="relative mt-4 px-6">
+                    <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`} style={contentStyle}>
+                      <div className="mb-4">
+                        <div className="text-sm mb-3">
+                          {selectedArticle.chapitre_titre}
+                          {selectedArticle.section_titre && (
+                            <>
+                              <span className="mx-2">›</span>
+                              <span className="font-medium">{selectedArticle.section_titre}</span>
+                            </>
+                          )}
+                        </div>
+                        <h2 className="text-xl font-medium mb-2 flex flex-wrap items-start gap-x-4">
+                          <span className="shrink-0">{selectedArticle.numero}</span>
+                          <span className="flex-1">{selectedArticle.titre}</span>
+                        </h2>
                       </div>
-                      <h2 className="text-xl font-medium mb-2 flex flex-wrap items-start gap-x-4">
-                        <span className="shrink-0">{selectedArticle.numero}</span>
-                        <span className="flex-1">{selectedArticle.titre}</span>
-                      </h2>
-                    </div>
-                    <div className="break-words whitespace-pre-wrap">
-                      {selectedArticle.contenu}
-                    </div>
-                  </div>
-                  <div className="mt-12 mb-8">
-                    <NavigationButtons 
-                      onPrevious={navigateToPreviousArticle}
-                      onNext={navigateToNextArticle}
-                    />
-                  </div>
-                </div>
-              ) : selectedConsiderant ? (
-                <div className="relative mt-4 px-6">
-                  <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`} style={contentStyle}>
-                    <div className="mb-4">
-                      <h2 className="text-xl font-medium mb-2 flex flex-wrap items-start gap-x-4">
-                        <span className="shrink-0">Considérant {selectedConsiderant.numero}</span>
-                      </h2>
-                    </div>
-                    <div className="break-words whitespace-pre-wrap">
-                      {selectedConsiderant.contenu}
-                    </div>
-                  </div>
-                  <div className="mt-12 mb-8">
-                    <NavigationButtons 
-                      onPrevious={navigateToPreviousConsiderant}
-                      onNext={navigateToNextConsiderant}
-                    />
-                  </div>
-                </div>
-              ) : selectedAnnexe ? (
-                <div className="relative mt-4 px-6">
-                  <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`} style={contentStyle}>
-                    <div className="mb-4">
-                      <h2 className="text-xl font-medium mb-2 flex flex-wrap items-start gap-x-4">
-                        <span className="shrink-0">Annexe {selectedAnnexe.numero}</span>
-                        <span className="flex-1">{selectedAnnexe.titre}</span>
-                      </h2>
-                    </div>
-                    <div className="break-words whitespace-pre-wrap">
-                      {selectedAnnexe.contenu}
-                    </div>
-                    {selectedAnnexe.subdivision && selectedAnnexe.subdivision.length > 0 && (
-                      <div className="mt-8">
-                        {selectedAnnexe.subdivision.map((sub, index) => (
-                          <div key={index} className="mb-6">
-                            <h3 className="text-lg font-medium mb-2">{sub.titre_section}</h3>
-                            <div className="break-words whitespace-pre-wrap">
-                              {sub.contenu}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : selectedSection ? (
-                <div>
-                  <div style={contentStyle}>
-                    <h2 className="text-lg font-medium mb-4">
-                      Section {selectedSection.titre}
-                    </h2>
-                    <div className="w-full max-w-full">
                       <div className="break-words whitespace-pre-wrap">
-                        {selectedSection.titre}
+                        {selectedArticle.contenu}
+                      </div>
+                    </div>
+                    <div className="mt-12 mb-8">
+                      <NavigationButtons 
+                        onPrevious={navigateToPreviousArticle}
+                        onNext={navigateToNextArticle}
+                      />
+                    </div>
+                  </div>
+                ) : selectedConsiderant ? (
+                  <div className="relative mt-4 px-6">
+                    <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`} style={contentStyle}>
+                      <div className="mb-4">
+                        <h2 className="text-xl font-medium mb-2 flex flex-wrap items-start gap-x-4">
+                          <span className="shrink-0">Considérant {selectedConsiderant.numero}</span>
+                        </h2>
+                      </div>
+                      <div className="break-words whitespace-pre-wrap">
+                        {selectedConsiderant.contenu}
+                      </div>
+                    </div>
+                    <div className="mt-12 mb-8">
+                      <NavigationButtons 
+                        onPrevious={navigateToPreviousConsiderant}
+                        onNext={navigateToNextConsiderant}
+                      />
+                    </div>
+                  </div>
+                ) : selectedAnnexe ? (
+                  <div className="relative mt-4 px-6">
+                    <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`} style={contentStyle}>
+                      <div className="mb-4">
+                        <h2 className="text-xl font-medium mb-2 flex flex-wrap items-start gap-x-4">
+                          <span className="shrink-0">Annexe {selectedAnnexe.numero}</span>
+                          <span className="flex-1">{selectedAnnexe.titre}</span>
+                        </h2>
+                      </div>
+                      <div className="break-words whitespace-pre-wrap">
+                        {selectedAnnexe.contenu}
+                      </div>
+                      {selectedAnnexe.subdivision && selectedAnnexe.subdivision.length > 0 && (
+                        <div className="mt-8">
+                          {selectedAnnexe.subdivision.map((sub, index) => (
+                            <div key={index} className="mb-6">
+                              <h3 className="text-lg font-medium mb-2">{sub.titre_section}</h3>
+                              <div className="break-words whitespace-pre-wrap">
+                                {sub.contenu}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : selectedSection ? (
+                  <div>
+                    <div style={contentStyle}>
+                      <h2 className="text-lg font-medium mb-4">
+                        Section {selectedSection.titre}
+                      </h2>
+                      <div className="w-full max-w-full">
+                        <div className="break-words whitespace-pre-wrap">
+                          {selectedSection.titre}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center h-full px-6">
-                  <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'}`}>
-                    <h1 className="text-sm font-bold text-center whitespace-pre-wrap">{titre}</h1>
-                    <div className="whitespace-pre-wrap text-sm">{visa}</div>
+                ) : (
+                  <div className="flex flex-col items-center h-full px-6">
+                    <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'}`}>
+                      <h1 className="text-sm font-bold text-center whitespace-pre-wrap">{titre}</h1>
+                      <div className="whitespace-pre-wrap text-sm">{visa}</div>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Overlay pour désactiver les interactions pendant le redimensionnement */}
-      {isResizingActive && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-10 cursor-ew-resize z-50" 
-          onMouseUp={stopResizing}
-        />
-      )}
-    </div>
+        {/* Overlay pour désactiver les interactions pendant le redimensionnement */}
+        {isResizingActive && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-10 cursor-ew-resize z-50" 
+            onMouseUp={stopResizing}
+          />
+        )}
+      </div>
+    </>
   )
 } 
