@@ -1,18 +1,20 @@
 {
   "routes": [
     {
-      "src": "/quiz",
-      "dest": "/index.html",
-      "headers": {
-        "Link": "</quiz.html>; rel=preload; as=document"
-      }
+      "src": "^/quiz$",
+      "dest": "/quiz.html"
     },
     {
-      "src": "/consulter",
-      "dest": "/index.html",
-      "headers": {
-        "Link": "</consulter.html>; rel=preload; as=document"
-      }
+      "src": "^/consulter$",
+      "dest": "/consulter.html"
+    },
+    {
+      "src": "^/$",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "headers": [
