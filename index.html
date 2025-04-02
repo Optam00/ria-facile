@@ -11,7 +11,9 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-7QV1MCQ879');
+      gtag('config', 'G-7QV1MCQ879', {
+        'send_page_view': false // Désactive l'envoi automatique pour laisser tarteaucitron gérer
+      });
     </script>
     
     <!-- Tarteaucitron -->
@@ -45,7 +47,8 @@
         "useExternalJs": false,
         "cookieslist": true,
         "groupServices": false,
-        "serviceDefaultState": "wait"
+        "serviceDefaultState": "wait",
+        "googleConsentMode": true
       });
 
       // Configuration de Google Analytics
