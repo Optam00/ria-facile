@@ -92,7 +92,7 @@ export const PrivacyPage = () => {
                   <h3 className="text-xl font-semibold mb-3 text-gray-800">Les cookies que nous utilisons</h3>
                   <ul className="list-disc pl-6 space-y-2 text-gray-700">
                     <li>
-                      <strong>Cookie de consentement (tarteaucitron) :</strong>
+                      <strong>Cookie de gestion du consentement :</strong>
                       <ul className="list-none ml-4 mt-2">
                         <li><strong>Finalité :</strong> Stocker vos choix en matière de cookies</li>
                         <li><strong>Durée de conservation :</strong> 365 jours</li>
