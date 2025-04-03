@@ -9,28 +9,27 @@ declare global {
 export const TarteaucitronManager = () => {
   useEffect(() => {
     const loadedElements: HTMLElement[] = [];
+    const isDev = import.meta.env.DEV;
+    const basePath = isDev ? '' : '';
 
-    // Charger les fichiers CSS s'ils ne sont pas déjà chargés
-    if (!document.querySelector('link[href="/tarteaucitron/tarteaucitron.css"]')) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.type = 'text/css';
-      link.href = '/tarteaucitron/tarteaucitron.css';
-      document.head.appendChild(link);
-      loadedElements.push(link);
-    }
+    // Charger les fichiers CSS
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = `${basePath}/tarteaucitron/tarteaucitron.css`;
+    document.head.appendChild(link);
+    loadedElements.push(link);
 
-    // Charger les scripts dans l'ordre s'ils ne sont pas déjà chargés
+    // Charger les scripts dans l'ordre
     const loadScript = (src: string) => {
       return new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src="${src}"]`)) {
-          resolve(undefined);
-          return;
-        }
         const script = document.createElement('script');
         script.src = src;
         script.onload = resolve;
-        script.onerror = reject;
+        script.onerror = (e) => {
+          console.error('Erreur de chargement du script:', src, e);
+          reject(e);
+        };
         document.body.appendChild(script);
         loadedElements.push(script);
       });
@@ -38,13 +37,13 @@ export const TarteaucitronManager = () => {
 
     const initTarteaucitron = async () => {
       try {
-        await loadScript('/tarteaucitron/tarteaucitron.js');
-        await loadScript('/tarteaucitron/tarteaucitron.services.js');
-        await loadScript('/tarteaucitron/tarteaucitron.fr.js');
+        await loadScript(`${basePath}/tarteaucitron/tarteaucitron.js`);
+        await loadScript(`${basePath}/tarteaucitron/tarteaucitron.services.js`);
+        await loadScript(`${basePath}/tarteaucitron/tarteaucitron.fr.js`);
 
         // Attendre un peu que tout soit bien chargé
         setTimeout(() => {
-          if (window.tarteaucitron && !window.tarteaucitron.initialized) {
+          if (window.tarteaucitron) {
             window.tarteaucitron.init({
               "privacyUrl": "",
               "bodyPosition": "bottom",
@@ -70,8 +69,7 @@ export const TarteaucitronManager = () => {
               "mandatory": true,
               "mandatoryCta": true
             });
-            window.tarteaucitron.initialized = true;
-          } else if (!window.tarteaucitron) {
+          } else {
             console.error('Tarteaucitron nest pas disponible');
           }
         }, 500);
@@ -82,14 +80,12 @@ export const TarteaucitronManager = () => {
 
     initTarteaucitron();
 
-    // En développement, on ne nettoie pas les scripts pour éviter les problèmes avec HMR
-    if (import.meta.env.PROD) {
-      return () => {
-        loadedElements.forEach(element => {
-          element.parentNode?.removeChild(element);
-        });
-      };
-    }
+    // Nettoyage
+    return () => {
+      loadedElements.forEach(element => {
+        element.parentNode?.removeChild(element);
+      });
+    };
   }, []);
 
   return null;
