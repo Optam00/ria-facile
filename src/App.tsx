@@ -9,11 +9,13 @@ import { PrivacyPage } from './pages/PrivacyPage'
 import { HomePage } from './pages/HomePage'
 import { ConsulterPage } from './pages/ConsulterPage'
 import { ActualitesPage } from './pages/ActualitesPage'
+import { TarteaucitronManager } from './components/TarteaucitronManager'
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen flex flex-col">
+        <TarteaucitronManager />
         <Navigation />
         <div className="container mx-auto px-4 py-8 flex-grow">
           <Routes>
