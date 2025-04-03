@@ -14,7 +14,7 @@ export const TarteaucitronManager = () => {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.type = 'text/css';
-    link.href = '/tarteaucitron/tarteaucitron.css';
+    link.href = 'https://ria-facile.com/tarteaucitron/tarteaucitron.css';
     document.head.appendChild(link);
     loadedElements.push(link);
 
@@ -32,9 +32,9 @@ export const TarteaucitronManager = () => {
 
     const initTarteaucitron = async () => {
       try {
-        await loadScript('/tarteaucitron/tarteaucitron.js');
-        await loadScript('/tarteaucitron/tarteaucitron.services.js');
-        await loadScript('/tarteaucitron/tarteaucitron.fr.js');
+        await loadScript('https://ria-facile.com/tarteaucitron/tarteaucitron.js');
+        await loadScript('https://ria-facile.com/tarteaucitron/tarteaucitron.services.js');
+        await loadScript('https://ria-facile.com/tarteaucitron/tarteaucitron.fr.js');
 
         // Attendre un peu que tout soit bien chargé
         setTimeout(() => {
