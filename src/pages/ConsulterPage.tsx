@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../lib/supabase'
 import { Sommaire } from '@/components/Sommaire'
 import { BurgerMenu } from '@/components/BurgerMenu'
 import { TextSettings } from '@/components/TextSettings'
