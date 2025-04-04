@@ -22,10 +22,4 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Les variables d\'environnement Supabase ne sont pas définies');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false
-  }
-}); 
+export const supabase = createClient(supabaseUrl, supabaseAnonKey); 
