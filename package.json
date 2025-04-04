@@ -2,7 +2,7 @@
   "name": "ria-facile",
   "private": true,
   "version": "0.1.0",
-  "type": "module",
+  "type": "commonjs",
   "engines": {
     "node": "18.x"
   },

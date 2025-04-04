@@ -7,8 +7,10 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     target: 'es2018',
-    commonjsOptions: {
-      transformMixedEsModules: true
+    rollupOptions: {
+      output: {
+        format: 'cjs'
+      }
     }
   },
   optimizeDeps: {
