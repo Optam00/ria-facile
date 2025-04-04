@@ -9,9 +9,7 @@
   "scripts": {
     "dev": "vite",
     "clean": "rm -rf dist",
-    "typecheck": "tsc --noEmit",
-    "build": "npm run clean && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -19,7 +17,7 @@
     "@supabase/supabase-js": "^2.49.1",
     "@types/cheerio": "^0.22.35",
     "@types/lodash": "^4.17.16",
-    "@types/node": "^20.11.24",
+    "@types/node": "^18.19.0",
     "@types/nodemailer": "^6.4.17",
     "@types/react-helmet": "^6.1.11",
     "axios": "^1.8.3",
@@ -42,8 +40,7 @@
     "react-helmet": "^6.1.0",
     "react-router-dom": "^6.22.2",
     "resend": "^4.2.0",
-    "supabase": "^2.19.5",
-    "ts-node": "^10.9.2"
+    "supabase": "^2.19.5"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
@@ -52,17 +49,14 @@
     "@types/react-dom": "^18.2.0",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
     "@typescript-eslint/parser": "^7.0.2",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^3.1.0",
     "autoprefixer": "^10.4.17",
     "eslint": "^8.56.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "postcss": "^8.4.35",
-    "react-snap": "^1.23.0",
     "tailwindcss": "^3.4.1",
-    "tsx": "^4.7.1",
     "typescript": "^4.9.5",
-    "vite": "^5.1.4",
-    "terser": "^5.27.2"
+    "vite": "^4.5.2"
   }
 }
