@@ -6,12 +6,8 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist',
-    target: 'es2018',
-    rollupOptions: {
-      output: {
-        format: 'cjs'
-      }
-    }
+    minify: false,
+    sourcemap: true
   },
   optimizeDeps: {
     esbuildOptions: {
