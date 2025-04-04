@@ -2,14 +2,14 @@
   "name": "ria-facile",
   "private": true,
   "version": "0.1.0",
-  "type": "commonjs",
+  "type": "module",
   "engines": {
     "node": "18.x"
   },
   "scripts": {
     "dev": "vite",
-    "clean": "rm -rf dist",
-    "build": "vite build",
+    "clean": "rm -rf dist node_modules/.vite",
+    "build": "npm run clean && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
