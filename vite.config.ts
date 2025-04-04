@@ -7,22 +7,19 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor': ['react', 'react-dom', 'react-router-dom'],
-        },
-      },
-    },
-    chunkSizeWarningLimit: 1000,
-    sourcemap: true
+    minify: 'terser',
+    sourcemap: true,
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    }
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-    },
+    }
   },
-  optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+  server: {
+    port: 3000
   }
 }) 
