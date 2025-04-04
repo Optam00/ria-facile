@@ -15,12 +15,12 @@ export default defineConfig({
     }
   },
   build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['tailwindcss']
-        }
+        manualChunks: undefined
       }
     },
     chunkSizeWarningLimit: 1000,
