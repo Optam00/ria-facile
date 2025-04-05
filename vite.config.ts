@@ -15,9 +15,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom']
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['@mui/material', '@mui/icons-material']
         }
       }
     }
+  },
+  optimizeDeps: {
+    include: ['@supabase/supabase-js', '@supabase/postgrest-js']
   }
 }) 
