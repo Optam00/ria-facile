@@ -8,27 +8,17 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
-    },
-    mainFields: ['module', 'main'],
-    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
+    }
   },
   build: {
     sourcemap: true,
-    commonjsOptions: {
-      include: [/@supabase\/.*/, /node_modules/],
-      transformMixedEsModules: true
-    },
     rollupOptions: {
       external: ['@supabase/postgrest-js'],
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@mui/material', '@mui/icons-material']
+          vendor: ['react', 'react-dom', 'react-router-dom']
         }
       }
     }
-  },
-  optimizeDeps: {
-    include: ['@supabase/supabase-js', '@supabase/postgrest-js']
   }
 }) 
