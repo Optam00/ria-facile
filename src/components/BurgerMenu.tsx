@@ -5,9 +5,10 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 interface BurgerMenuProps {
   buttonClassName?: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
-export const BurgerMenu: React.FC<BurgerMenuProps> = ({ buttonClassName = "ml-4", className = '' }) => {
+export const BurgerMenu: React.FC<BurgerMenuProps> = ({ buttonClassName = "ml-4", className = '', children }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   // Gérer les clics en dehors du menu
@@ -42,20 +43,24 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ buttonClassName = "ml-4"
 
       {isOpen && (
         <div className="burger-menu-content absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-          <Link
-            to="/consulter"
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={toggleMenu}
-          >
-            Consulter le RIA
-          </Link>
-          <Link
-            to="/documentation"
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={toggleMenu}
-          >
-            Documentation utile
-          </Link>
+          {children || (
+            <>
+              <Link
+                to="/consulter"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={toggleMenu}
+              >
+                Consulter le RIA
+              </Link>
+              <Link
+                to="/documentation"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={toggleMenu}
+              >
+                Documentation utile
+              </Link>
+            </>
+          )}
         </div>
       )}
     </div>
