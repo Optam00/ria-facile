@@ -36,9 +36,11 @@
     "nodemailer": "^6.10.0",
     "pdf-parse": "^1.1.1",
     "react": "^18.2.0",
+    "react-cookie-consent": "^9.0.0",
     "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",
     "react-router-dom": "^6.22.2",
+    "react-select": "^5.10.1",
     "resend": "^4.2.0",
     "supabase": "^2.19.5"
   },

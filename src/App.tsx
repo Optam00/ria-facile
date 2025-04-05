@@ -9,11 +9,13 @@ import { LegalNoticePage } from './pages/LegalNoticePage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { HomePage } from './pages/HomePage'
 import { ConsulterPage } from './pages/ConsulterPage'
+import { DocumentationPage } from './pages/DocumentationPage'
+import { CookieConsentBanner } from './components/CookieConsent'
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen">
         <Navigation />
         <div className="container mx-auto px-4 py-8 flex-grow">
           <Routes>
@@ -22,11 +24,13 @@ function App() {
             <Route path="/quiz/questions" element={<QuizPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/consulter" element={<ConsulterPage />} />
+            <Route path="/documentation" element={<DocumentationPage />} />
             <Route path="/mentions-legales" element={<LegalNoticePage />} />
             <Route path="/politique-de-confidentialite" element={<PrivacyPage />} />
           </Routes>
         </div>
         <Footer />
+        <CookieConsentBanner />
       </div>
     </Router>
   )

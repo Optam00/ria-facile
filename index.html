@@ -20,7 +20,15 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-7QV1MCQ879');
+
+      // Attendre le consentement avant d'activer Google Analytics
+      gtag('consent', 'default', {
+        'analytics_storage': 'denied'
+      });
+
+      gtag('config', 'G-7QV1MCQ879', {
+        'cookie_flags': 'SameSite=None;Secure'
+      });
     </script>
   </head>
   <body>

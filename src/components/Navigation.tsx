@@ -71,6 +71,15 @@ export const Navigation = () => {
                   Consulter le RIA
                 </Link>
                 <Link
+                  to="/documentation"
+                  className={`block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors ${
+                    isActive('/documentation') ? 'bg-gray-100 font-medium' : ''
+                  }`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  Documentation utile
+                </Link>
+                <Link
                   to="/quiz"
                   className={`block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors ${
                     isActive('/quiz') ? 'bg-gray-100 font-medium' : ''

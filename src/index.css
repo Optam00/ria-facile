@@ -7,7 +7,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f6f4fd 0%, #f4f2fc 50%, #f7f4fd 100%);
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #f5f3ff 100%);
   position: relative;
   overflow-x: hidden;
 }
@@ -20,18 +20,18 @@ body::after {
   width: 60vmax;
   height: 60vmax;
   border-radius: 50%;
-  opacity: 0.35;
+  opacity: 0.15;
   z-index: -1;
 }
 
 body::before {
-  background: #6b8aff;
+  background: #8b5cf6;
   left: -30vmax;
   top: -20vmax;
 }
 
 body::after {
-  background: #a78bfa;
+  background: #6366f1;
   right: -30vmax;
   bottom: -20vmax;
 }
@@ -57,7 +57,7 @@ body::after {
 }
 
 .btn-primary {
-  @apply bg-gradient-to-r from-blue-100 to-indigo-100 text-gray-800 hover:from-blue-200 hover:to-indigo-200;
+  @apply bg-gradient-to-r from-violet-100 to-indigo-100 text-gray-800 hover:from-violet-200 hover:to-indigo-200;
 }
 
 /* Navigation */
