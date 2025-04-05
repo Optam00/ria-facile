@@ -13,13 +13,20 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    dedupe: ['react', 'react-dom'],
   },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    },
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+        },
         entryFileNames: 'assets/[name].js',
         chunkFileNames: 'assets/[name].js',
         assetFileNames: 'assets/[name].[ext]'
