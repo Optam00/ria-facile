@@ -19,6 +19,7 @@ export default defineConfig({
       transformMixedEsModules: true
     },
     rollupOptions: {
+      external: ['@supabase/postgrest-js'],
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
