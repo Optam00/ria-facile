@@ -13,10 +13,11 @@ export default defineConfig({
   build: {
     sourcemap: true,
     rollupOptions: {
-      external: ['@supabase/postgrest-js'],
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom']
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          supabase: ['@supabase/supabase-js'],
+          mui: ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled']
         }
       }
     }
