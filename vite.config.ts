@@ -12,20 +12,26 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      './lib/base64url': path.resolve(__dirname, 'node_modules/@supabase/auth-js/dist/module/lib/base64url.js')
     },
-    dedupe: ['react', 'react-dom'],
+    dedupe: ['react', 'react-dom']
   },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
     commonjsOptions: {
-      include: [/node_modules/],
+      include: [
+        /node_modules/,
+        /node_modules\/@supabase\/auth-js/,
+        /node_modules\/@supabase\/supabase-js/
+      ],
       transformMixedEsModules: true
     },
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
+          'supabase-vendor': ['@supabase/supabase-js']
         },
         entryFileNames: 'assets/[name].js',
         chunkFileNames: 'assets/[name].js',
@@ -40,6 +46,7 @@ export default defineConfig({
     port: 3000
   },
   optimizeDeps: {
+    include: ['@supabase/supabase-js', '@supabase/auth-js'],
     force: true
   }
 }) 
