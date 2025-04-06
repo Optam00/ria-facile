@@ -763,7 +763,11 @@ export const ConsulterPage = () => {
             <div className="lg:hidden px-1 mb-1">
               <div className="flex items-center justify-between mt-1">
                 <div className="flex items-center gap-2">
-                  <BurgerMenu buttonClassName="bg-white shadow-none">
+                  <BurgerMenu 
+                    buttonClassName="bg-white shadow-none"
+                    position="left"
+                    menuClassName="w-[calc(100vw-2rem)] max-w-[90vw] ml-2"
+                  >
                     <div className={`${isFullscreen ? 'max-h-[calc(100vh-12rem)]' : 'max-h-[calc(100vh-8rem)]'} overflow-y-auto pr-2 custom-scrollbar`}>
                       <Sommaire 
                         onConsiderantClick={handleConsiderantClick}
