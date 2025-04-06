@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Actu } from '../types/Actu';
 import { format } from 'date-fns';
@@ -137,15 +138,15 @@ export const ActuCarousel = () => {
       <div className="max-w-[90rem] mx-auto px-2 md:px-4">
         <div className="max-w-7xl mx-auto">
           <div className="relative">
-            <a
-              href="/actualites"
+            <Link
+              to="/actualites"
               className="absolute md:top-2 md:right-2 bottom-2 right-2 md:bottom-auto text-yellow-300 hover:text-yellow-200 transition-colors duration-200 text-sm font-medium flex items-center gap-1"
             >
               Voir plus
               <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
-            </a>
+            </Link>
 
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="flex-shrink-0 mb-4 md:mb-0 md:mr-12 text-center md:text-left">

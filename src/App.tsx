@@ -10,6 +10,7 @@ import { PrivacyPage } from './pages/PrivacyPage'
 import { HomePage } from './pages/HomePage'
 import { ConsulterPage } from './pages/ConsulterPage'
 import { DocumentationPage } from './pages/DocumentationPage'
+import { ActualitesPage } from './pages/ActualitesPage'
 import { CookieConsentBanner } from './components/CookieConsent'
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
             <Route path="/documentation" element={<DocumentationPage />} />
             <Route path="/mentions-legales" element={<LegalNoticePage />} />
             <Route path="/politique-de-confidentialite" element={<PrivacyPage />} />
+            <Route path="/actualites" element={<ActualitesPage />} />
           </Routes>
         </div>
         <Footer />

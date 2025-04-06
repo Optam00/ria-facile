@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
 import { motion } from 'framer-motion'
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
+import { supabase } from '../lib/supabase'
 
 interface Actualite {
   id: number
@@ -25,28 +21,59 @@ export const ActualitesPage = () => {
 
   const fetchActualites = async () => {
     try {
+      console.log('ActualitesPage - Début de la récupération des actualités');
+      console.log('ActualitesPage - Client Supabase initialisé:', !!supabase);
+
       const { data, error } = await supabase
         .from('Actu')
         .select('*')
-        .order('Date', { ascending: false })
+        .order('Date', { ascending: false });
+
+      console.log('ActualitesPage - Réponse de Supabase:', {
+        success: !!data,
+        error: error ? {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        } : null,
+        dataCount: data?.length || 0,
+        firstItem: data?.[0] ? {
+          id: data[0].id,
+          titre: data[0].Titre,
+          date: data[0].Date
+        } : null
+      });
 
       if (error) {
-        setError(`Erreur: ${error.message}`)
-        setLoading(false)
-        return
+        console.error('ActualitesPage - Erreur Supabase:', error);
+        setError(`Erreur: ${error.message}`);
+        setLoading(false);
+        return;
       }
 
       if (!data || data.length === 0) {
-        setError('Aucune actualité trouvée')
-        setLoading(false)
-        return
+        console.log('ActualitesPage - Aucune actualité trouvée');
+        setError('Aucune actualité trouvée');
+        setLoading(false);
+        return;
       }
 
-      setActualites(data)
-      setLoading(false)
+      console.log('ActualitesPage - Actualités récupérées avec succès:', {
+        count: data.length,
+        items: data.map(item => ({
+          id: item.id,
+          titre: item.Titre,
+          date: item.Date
+        }))
+      });
+
+      setActualites(data);
+      setLoading(false);
     } catch (err) {
-      setError('Une erreur est survenue lors de la récupération des actualités')
-      setLoading(false)
+      console.error('ActualitesPage - Erreur inattendue:', err);
+      setError('Une erreur est survenue lors de la récupération des actualités');
+      setLoading(false);
     }
   }
 
