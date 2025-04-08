@@ -76,20 +76,20 @@ export const HomePage = () => {
               </div>
             </Link>
 
-            {/* Contact */}
-            <Link to="/contact" className="group h-full">
+            {/* Documentation */}
+            <Link to="/documentation" className="group h-full">
               <div className="bg-white rounded-3xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105 h-full flex flex-col">
                 <div className="flex-shrink-0 p-6 pt-8">
                   <img 
                     src={msgImage} 
-                    alt="Nous contacter" 
+                    alt="Documentation utile" 
                     className="w-full h-48 object-contain" 
                   />
                 </div>
                 <div className="p-6 flex-grow">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-2">Nous contacter</h2>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-2">Documentation utile</h2>
                   <p className="text-gray-600">
-                    Des questions ? N'hésitez pas à nous contacter pour plus d'informations.
+                    Découvrez tous les documents utiles pour comprendre le règlement (lignes directrices, etc.)
                   </p>
                 </div>
               </div>
