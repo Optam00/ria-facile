@@ -12,12 +12,14 @@ import { ConsulterPage } from './pages/ConsulterPage'
 import { DocumentationPage } from './pages/DocumentationPage'
 import { ActualitesPage } from './pages/ActualitesPage'
 import { CookieConsentBanner } from './components/CookieConsent'
+import Popup from './components/Popup'
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen">
         <Navigation />
+        <Popup />
         <div className="container mx-auto px-4 py-8 flex-grow">
           <Routes>
             <Route path="/" element={<HomePage />} />
