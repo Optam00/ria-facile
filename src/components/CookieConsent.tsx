@@ -50,7 +50,7 @@ export const CookieConsentBanner: React.FC = () => {
 
   return (
     <CookieConsent
-      location="bottom"
+      location="middle"
       buttonText="Accepter"
       declineButtonText="Refuser"
       enableDeclineButton
@@ -59,8 +59,13 @@ export const CookieConsentBanner: React.FC = () => {
       style={{
         background: '#fff',
         color: '#4B5563',
-        boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.1)',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
         padding: '1rem',
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 1000,
       }}
       buttonStyle={{
         background: '#774792',

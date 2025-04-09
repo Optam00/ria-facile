@@ -147,7 +147,8 @@ export const DocumentationPage = () => {
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>Documentation utile - RIA Facile</title>
+        <title>Retrouvez tous les documents en lien avec le Règlement IA (RIA, AI act, IA act)</title>
+        <meta name="description" content="Consultez les lignes directrices et autres documents facilitant la compréhension du RIA" />
       </Helmet>
       
       {/* En-tête de la page */}
