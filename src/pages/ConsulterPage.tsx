@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { Sommaire } from '@/components/Sommaire'
-import { BurgerMenu } from '@/components/BurgerMenu'
 import { TextSettings } from '@/components/TextSettings'
 import { Helmet } from 'react-helmet'
 
@@ -138,6 +137,7 @@ export const ConsulterPage = () => {
   const isResizing = useRef(false)
   const startPosRef = useRef(0)
   const startWidthRef = useRef(0)
+  const [isOpen, setIsOpen] = useState(false)
 
   // Sauvegarder les préférences quand elles changent
   useEffect(() => {
@@ -763,21 +763,24 @@ export const ConsulterPage = () => {
             <div className="lg:hidden px-1 mb-1">
               <div className="flex items-center justify-between mt-1">
                 <div className="flex items-center gap-2">
-                  <BurgerMenu 
-                    buttonClassName="bg-white shadow-none"
-                    position="left"
-                    menuClassName="w-[calc(100vw-2rem)] max-w-[90vw] ml-2"
+                  <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <div className={`${isFullscreen ? 'max-h-[calc(100vh-12rem)]' : 'max-h-[calc(100vh-8rem)]'} overflow-y-auto pr-2 custom-scrollbar`}>
-                      <Sommaire 
-                        onConsiderantClick={handleConsiderantClick}
-                        onChapitreClick={handleChapitreClick}
-                        onArticleClick={handleArticleClick}
-                        onAnnexeClick={handleAnnexeClick}
-                        onSectionClick={handleSectionClick}
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16M4 18h16"
                       />
-                    </div>
-                  </BurgerMenu>
+                    </svg>
+                  </button>
                 </div>
 
                 <button

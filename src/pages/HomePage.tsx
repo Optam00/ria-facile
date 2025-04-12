@@ -4,6 +4,7 @@ import quizImage from '../assets/quiz.jpeg'
 import msgImage from '../assets/msg.jpeg'
 import accueilImage from '../assets/accueil.jpeg'
 import { ActuCarousel } from '../components/ActuCarousel'
+import { LastDoctrineArticle } from '../components/LastDoctrineArticle'
 
 export const HomePage = () => {
   return (
@@ -12,7 +13,7 @@ export const HomePage = () => {
       <ActuCarousel />
 
       {/* Bandeau */}
-      <div className="max-w-7xl mx-auto px-4 py-16 mb-12">
+      <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="bg-white rounded-3xl shadow-lg p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center">
             <div className="space-y-6">
@@ -34,8 +35,13 @@ export const HomePage = () => {
         </div>
       </div>
 
+      {/* Dernier article de doctrine */}
+      <div className="mb-8">
+        <LastDoctrineArticle />
+      </div>
+
       {/* Section des cartes */}
-      <div className="py-12 px-4">
+      <div className="py-8 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Consulter le RIA */}

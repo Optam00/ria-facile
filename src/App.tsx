@@ -13,6 +13,8 @@ import { DocumentationPage } from './pages/DocumentationPage'
 import { ActualitesPage } from './pages/ActualitesPage'
 import { CookieConsentBanner } from './components/CookieConsent'
 import Popup from './components/Popup'
+import DoctrinePage from './pages/DoctrinePage'
+import DoctrineArticlePage from './pages/DoctrineArticlePage'
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
             <Route path="/mentions-legales" element={<LegalNoticePage />} />
             <Route path="/politique-de-confidentialite" element={<PrivacyPage />} />
             <Route path="/actualites" element={<ActualitesPage />} />
+            <Route path="/doctrine" element={<DoctrinePage />} />
+            <Route path="/doctrine/:id" element={<DoctrineArticlePage />} />
           </Routes>
         </div>
         <Footer />

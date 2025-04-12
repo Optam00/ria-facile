@@ -1,0 +1,2 @@
+[functions.get-doctrine-articles]
+verify_jwt = false 
