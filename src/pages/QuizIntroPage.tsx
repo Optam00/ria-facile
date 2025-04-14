@@ -15,24 +15,8 @@ export const QuizIntroPage = () => {
         <meta property="og:description" content="Plongez dans notre quiz interactif sur le Règlement européen sur l'Intelligence Artificielle (RIA) pour tester vos connaissances" />
       </Helmet>
       <div className="min-h-[calc(100vh-5rem)] relative overflow-hidden">
-        {/* Fond avec animation subtile */}
-        <motion.div 
-          className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 rounded-[2rem]"
-          animate={{
-            backgroundPosition: ['0% 0%', '100% 100%'],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "easeInOut"
-          }}
-        />
-
         <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
-          <motion.div 
-            className="bg-white/80 backdrop-blur-sm p-8 rounded-[2rem] shadow-xl"
-          >
+          <div className="bg-white/80 backdrop-blur-sm p-8 rounded-[2rem] shadow-xl">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               {/* Colonne de gauche - Texte */}
               <motion.div 
@@ -122,7 +106,7 @@ export const QuizIntroPage = () => {
                 />
               </motion.div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </>
