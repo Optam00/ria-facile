@@ -12,12 +12,30 @@ interface Actualite {
 
 export const ActualitesPage = () => {
   const [actualites, setActualites] = useState<Actualite[]>([])
+  const [filteredActualites, setFilteredActualites] = useState<Actualite[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [mediaFilter, setMediaFilter] = useState<string>('')
+  const [uniqueMedias, setUniqueMedias] = useState<string[]>([])
 
   useEffect(() => {
     fetchActualites()
   }, [])
+
+  useEffect(() => {
+    if (actualites.length > 0) {
+      // Extraire les médias uniques
+      const medias = [...new Set(actualites.map(actu => actu.media))].sort()
+      setUniqueMedias(medias)
+      
+      // Appliquer les filtres
+      let filtered = [...actualites]
+      if (mediaFilter) {
+        filtered = filtered.filter(actu => actu.media === mediaFilter)
+      }
+      setFilteredActualites(filtered)
+    }
+  }, [actualites, mediaFilter])
 
   const fetchActualites = async () => {
     try {
@@ -69,12 +87,17 @@ export const ActualitesPage = () => {
       });
 
       setActualites(data);
+      setFilteredActualites(data);
       setLoading(false);
     } catch (err) {
       console.error('ActualitesPage - Erreur inattendue:', err);
       setError('Une erreur est survenue lors de la récupération des actualités');
       setLoading(false);
     }
+  }
+
+  const handleMediaFilterChange = (media: string) => {
+    setMediaFilter(media === mediaFilter ? '' : media)
   }
 
   if (loading) {
@@ -117,6 +140,26 @@ export const ActualitesPage = () => {
           <h1 className="text-3xl font-bold mb-8 text-gray-800 text-center">Actualités de la conformité IA</h1>
           
           <div className="overflow-x-auto">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">Filtrer par média :</span>
+              <div className="relative inline-block min-w-[200px]">
+                <select
+                  value={mediaFilter}
+                  onChange={(e) => handleMediaFilterChange(e.target.value)}
+                  className="w-full appearance-none bg-white/50 backdrop-blur-sm border border-purple-200 rounded-lg px-3 py-2 pr-10 text-sm text-gray-700 hover:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 transition-all duration-200 cursor-pointer shadow-sm"
+                >
+                  <option value="">Tous les médias</option>
+                  {uniqueMedias.map((media) => (
+                    <option key={media} value={media}>{media}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-purple-500">
+                  <svg className="fill-current h-4 w-4 opacity-70" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
             <table className="min-w-full divide-y divide-gray-200">
               <thead>
                 <tr className="bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -127,7 +170,7 @@ export const ActualitesPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {actualites.map((actu) => (
+                {filteredActualites.map((actu) => (
                   <tr key={actu.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-sm text-gray-700">
                       {new Date(actu.Date).toLocaleDateString('fr-FR', {

@@ -50,12 +50,9 @@ export const LastDoctrineArticle: React.FC = () => {
 
   return (
     <div className="relative py-6">
-      {/* Fond avec dégradé subtil et coins plus arrondis */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-50/70 via-white/80 to-transparent rounded-[3rem] pointer-events-none" />
-      
-      <div className="relative max-w-7xl mx-auto px-4">
+      <div className="relative max-w-5xl mx-auto px-4">
         <div className="flex flex-col items-center text-center mb-4">
-          <h2 className="inline-block text-3xl font-bold text-purple-800 mb-2">
+          <h2 className="inline-block text-3xl font-bold text-purple-800 mb-2 px-4 py-1 bg-white rounded-lg">
             Notre dernier article
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full" />

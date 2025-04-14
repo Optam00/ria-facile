@@ -10,10 +10,12 @@ export const HomePage = () => {
   return (
     <div className="min-h-screen">
       {/* Carrousel d'actualités */}
-      <ActuCarousel />
+      <div className="max-w-5xl mx-auto">
+        <ActuCarousel />
+      </div>
 
       {/* Bandeau */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="bg-white rounded-3xl shadow-lg p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center">
             <div className="space-y-6">
@@ -36,13 +38,20 @@ export const HomePage = () => {
       </div>
 
       {/* Dernier article de doctrine */}
-      <div className="mb-8">
+      <div className="mb-8 max-w-5xl mx-auto">
         <LastDoctrineArticle />
       </div>
 
       {/* Section des cartes */}
       <div className="py-8 px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col items-center text-center mb-8">
+            <h2 className="inline-block text-3xl font-bold text-purple-800 mb-2 px-4 py-1 bg-white rounded-lg">
+              Les fonctionnalités de RIA Facile
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full" />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Consulter le RIA */}
             <Link to="/consulter" className="group h-full">
