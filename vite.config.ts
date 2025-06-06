@@ -7,10 +7,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      'react/jsx-runtime': 'react/jsx-runtime.js',
-      'react': 'react/index.js',
-      'react-dom': 'react-dom/index.js'
+      '@': path.resolve(__dirname, './src')
     }
   },
   optimizeDeps: {
