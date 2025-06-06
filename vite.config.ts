@@ -8,8 +8,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      'react': 'react',
-      'react-dom': 'react-dom'
+      'react/jsx-runtime': 'react/jsx-runtime.js',
+      'react': 'react/index.js',
+      'react-dom': 'react-dom/index.js'
     }
   },
   optimizeDeps: {
