@@ -13,7 +13,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@heroicons/react": "^2.2.0",
     "@supabase/supabase-js": "^2.38.4",
     "@types/lodash": "^4.17.16",
     "@types/node": "^18.19.0",

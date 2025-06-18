@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+// import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 
 interface DocCardProps {
   titre: string;
@@ -58,7 +58,7 @@ export const DocCard: React.FC<DocCardProps> = ({
       >
         <span className="mr-2">Plus d'infos</span>
         <div className={`transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-          <ChevronDownIcon className="h-5 w-5" />
+          {/* <ChevronDownIcon className="h-5 w-5" /> */}
         </div>
       </button>
 
