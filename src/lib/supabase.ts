@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+// import { createClient } from '@supabase/supabase-js';
 
 // Accès aux variables d'environnement de manière plus robuste
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -22,4 +22,4 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Les variables d\'environnement Supabase ne sont pas définies');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey); 
+// export const supabase = createClient(supabaseUrl, supabaseAnonKey); 
