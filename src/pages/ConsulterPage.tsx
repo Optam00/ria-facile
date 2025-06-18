@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { Sommaire } from '@/components/Sommaire'
 import { TextSettings } from '@/components/TextSettings'
-import { Helmet } from 'react-helmet'
+import { Helmet } from 'react-helmet-async'
 
 interface ConsiderantContent {
   numero: number

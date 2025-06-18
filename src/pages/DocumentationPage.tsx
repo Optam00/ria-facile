@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { DocCard } from '../components/DocCard';
 import { DocumentationFilters } from '../components/DocumentationFilters';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 
 interface Doc {
   id: number;
