@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { motion } from 'framer-motion';
+// import { motion } from 'framer-motion';
 
 interface DoctrineArticle {
   id: number;
@@ -81,11 +81,8 @@ const DoctrinePage: React.FC = () => {
         ) : (
           <div className="grid gap-8">
             {articles.map((article) => (
-              <motion.div
+              <div
                 key={article.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
                 className="bg-white rounded-3xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
               >
                 <div className="p-8">
@@ -137,7 +134,7 @@ const DoctrinePage: React.FC = () => {
                     </Link>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
 
             {articles.length === 0 && (

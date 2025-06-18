@@ -1,14 +1,14 @@
-import { motion } from 'framer-motion'
+// import { motion } from 'framer-motion'
 
 export const PrivacyPage = () => {
   return (
     <div className="min-h-screen p-4">
-      <motion.div 
+      {/* <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="max-w-4xl mx-auto"
-      >
+      > */}
         <div className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white">
           <h1 className="text-3xl font-bold mb-8 text-gray-800">Politique de confidentialité</h1>
 
@@ -162,8 +162,8 @@ export const PrivacyPage = () => {
               </div>
             </section>
           </div>
-        </div>
-      </motion.div>
+        {/* </motion.div> */}
+      </div>
     </div>
   )
 } 
