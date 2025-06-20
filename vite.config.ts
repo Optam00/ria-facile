@@ -11,9 +11,21 @@ export default defineConfig({
     }
   },
   build: {
-    sourcemap: true
+    sourcemap: true,
+    rollupOptions: {
+      external: [],
+      output: {
+        manualChunks: undefined
+      }
+    },
+    commonjsOptions: {
+      include: [/node_modules/]
+    }
   },
   optimizeDeps: {
     include: ['react', 'react-dom']
+  },
+  ssr: {
+    noExternal: ['@supabase/supabase-js']
   }
 })

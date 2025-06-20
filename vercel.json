@@ -15,5 +15,8 @@
     "env": {
       "NODE_ENV": "production"
     }
-  }
+  },
+  "buildCommand": "npm ci --legacy-peer-deps && npm run build",
+  "installCommand": "npm ci --legacy-peer-deps",
+  "framework": "vite"
 } 
