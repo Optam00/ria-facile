@@ -15,32 +15,35 @@ import { CookieConsentBanner } from './components/CookieConsent'
 import Popup from './components/Popup'
 import DoctrinePage from './pages/DoctrinePage'
 import DoctrineArticlePage from './pages/DoctrineArticlePage'
+import { HelmetProvider } from 'react-helmet-async'
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen">
-        <Navigation />
-        <Popup />
-        <div className="container mx-auto px-4 py-8 flex-grow">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/quiz" element={<QuizIntroPage />} />
-            <Route path="/quiz/questions" element={<QuizPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/consulter" element={<ConsulterPage />} />
-            <Route path="/documentation" element={<DocumentationPage />} />
-            <Route path="/mentions-legales" element={<LegalNoticePage />} />
-            <Route path="/politique-de-confidentialite" element={<PrivacyPage />} />
-            <Route path="/actualites" element={<ActualitesPage />} />
-            <Route path="/doctrine" element={<DoctrinePage />} />
-            <Route path="/doctrine/:id" element={<DoctrineArticlePage />} />
-          </Routes>
+    <HelmetProvider>
+      <Router>
+        <div className="min-h-screen">
+          <Navigation />
+          <Popup />
+          <div className="container mx-auto px-4 py-8 flex-grow">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/quiz" element={<QuizIntroPage />} />
+              <Route path="/quiz/questions" element={<QuizPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/consulter" element={<ConsulterPage />} />
+              <Route path="/documentation" element={<DocumentationPage />} />
+              <Route path="/mentions-legales" element={<LegalNoticePage />} />
+              <Route path="/politique-de-confidentialite" element={<PrivacyPage />} />
+              <Route path="/actualites" element={<ActualitesPage />} />
+              <Route path="/doctrine" element={<DoctrinePage />} />
+              <Route path="/doctrine/:id" element={<DoctrineArticlePage />} />
+            </Routes>
+          </div>
+          <Footer />
+          <CookieConsentBanner />
         </div>
-        <Footer />
-        <CookieConsentBanner />
-      </div>
-    </Router>
+      </Router>
+    </HelmetProvider>
   )
 }
 
