@@ -847,6 +847,33 @@ export const ConsulterPage = () => {
               </div>
             </div>
 
+            {/* Overlay Sommaire mobile */}
+            {isOpen && (
+              <div className="fixed inset-0 z-50 bg-white p-4 overflow-y-auto lg:hidden flex flex-col">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-bold text-lg">Sommaire</span>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    aria-label="Fermer le sommaire"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  <Sommaire
+                    onConsiderantClick={(numero) => { setIsOpen(false); handleConsiderantClick(numero); }}
+                    onChapitreClick={(id) => { setIsOpen(false); handleChapitreClick(id); }}
+                    onArticleClick={(article) => { setIsOpen(false); handleArticleClick(article); }}
+                    onAnnexeClick={(annexe, subdivision) => { setIsOpen(false); handleAnnexeClick(annexe, subdivision); }}
+                    onSectionClick={(section) => { setIsOpen(false); handleSectionClick(section); }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-[auto,1fr] gap-1 p-0">
               {/* Sommaire pour desktop */}
               <div 
