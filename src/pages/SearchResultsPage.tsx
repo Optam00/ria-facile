@@ -23,6 +23,36 @@ function highlight(text: string, keyword: string) {
   return text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
 }
 
+// Fonction utilitaire pour extraire un extrait centré sur le mot-clé
+function removeDiacritics(str: string) {
+  return str.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+}
+
+function getExcerpt(text: string, keyword: string, contextLength = 40) {
+  if (!keyword) return text.slice(0, 200) + (text.length > 200 ? '…' : '');
+  // Recherche insensible à la casse et aux accents
+  const normalizedText = removeDiacritics(text.toLowerCase());
+  const normalizedKeyword = removeDiacritics(keyword.toLowerCase());
+  const index = normalizedText.indexOf(normalizedKeyword);
+  if (index === -1) return text.slice(0, 200) + (text.length > 200 ? '…' : '');
+  // Trouver l'index réel dans le texte original (pour ne pas couper un mot au milieu d'un accent)
+  let realIndex = index;
+  // On tente de retrouver la position réelle du mot-clé dans le texte original
+  // (si le mot-clé contient des accents, la position peut différer)
+  for (let i = 0, j = 0; i < text.length && j < index; i++) {
+    if (removeDiacritics(text[i].toLowerCase()) === normalizedText[j]) {
+      j++;
+    }
+    realIndex = i;
+  }
+  const start = Math.max(0, realIndex - contextLength);
+  const end = Math.min(text.length, realIndex + keyword.length + contextLength);
+  let excerpt = text.slice(start, end);
+  if (start > 0) excerpt = '…' + excerpt;
+  if (end < text.length) excerpt = excerpt + '…';
+  return excerpt;
+}
+
 export const SearchResultsPage = () => {
   const query = useQuery();
   const navigate = useNavigate();
@@ -218,7 +248,7 @@ export const SearchResultsPage = () => {
                         <span className="text-xs md:text-sm font-semibold text-gray-500 shrink-0">{article.numero}</span>
                         <span dangerouslySetInnerHTML={{ __html: highlight(article.titre.replace(/^Art\.? ?\d+\s*-?\s*/i, ''), keyword) }} />
                       </a>
-                      <div className="text-xs md:text-sm text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: highlight(article.contenu.slice(0, 200) + (article.contenu.length > 200 ? '…' : ''), keyword) }} />
+                      <div className="text-xs md:text-sm text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: highlight(getExcerpt(article.contenu, keyword), keyword) }} />
                     </li>
                   ))}
                 </ul>
@@ -248,7 +278,7 @@ export const SearchResultsPage = () => {
                         <span className="text-xs md:text-sm font-semibold text-gray-500 shrink-0">Consid. {considerant.numero}</span>
                         <span className="truncate max-w-[60vw] md:max-w-none">{considerant.contenu.slice(0, 60)}{considerant.contenu.length > 60 ? '…' : ''}</span>
                       </a>
-                      <div className="text-xs md:text-sm text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: highlight(considerant.contenu.slice(0, 200) + (considerant.contenu.length > 200 ? '…' : ''), keyword) }} />
+                      <div className="text-xs md:text-sm text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: highlight(getExcerpt(considerant.contenu, keyword), keyword) }} />
                     </li>
                   ))}
                 </ul>
@@ -278,7 +308,8 @@ export const SearchResultsPage = () => {
                       </div>
                     )}
                     <div className="text-gray-700 text-sm mb-2">
-                      {annexe.contenu?.slice(0, 200)}{annexe.contenu && annexe.contenu.length > 200 ? '…' : ''}
+                      {getExcerpt(annexe.contenu, keyword)}
+                      {annexe.contenu && annexe.contenu.length > 200 && '…'}
                     </div>
                     <a
                       href={`/consulter?type=annexe&id=${annexe.id_annexe}`}
@@ -310,7 +341,7 @@ export const SearchResultsPage = () => {
                       <a href={`/documentation?id=${doc.id}`} target="_blank" rel="noopener noreferrer" className="text-blue-700 font-medium hover:underline text-sm md:text-base">
                         <span dangerouslySetInnerHTML={{ __html: highlight(doc.titre, keyword) }} />
                       </a>
-                      <div className="text-xs md:text-sm text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: highlight(doc.resume?.slice(0, 200) + (doc.resume?.length > 200 ? '…' : ''), keyword) }} />
+                      <div className="text-xs md:text-sm text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: highlight(getExcerpt(doc.resume || '', keyword), keyword) }} />
                     </li>
                   ))}
                 </ul>
@@ -334,7 +365,7 @@ export const SearchResultsPage = () => {
                       <a href={`/doctrine/${doc.id}`} target="_blank" rel="noopener noreferrer" className="text-blue-700 font-medium hover:underline text-sm md:text-base">
                         <span dangerouslySetInnerHTML={{ __html: highlight(doc.titre, keyword) }} />
                       </a>
-                      <div className="text-xs md:text-sm text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: highlight(doc.abstract?.slice(0, 200) + (doc.abstract?.length > 200 ? '…' : ''), keyword) }} />
+                      <div className="text-xs md:text-sm text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: highlight(getExcerpt(doc.abstract || '', keyword), keyword) }} />
                     </li>
                   ))}
                 </ul>
