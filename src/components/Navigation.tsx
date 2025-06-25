@@ -31,7 +31,7 @@ export const Navigation = () => {
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           <Link 
             to="/" 
@@ -192,7 +192,7 @@ export const Navigation = () => {
                 >
                   Doctrine
                 </Link>
-                <Link
+                {/* <Link
                   to="/actualites"
                   className={`block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors ${
                     isActive('/actualites') ? 'bg-gray-100 font-medium' : ''
@@ -200,7 +200,7 @@ export const Navigation = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   Actualités
-                </Link>
+                </Link> */}
                 <Link
                   to="/quiz"
                   className={`block px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors ${

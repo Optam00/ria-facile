@@ -197,7 +197,15 @@ export const SearchResultsPage = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Recherche</h1>
+      {/* En-tête harmonisé */}
+      <div className="bg-white rounded-3xl shadow-md p-8 text-center mb-8">
+        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+          Recherche
+        </h1>
+        <p className="text-gray-600 max-w-3xl mx-auto text-lg">
+          Recherchez dans l'ensemble du site, le règlement IA, la documentation, la doctrine, les considérants et les annexes.
+        </p>
+      </div>
       
       {/* Composant de recherche avancée */}
       <AdvancedSearch onSearch={handleSearch} isLoading={loading} />
