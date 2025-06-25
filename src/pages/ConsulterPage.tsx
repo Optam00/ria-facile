@@ -34,6 +34,7 @@ interface AnnexeContent {
   titre: string
   contenu?: string
   subdivision?: AnnexeSubdivision[]
+  id_annexe?: number
 }
 
 interface SectionContent {
@@ -214,19 +215,50 @@ export const ConsulterPage = () => {
             }
             break
           case 'annexe':
-            const { data: annexe } = await supabase
-              .from('annexe')
+            // D'abord récupérer l'annexe depuis liste_annexes
+            const { data: listeAnnexe } = await supabase
+              .from('liste_annexes')
               .select('*')
-              .eq('numero', parseInt(id))
+              .eq('id_annexe', parseInt(id))
               .single()
-            if (annexe) {
-              // Si l'annexe a un contenu direct, on l'affiche
-              if (annexe.contenu) {
-                await handleAnnexeClick(annexe)
-              } 
-              // Si l'annexe a des subdivisions, on affiche la première
-              else if (annexe.subdivision && annexe.subdivision.length > 0) {
-                await handleAnnexeClick(annexe, annexe.subdivision[0])
+            
+            if (listeAnnexe) {
+              // Récupérer le contenu depuis la table annexes
+              const { data: annexeContent } = await supabase
+                .from('annexes')
+                .select('*')
+                .eq('id_annexe', parseInt(id))
+              
+              if (annexeContent && annexeContent.length > 0) {
+                // Si une seule entrée sans titre_section, c'est le cas 1
+                const isCasUn = annexeContent.length === 1 && !annexeContent[0].titre_section
+                
+                if (isCasUn) {
+                  // Cas 1 : Pas de subdivisions
+                  const annexe: AnnexeContent = {
+                    numero: listeAnnexe.numero || listeAnnexe.id_annexe,
+                    titre: listeAnnexe.titre || `Annexe ${listeAnnexe.numero || listeAnnexe.id_annexe}`,
+                    contenu: annexeContent[0].contenu,
+                    id_annexe: listeAnnexe.id_annexe
+                  }
+                  await handleAnnexeClick(annexe)
+                } else {
+                  // Cas 2 : Avec subdivisions
+                  const subdivisions = annexeContent
+                    .filter(sub => sub.titre_section)
+                    .map(sub => ({
+                      titre_section: sub.titre_section,
+                      contenu: sub.contenu
+                    }))
+                  
+                  const annexe: AnnexeContent = {
+                    numero: listeAnnexe.numero || listeAnnexe.id_annexe,
+                    titre: listeAnnexe.titre || `Annexe ${listeAnnexe.numero || listeAnnexe.id_annexe}`,
+                    subdivision: subdivisions,
+                    id_annexe: listeAnnexe.id_annexe
+                  }
+                  await handleAnnexeClick(annexe, subdivisions[0])
+                }
               }
             }
             break
@@ -479,7 +511,7 @@ export const ConsulterPage = () => {
           contenu: annexe.contenu
         })
       }
-      updateURL('annexe', annexe.numero)
+      updateURL('annexe', annexe.id_annexe || annexe.numero)
     } catch (err) {
       console.error('Erreur lors de la récupération de l\'annexe:', err)
     } finally {

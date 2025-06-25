@@ -37,7 +37,7 @@ interface SubdivisionType {
 interface AnnexeType {
   numero: number
   titre: string
-  id_annexes?: number
+  id_annexe?: number
   contenu?: string
   subdivisions?: SubdivisionType[]
 }
@@ -159,7 +159,7 @@ export const Sommaire: React.FC<SommaireProps> = ({
             return {
               numero: item.numero || item.id_annexe,
               titre: item.titre || `Annexe ${item.numero || item.id_annexe}`,
-              id_annexes: item.id_annexe,
+              id_annexe: item.id_annexe,
               contenu: annexeEntries[0].contenu
             }
           } else {
@@ -175,7 +175,7 @@ export const Sommaire: React.FC<SommaireProps> = ({
             return {
               numero: item.numero || item.id_annexe,
               titre: item.titre || `Annexe ${item.numero || item.id_annexe}`,
-              id_annexes: item.id_annexe,
+              id_annexe: item.id_annexe,
               subdivisions: subdivisions
             }
           }
