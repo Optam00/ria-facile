@@ -61,7 +61,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
         } overflow-hidden`}
       >
-        <div className="p-3 md:p-6">
+        <div className="p-3 md:p-6 overflow-y-auto" style={{ maxHeight: '400px', minHeight: 0 }}>
           {children}
         </div>
       </div>
