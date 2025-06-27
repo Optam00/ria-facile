@@ -1,5 +1,5 @@
 import React from 'react';
-// import Select from 'react-select';
+import Select from 'react-select';
 
 interface FilterOption {
   value: string;
@@ -36,7 +36,7 @@ export const DocumentationFilters: React.FC<DocumentationFiltersProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Langues
           </label>
-          {/* <Select
+          <Select
             isMulti
             options={langues}
             value={selectedLangues}
@@ -44,13 +44,13 @@ export const DocumentationFilters: React.FC<DocumentationFiltersProps> = ({
             placeholder="Sélectionner les langues"
             className="basic-multi-select"
             classNamePrefix="select"
-          /> */}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Thèmes
           </label>
-          {/* <Select
+          <Select
             isMulti
             options={themes}
             value={selectedThemes}
@@ -58,13 +58,13 @@ export const DocumentationFilters: React.FC<DocumentationFiltersProps> = ({
             placeholder="Sélectionner les thèmes"
             className="basic-multi-select"
             classNamePrefix="select"
-          /> */}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Auteurs
           </label>
-          {/* <Select
+          <Select
             isMulti
             options={auteurs}
             value={selectedAuteurs}
@@ -72,7 +72,7 @@ export const DocumentationFilters: React.FC<DocumentationFiltersProps> = ({
             placeholder="Sélectionner les auteurs"
             className="basic-multi-select"
             classNamePrefix="select"
-          /> */}
+          />
         </div>
       </div>
     </div>
