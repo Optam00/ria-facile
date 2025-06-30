@@ -7,6 +7,7 @@ interface SearchFilters {
   actualites: boolean;
   considerants: boolean;
   annexes: boolean;
+  schemas: boolean;
 }
 
 interface AdvancedSearchProps {
@@ -23,6 +24,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, isLoad
     actualites: true,
     considerants: true,
     annexes: true,
+    schemas: true,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -69,7 +71,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, isLoad
         {/* Filtres de recherche */}
         <div>
           <h3 className="text-sm font-medium text-gray-700 mb-3">Rechercher dans :</h3>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
             {/* Règlement IA */}
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
@@ -129,6 +131,16 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, isLoad
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700">Actualités</span>
+            </label>
+            {/* Schémas */}
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.schemas}
+                onChange={() => toggleFilter('schemas')}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">Schémas</span>
             </label>
           </div>
         </div>

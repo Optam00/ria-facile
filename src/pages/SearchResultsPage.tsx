@@ -11,6 +11,7 @@ interface SearchFilters {
   actualites: boolean;
   considerants?: boolean;
   annexes?: boolean;
+  schemas: boolean;
 }
 
 function useQuery() {
@@ -53,6 +54,31 @@ function getExcerpt(text: string, keyword: string, contextLength = 40) {
   return excerpt;
 }
 
+// Définition des schémas pour la recherche locale
+const SCHEMAS = [
+  {
+    id: 'calendrier',
+    titre: "Calendrier d'entrée en application du règlement IA",
+    texte: `La grande majorité des obligations du règlement deviennent applicables, notamment toutes les règles pour les systèmes d'IA classés à haut risque (à l'exception de ceux mentionnés au point suivant). ...`,
+    image: '/src/assets/schemas/Dates.png',
+    url: '/schemas#date-mise-en-oeuvre',
+  },
+  {
+    id: 'modele-vs-systeme',
+    titre: "La distinction entre modèle d'IA et système d'IA",
+    texte: `Le Modèle d'IA (Le Moteur)... Le Système d'IA (Le Véhicule)...`,
+    image: '/src/assets/schemas/modele%20vs%20systeme.png',
+    url: '/schemas#modele-vs-systeme',
+  },
+  {
+    id: 'gpai',
+    titre: "Les différents modèles d'IA à usage général",
+    texte: `La réglementation cible spécifiquement les Modèles d'IA à Usage Général (GPAI)...`,
+    image: '/src/assets/schemas/GPAI.png',
+    url: '/schemas#gpai',
+  },
+]
+
 export const SearchResultsPage = () => {
   const query = useQuery();
   const navigate = useNavigate();
@@ -66,6 +92,7 @@ export const SearchResultsPage = () => {
     actualites: true,
     considerants: true,
     annexes: true,
+    schemas: true,
   });
   const [results, setResults] = useState({
     reglement: [] as any[],
@@ -74,6 +101,7 @@ export const SearchResultsPage = () => {
     actualites: [] as any[],
     considerants: [] as any[],
     annexes: [] as any[],
+    schemas: [] as any[],
   });
 
   useEffect(() => {
@@ -98,6 +126,7 @@ export const SearchResultsPage = () => {
       actualites: [] as any[],
       considerants: [] as any[],
       annexes: [] as any[],
+      schemas: [] as any[],
     };
 
     try {
@@ -176,6 +205,15 @@ export const SearchResultsPage = () => {
           });
         }
         searchResults.annexes = annexesResults;
+      }
+
+      // Recherche dans les schémas (locale)
+      if (searchFilters.schemas) {
+        const q = searchQuery.toLowerCase();
+        searchResults.schemas = SCHEMAS.filter(s =>
+          s.titre.toLowerCase().includes(q) ||
+          s.texte.toLowerCase().includes(q)
+        );
       }
 
       setResults(searchResults);
@@ -420,6 +458,37 @@ export const SearchResultsPage = () => {
                         >
                           Lire →
                         </a>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CollapsibleSection>
+          )}
+
+          {/* Section Schémas */}
+          {filters.schemas && (
+            <CollapsibleSection 
+              title="Dans les schémas explicatifs" 
+              resultCount={results.schemas.length}
+              defaultOpen={false}
+            >
+              {results.schemas.length === 0 ? (
+                <div className="text-gray-400">Aucun résultat trouvé.</div>
+              ) : (
+                <ul className="space-y-3">
+                  {results.schemas.map(schema => (
+                    <li key={schema.id} className="bg-gray-50 rounded-lg p-3 md:p-4 mb-2 md:mb-0 hover:bg-gray-100 transition-colors flex gap-4 items-center">
+                      <a href={schema.url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                        <img src={schema.image} alt={schema.titre} className="w-20 h-20 object-contain rounded-xl shadow" />
+                      </a>
+                      <div className="flex-1">
+                        <a href={schema.url} target="_blank" rel="noopener noreferrer" className="text-blue-700 font-medium hover:underline text-base">
+                          {schema.titre}
+                        </a>
+                        <div className="text-xs md:text-sm text-gray-600 mt-1">
+                          {getExcerpt(schema.texte, keyword)}
+                        </div>
                       </div>
                     </li>
                   ))}

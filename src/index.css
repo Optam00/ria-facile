@@ -127,4 +127,67 @@ body::after {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #666;
+}
+
+/* Styles pour les schémas */
+.schema-card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all duration-300 hover:shadow-md hover:border-gray-200;
+}
+
+.schema-section {
+  @apply scroll-mt-20;
+}
+
+.schema-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.schema-icon {
+  @apply w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold;
+}
+
+/* Animation pour les sections de schémas */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.6s ease-out forwards;
+}
+
+/* Styles pour les boutons de navigation du sommaire */
+.sommaire-button {
+  @apply text-left p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200;
+}
+
+.sommaire-button:hover {
+  @apply transform scale-105;
+}
+
+/* Styles pour les indicateurs de niveau de risque */
+.risk-level {
+  @apply border-l-4 p-4 rounded;
+}
+
+.risk-inacceptable {
+  @apply bg-red-100 border-red-500;
+}
+
+.risk-eleve {
+  @apply bg-orange-100 border-orange-500;
+}
+
+.risk-limite {
+  @apply bg-yellow-100 border-yellow-500;
+}
+
+.risk-minimal {
+  @apply bg-green-100 border-green-500;
 } 

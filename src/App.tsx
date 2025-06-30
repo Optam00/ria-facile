@@ -17,6 +17,7 @@ import DoctrinePage from './pages/DoctrinePage'
 import DoctrineArticlePage from './pages/DoctrineArticlePage'
 import { HelmetProvider } from 'react-helmet-async'
 import SearchResultsPage from './pages/SearchResultsPage'
+import { SchemasPage } from './pages/SchemasPage'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
               <Route path="/quiz/questions" element={<QuizPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/consulter" element={<ConsulterPage />} />
+              <Route path="/schemas" element={<SchemasPage />} />
               <Route path="/documentation" element={<DocumentationPage />} />
               <Route path="/mentions-legales" element={<LegalNoticePage />} />
               <Route path="/politique-de-confidentialite" element={<PrivacyPage />} />

@@ -83,6 +83,7 @@ export const Navigation = () => {
             <div className="flex gap-8 items-center whitespace-nowrap">
               <Link to="/" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/') ? 'text-purple-700' : 'text-gray-900'}`}>Accueil</Link>
               <Link to="/consulter" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/consulter') ? 'text-purple-700' : 'text-gray-900'}`}>Consulter le RIA</Link>
+              <Link to="/schemas" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/schemas') ? 'text-purple-700' : 'text-gray-900'}`}>Le RIA en schémas</Link>
               <Link to="/documentation" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/documentation') ? 'text-purple-700' : 'text-gray-900'}`}>Documentation utile</Link>
               <Link to="/doctrine" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/doctrine') ? 'text-purple-700' : 'text-gray-900'}`}>Doctrine</Link>
               <Link to="/quiz" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/quiz') ? 'text-purple-700' : 'text-gray-900'}`}>Quiz</Link>
@@ -168,6 +169,7 @@ export const Navigation = () => {
                 </form>
                 <Link to="/" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Accueil</Link>
                 <Link to="/consulter" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Consulter le RIA</Link>
+                <Link to="/schemas" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Le RIA en schémas</Link>
                 <Link to="/documentation" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Documentation utile</Link>
                 <Link to="/doctrine" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Doctrine</Link>
                 <Link to="/quiz" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Quiz</Link>
