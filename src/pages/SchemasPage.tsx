@@ -66,31 +66,31 @@ export const SchemasPage = () => {
     "image": [
       {
         "@type": "ImageObject",
-        "url": "/src/assets/schemas/Dates.png",
+        "url": "/schemas/Dates.png",
         "name": "Calendrier d'entrée en application du Règlement IA",
         "description": "Calendrier d'entrée en application du Règlement IA (AI Act) - Dates de mise en œuvre 2025-2027"
       },
       {
         "@type": "ImageObject",
-        "url": "/src/assets/schemas/modele%20vs%20systeme.png",
+        "url": "/schemas/modele%20vs%20systeme.png",
         "name": "Distinction entre modèle d'IA et système d'IA",
         "description": "Schéma explicatif de la distinction entre modèle d'IA et système d'IA selon le Règlement IA"
       },
       {
         "@type": "ImageObject",
-        "url": "/src/assets/schemas/GPAI.png",
+        "url": "/schemas/GPAI.png",
         "name": "Modèles d'IA à usage général (GPAI)",
         "description": "Schéma des modèles d'IA à usage général (GPAI) - Classification et obligations"
       },
       {
         "@type": "ImageObject",
-        "url": "/src/assets/schemas/SIAs.png",
+        "url": "/schemas/SIAs.png",
         "name": "Niveaux de risques des systèmes d'IA",
         "description": "Schéma des niveaux de risques des systèmes d'IA - Risque inacceptable, élevé, limité, minimal"
       },
       {
         "@type": "ImageObject",
-        "url": "/src/assets/schemas/gouvernance.png",
+        "url": "/schemas/gouvernance.png",
         "name": "Gouvernance prévue par le Règlement IA",
         "description": "Schéma de la gouvernance prévue par le Règlement IA - Bureau de l'IA, Comité IA, autorités nationales"
       }
@@ -174,7 +174,7 @@ export const SchemasPage = () => {
         <section className="mb-12" ref={refDateMiseEnOeuvre} id="date-mise-en-oeuvre">
           <div className="white-container rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-black mb-4">Calendrier d'entrée en application du règlement IA</h2>
-            <img src="/src/assets/schemas/Dates.png" alt="Calendrier d'entrée en application du Règlement IA (AI Act) - Dates de mise en œuvre 2025-2027 - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <img src="/schemas/Dates.png" alt="Calendrier d'entrée en application du Règlement IA (AI Act) - Dates de mise en œuvre 2025-2027 - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
 
             {/* Bouton pour afficher/masquer les détails */}
             <div className="text-center mb-6">
@@ -248,7 +248,7 @@ export const SchemasPage = () => {
         <section className="mb-12" ref={refModeleVsSysteme} id="modele-vs-systeme">
           <div className="white-container rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-black mb-4">La distinction entre modèle d'IA et système d'IA</h2>
-            <img src="/src/assets/schemas/modele%20vs%20systeme.png" alt="Schéma explicatif : distinction entre modèle d'IA et système d'IA - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <img src="/schemas/modele%20vs%20systeme.png" alt="Schéma explicatif : distinction entre modèle d'IA et système d'IA - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
             
             {/* Bouton pour afficher/masquer les détails */}
             <div className="text-center mb-6">
@@ -308,7 +308,7 @@ export const SchemasPage = () => {
         <section className="mb-12" ref={refGPAI} id="gpai">
           <div className="white-container rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-black mb-4">Les différents modèles d'IA à usage général</h2>
-            <img src="/src/assets/schemas/GPAI.png" alt="Schéma des modèles d'IA à usage général (GPAI) - Classification et obligations - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <img src="/schemas/GPAI.png" alt="Schéma des modèles d'IA à usage général (GPAI) - Classification et obligations - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
             
             {/* Bouton pour afficher/masquer les détails */}
             <div className="text-center mb-6">
@@ -385,7 +385,7 @@ export const SchemasPage = () => {
         <section className="mb-12" ref={refSIAs} id="sias">
           <div className="white-container rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-black mb-4">Les niveaux de risques des systèmes d'IA</h2>
-            <img src="/src/assets/schemas/SIAs.png" alt="Schéma des niveaux de risques des systèmes d'IA - Risque inacceptable, élevé, limité, minimal - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <img src="/schemas/SIAs.png" alt="Schéma des niveaux de risques des systèmes d'IA - Risque inacceptable, élevé, limité, minimal - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
             
             {/* Bouton pour afficher/masquer les détails */}
             <div className="text-center mb-6">
@@ -478,7 +478,7 @@ export const SchemasPage = () => {
             
             <div className="flex justify-center mb-8">
               <img
-                src="/src/assets/schemas/gouvernance.png"
+                src="/schemas/gouvernance.png"
                 alt="Schéma de la gouvernance prévue par le Règlement IA - Bureau de l'IA, Comité IA, autorités nationales - RIA Facile"
                 className="w-full max-w-full sm:max-w-3xl mx-auto rounded-xl shadow-md border mb-8"
               />
