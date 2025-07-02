@@ -7,6 +7,7 @@ import { ActuCarousel } from '../components/ActuCarousel'
 import { LastDoctrineArticle } from '../components/LastDoctrineArticle'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
+import { SchemaPreviewHome } from '../components/SchemaPreviewHome'
 
 export const HomePage = () => {
   const [openQuestion, setOpenQuestion] = useState<number | null>(null)
@@ -166,6 +167,11 @@ export const HomePage = () => {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Aperçu schéma aléatoire */}
+      <div className="mb-8 max-w-5xl mx-auto">
+        <SchemaPreviewHome />
       </div>
 
       {/* Section FAQ */}

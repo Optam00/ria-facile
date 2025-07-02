@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://ria-facile.com/schemas</loc>
+    <image:image>
+      <image:loc>https://ria-facile.com/src/assets/schemas/Dates.png</image:loc>
+      <image:title>Calendrier d'entrée en application du Règlement IA (AI Act)</image:title>
+      <image:caption>Calendrier d'entrée en application du Règlement IA (AI Act) - Dates de mise en œuvre 2025-2027</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://ria-facile.com/src/assets/schemas/modele%20vs%20systeme.png</image:loc>
+      <image:title>Distinction entre modèle d'IA et système d'IA</image:title>
+      <image:caption>Schéma explicatif de la distinction entre modèle d'IA et système d'IA selon le Règlement IA</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://ria-facile.com/src/assets/schemas/GPAI.png</image:loc>
+      <image:title>Modèles d'IA à usage général (GPAI)</image:title>
+      <image:caption>Schéma des modèles d'IA à usage général (GPAI) - Classification et obligations</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://ria-facile.com/src/assets/schemas/SIAs.png</image:loc>
+      <image:title>Niveaux de risques des systèmes d'IA</image:title>
+      <image:caption>Schéma des niveaux de risques des systèmes d'IA - Risque inacceptable, élevé, limité, minimal</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://ria-facile.com/src/assets/schemas/gouvernance.png</image:loc>
+      <image:title>Gouvernance prévue par le Règlement IA</image:title>
+      <image:caption>Schéma de la gouvernance prévue par le Règlement IA - Bureau de l'IA, Comité IA, autorités nationales</image:caption>
+    </image:image>
+  </url>
+</urlset> 
