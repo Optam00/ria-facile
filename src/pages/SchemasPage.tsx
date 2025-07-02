@@ -16,8 +16,11 @@ export const SchemasPage = () => {
     'modele-vs-systeme': false,
     'gpai': false,
     'sias': false,
+    'limite': false,
     'gouvernance': false,
   })
+  // État pour le sommaire replié/déplié
+  const [sommaireOuvert, setSommaireOuvert] = useState(false)
 
   const location = useLocation()
 
@@ -119,61 +122,74 @@ export const SchemasPage = () => {
         </div>
       </div>
 
-      {/* Sommaire dépliant */}
-      <div className="max-w-7xl mx-auto px-4 mb-10">
-        <details className="white-container rounded-2xl shadow-lg p-6 mb-6" open>
-          <summary className="text-xl font-bold text-purple-800 cursor-pointer select-none mb-4 outline-none focus:ring-2 focus:ring-purple-400">
-            Sommaire des schémas
-          </summary>
-          <ul className="space-y-2 pl-2">
-            <li>
-              <button
-                className="text-left text-base text-purple-700 hover:underline focus:outline-none"
-                onClick={() => scrollToSection(refDateMiseEnOeuvre)}
-              >
-                Calendrier d'entrée en application du règlement IA
-              </button>
-            </li>
-            <li>
-              <button
-                className="text-left text-base text-purple-700 hover:underline focus:outline-none"
-                onClick={() => scrollToSection(refModeleVsSysteme)}
-              >
-                La distinction entre modèle d'IA et système d'IA
-              </button>
-            </li>
-            <li>
-              <button
-                className="text-left text-base text-purple-700 hover:underline focus:outline-none"
-                onClick={() => scrollToSection(refGPAI)}
-              >
-                Les différents modèles d'IA à usage général
-              </button>
-            </li>
-            <li>
-              <button
-                className="text-left text-base text-purple-700 hover:underline focus:outline-none"
-                onClick={() => scrollToSection(refSIAs)}
-              >
-                Les niveaux de risques des systèmes d'IA
-              </button>
-            </li>
-            <li>
-              <button
-                className="text-left text-base text-purple-700 hover:underline focus:outline-none"
-                onClick={() => scrollToSection(refGouvernance)}
-              >
-                La gouvernance prévue par le RIA
-              </button>
-            </li>
-          </ul>
-        </details>
-      </div>
+      {/* Sommaire des schémas */}
+      <section className="mt-8 mb-8">
+        <div className="max-w-3xl mx-auto p-3 rounded-xl shadow border border-violet-200 bg-violet-50/80 animate-fade-in">
+          <button
+            className="w-full flex items-center justify-between gap-2 text-violet-700 font-extrabold text-lg md:text-xl px-2 py-2 focus:outline-none select-none"
+            onClick={() => setSommaireOuvert(v => !v)}
+            aria-expanded={sommaireOuvert}
+            aria-controls="sommaire-list"
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16.862 5.487l1.65 1.65a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.707.464l-3.536 1.179a.5.5 0 01-.637-.637l1.179-3.536a2 2 0 01.464-.707l8.486-8.486a2 2 0 012.828 0z" /><path d="M15 7l2 2" /></svg>
+              Sommaire des schémas
+            </span>
+            <svg className={`w-6 h-6 transition-transform duration-200 ${sommaireOuvert ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div
+            id="sommaire-list"
+            className={`overflow-hidden transition-all duration-300 ${sommaireOuvert ? 'max-h-96 opacity-100 py-2' : 'max-h-0 opacity-0 py-0'}`}
+            aria-hidden={!sommaireOuvert}
+          >
+            <ul className="space-y-1 text-base md:text-lg">
+              <li>
+                <a href="#date-mise-en-oeuvre" className="flex items-center gap-2 text-violet-700 font-medium rounded px-2 py-1 transition-all hover:bg-violet-100 hover:underline">
+                  <span className="inline-block w-2 h-2 bg-violet-400 rounded-full"></span>
+                  Calendrier d'entrée en application du règlement IA
+                </a>
+              </li>
+              <li>
+                <a href="#modele-vs-systeme" className="flex items-center gap-2 text-violet-700 font-medium rounded px-2 py-1 transition-all hover:bg-violet-100 hover:underline">
+                  <span className="inline-block w-2 h-2 bg-violet-400 rounded-full"></span>
+                  La distinction entre modèle d'IA et système d'IA
+                </a>
+              </li>
+              <li>
+                <a href="#gpai" className="flex items-center gap-2 text-violet-700 font-medium rounded px-2 py-1 transition-all hover:bg-violet-100 hover:underline">
+                  <span className="inline-block w-2 h-2 bg-violet-400 rounded-full"></span>
+                  Les différents modèles d'IA à usage général
+                </a>
+              </li>
+              <li>
+                <a href="#sias" className="flex items-center gap-2 text-violet-700 font-medium rounded px-2 py-1 transition-all hover:bg-violet-100 hover:underline">
+                  <span className="inline-block w-2 h-2 bg-violet-400 rounded-full"></span>
+                  Les niveaux de risques des systèmes d'IA
+                </a>
+              </li>
+              <li>
+                <a href="#limite" className="flex items-center gap-2 text-violet-700 font-medium rounded px-2 py-1 transition-all hover:bg-violet-100 hover:underline">
+                  <span className="inline-block w-2 h-2 bg-violet-400 rounded-full"></span>
+                  Obligations pour les systèmes d'IA à risque limité
+                </a>
+              </li>
+              <li>
+                <a href="#gouvernance" className="flex items-center gap-2 text-violet-700 font-medium rounded px-2 py-1 transition-all hover:bg-violet-100 hover:underline">
+                  <span className="inline-block w-2 h-2 bg-violet-400 rounded-full"></span>
+                  La gouvernance prévue par le RIA
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
       <div className="max-w-7xl mx-auto px-4 pb-16">
         <section className="mb-12" ref={refDateMiseEnOeuvre} id="date-mise-en-oeuvre">
           <div className="white-container rounded-2xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-black mb-4">Calendrier d'entrée en application du règlement IA</h2>
+            <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Calendrier d'entrée en application du règlement IA</h2>
             <img src="/schemas/Dates.png" alt="Calendrier d'entrée en application du Règlement IA (AI Act) - Dates de mise en œuvre 2025-2027 - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
 
             {/* Bouton pour afficher/masquer les détails */}
@@ -247,7 +263,7 @@ export const SchemasPage = () => {
         {/* Nouvelle section : Modèle vs Système */}
         <section className="mb-12" ref={refModeleVsSysteme} id="modele-vs-systeme">
           <div className="white-container rounded-2xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-black mb-4">La distinction entre modèle d'IA et système d'IA</h2>
+            <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">La distinction entre modèle d'IA et système d'IA</h2>
             <img src="/schemas/modele%20vs%20systeme.png" alt="Schéma explicatif : distinction entre modèle d'IA et système d'IA - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
             
             {/* Bouton pour afficher/masquer les détails */}
@@ -307,7 +323,7 @@ export const SchemasPage = () => {
         {/* Nouvelle section : GPAI */}
         <section className="mb-12" ref={refGPAI} id="gpai">
           <div className="white-container rounded-2xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-black mb-4">Les différents modèles d'IA à usage général</h2>
+            <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Les différents modèles d'IA à usage général</h2>
             <img src="/schemas/GPAI.png" alt="Schéma des modèles d'IA à usage général (GPAI) - Classification et obligations - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
             
             {/* Bouton pour afficher/masquer les détails */}
@@ -384,7 +400,7 @@ export const SchemasPage = () => {
         {/* Nouvelle section : Niveaux de risques des systèmes d'IA */}
         <section className="mb-12" ref={refSIAs} id="sias">
           <div className="white-container rounded-2xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-black mb-4">Les niveaux de risques des systèmes d'IA</h2>
+            <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Les niveaux de risques des systèmes d'IA</h2>
             <img src="/schemas/SIAs.png" alt="Schéma des niveaux de risques des systèmes d'IA - Risque inacceptable, élevé, limité, minimal - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
             
             {/* Bouton pour afficher/masquer les détails */}
@@ -465,6 +481,90 @@ export const SchemasPage = () => {
                 <p><span className="font-semibold">Article clé pour l'encouragement volontaire :</span> Article 95.</p>
               </div>
             </div>
+            )}
+          </div>
+        </section>
+
+        {/* Nouvelle section : Obligations pour les systèmes d'IA à risque limité */}
+        <section className="mb-12" id="limite">
+          <div className="white-container rounded-2xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Obligations pour les systèmes d'IA à risque limité</h2>
+            <img src="/schemas/limite.png" alt="Schéma des obligations pour les systèmes d'IA à risque limité - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <div className="text-center mb-6">
+              <button
+                onClick={() => toggleSection('limite')}
+                className="btn btn-primary flex items-center gap-2 mx-auto"
+              >
+                {expandedSections['limite'] ? (
+                  <>
+                    <span>Masquer les détails</span>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </>
+                ) : (
+                  <>
+                    <span>Voir plus de détails</span>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            </div>
+            {expandedSections['limite'] && (
+              <div className="text-black space-y-8 max-w-3xl mx-auto text-left animate-fade-in">
+                <div>
+                  <h3 className="font-bold text-lg mb-2">1. Systèmes d'Interaction avec les Humains (ex: Chatbots)</h3>
+                  <ul className="list-disc pl-6 space-y-1">
+                    <li><b>Obligation :</b> Les utilisateurs doivent être informés de manière claire qu'ils interagissent avec un système d'IA.</li>
+                    <li><b>Responsable :</b> <b>Le fournisseur</b> doit concevoir le système dans ce but.</li>
+                    <li><b>Article de référence :</b> <b>Article 50, paragraphe 1</b>.</li>
+                    <li><b>Exception :</b> Cette obligation ne s'applique pas si l'interaction avec l'IA est "évidente" compte tenu des circonstances (par exemple, un avatar dans un jeu vidéo).</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">2. Systèmes de Reconnaissance des Émotions ou de Catégorisation Biométrique</h3>
+                  <ul className="list-disc pl-6 space-y-1">
+                    <li><b>Obligation :</b> Les personnes physiques exposées à un tel système doivent être informées de son fonctionnement.</li>
+                    <li><b>Responsable :</b> <b>Le déployeur</b> (celui qui utilise le système).</li>
+                    <li><b>Article de référence :</b> <b>Article 50, paragraphe 3</b>.</li>
+                    <li><b>Note :</b> S'applique uniquement aux systèmes <i>non interdits</i> et <i>non classés à haut risque</i>.</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">3. Systèmes de Génération de Contenu Artificiel (ex: Deepfakes)</h3>
+                  <div className="mb-2">Ici, la responsabilité est partagée entre le fournisseur et le déployeur :</div>
+                  <ul className="list-disc pl-6 space-y-1">
+                    <li><b>Obligation du Fournisseur :</b>
+                      <ul className="list-[circle] pl-6">
+                        <li><b>Marquer le contenu :</b> Les systèmes doivent intégrer une solution technique pour que les sorties (images, audio, vidéo, texte) soient <b>marquées</b> dans un format lisible par machine, indiquant qu'elles ont été générées artificiellement.</li>
+                        <li><b>Article de référence :</b> <b>Article 50, paragraphe 2</b>.</li>
+                      </ul>
+                    </li>
+                    <li><b>Obligation du Déployeur :</b>
+                      <ul className="list-[circle] pl-6">
+                        <li><b>Déclarer le contenu :</b>
+                          <ul className="list-[square] pl-6">
+                            <li>Pour les <b>hypertrucages</b> (images/audio/vidéo qui semblent réels), le déployeur doit clairement indiquer que le contenu est artificiel.</li>
+                            <li>Pour le <b>texte</b> généré par IA et publié pour informer le public sur des sujets d'intérêt général, le déployeur doit également le signaler.</li>
+                          </ul>
+                        </li>
+                        <li><b>Article de référence :</b> <b>Article 50, paragraphe 4</b>.</li>
+                        <li><b>Exception :</b> Pour les contenus manifestement artistiques, créatifs, ou satiriques, l'obligation se limite à une divulgation appropriée qui ne gêne pas l'œuvre.</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </div>
+                <hr className="my-6" />
+                <div>
+                  <h3 className="font-bold text-lg mb-2">Points Clés Communs à ces Obligations</h3>
+                  <ul className="list-disc pl-6 space-y-1">
+                    <li><b>Comment informer ?</b> L'information doit être claire, reconnaissable et fournie au plus tard lors de la première interaction ou exposition. (<b>Article 50, paragraphe 5</b>).</li>
+                    <li><b>Articulation avec les autres règles :</b> Ces obligations de transparence sont un socle minimal et ne remplacent pas les exigences plus strictes pour les systèmes d'IA à haut risque. (<b>Article 50, paragraphe 6</b>).</li>
+                  </ul>
+                </div>
+              </div>
             )}
           </div>
         </section>

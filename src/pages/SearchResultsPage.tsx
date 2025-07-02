@@ -66,16 +66,71 @@ const SCHEMAS = [
   {
     id: 'modele-vs-systeme',
     titre: "La distinction entre modèle d'IA et système d'IA",
-    texte: `Le Modèle d'IA (Le Moteur)... Le Système d'IA (Le Véhicule)...`,
+    texte: `Le Modèle d'IA (Le Moteur) : il s'agit d'un système d'apprentissage automatique ou statistique qui génère des capacités d'IA, mais qui n'est pas directement déployé auprès des utilisateurs finaux. Le Système d'IA (Le Véhicule) : il intègre un ou plusieurs modèles d'IA et est déployé pour une finalité précise auprès des utilisateurs. Le Règlement IA encadre principalement les systèmes d'IA, mais certaines obligations s'appliquent aussi aux modèles d'IA à usage général (GPAI).`,
     image: '/schemas/modele%20vs%20systeme.png',
     url: '/schemas#modele-vs-systeme',
   },
   {
     id: 'gpai',
     titre: "Les différents modèles d'IA à usage général",
-    texte: `La réglementation cible spécifiquement les Modèles d'IA à Usage Général (GPAI)...`,
+    texte: `La réglementation cible spécifiquement les Modèles d'IA à Usage Général (GPAI), c'est-à-dire les modèles pouvant être intégrés dans de nombreux systèmes d'IA différents. Les GPAI sont soumis à des obligations spécifiques de transparence, de documentation et de gestion des risques, notamment pour les modèles présentant un risque systémique élevé.`,
     image: '/schemas/GPAI.png',
     url: '/schemas#gpai',
+  },
+  {
+    id: 'sias',
+    titre: "Les niveaux de risques des systèmes d'IA",
+    texte: `Le Règlement IA distingue quatre niveaux de risques pour les systèmes d'IA :
+- Risque inacceptable : systèmes strictement interdits (ex : manipulation cognitive, scoring social).
+- Risque élevé : systèmes soumis à des exigences strictes (ex : IA dans l'éducation, la santé, la justice, la sécurité).
+- Risque limité : obligations de transparence (ex : chatbots, deepfakes).
+- Risque minimal : usage libre, sans contrainte spécifique.
+Chaque niveau de risque détermine le niveau d'obligations et de contrôle applicable.`,
+    image: '/schemas/SIAs.png',
+    url: '/schemas#sias',
+  },
+  {
+    id: 'limite',
+    titre: "Obligations pour les systèmes d'IA à risque limité",
+    texte: `1. Systèmes d'Interaction avec les Humains (ex: Chatbots)
+- Obligation : Les utilisateurs doivent être informés de manière claire qu'ils interagissent avec un système d'IA.
+- Responsable : Le fournisseur doit concevoir le système dans ce but.
+- Article de référence : Article 50, paragraphe 1.
+- Exception : Cette obligation ne s'applique pas si l'interaction avec l'IA est "évidente" compte tenu des circonstances (par exemple, un avatar dans un jeu vidéo).
+
+2. Systèmes de Reconnaissance des Émotions ou de Catégorisation Biométrique
+- Obligation : Les personnes physiques exposées à un tel système doivent être informées de son fonctionnement.
+- Responsable : Le déployeur (celui qui utilise le système).
+- Article de référence : Article 50, paragraphe 3.
+- Note : S'applique uniquement aux systèmes non interdits et non classés à haut risque.
+
+3. Systèmes de Génération de Contenu Artificiel (ex: Deepfakes)
+Obligation du Fournisseur :
+- Marquer le contenu : Les systèmes doivent intégrer une solution technique pour que les sorties (images, audio, vidéo, texte) soient marquées dans un format lisible par machine, indiquant qu'elles ont été générées artificiellement.
+- Article de référence : Article 50, paragraphe 2.
+Obligation du Déployeur :
+- Déclarer le contenu :
+  - Pour les hypertrucages (images/audio/vidéo qui semblent réels), le déployeur doit clairement indiquer que le contenu est artificiel.
+  - Pour le texte généré par IA et publié pour informer le public sur des sujets d'intérêt général, le déployeur doit également le signaler.
+- Article de référence : Article 50, paragraphe 4.
+- Exception : Pour les contenus manifestement artistiques, créatifs, ou satiriques, l'obligation se limite à une divulgation appropriée qui ne gêne pas l'œuvre.
+
+Points Clés Communs à ces Obligations
+- Comment informer ? L'information doit être claire, reconnaissable et fournie au plus tard lors de la première interaction ou exposition. (Article 50, paragraphe 5).
+- Articulation avec les autres règles : Ces obligations de transparence sont un socle minimal et ne remplacent pas les exigences plus strictes pour les systèmes d'IA à haut risque. (Article 50, paragraphe 6).`,
+    image: '/schemas/limite.png',
+    url: '/schemas#limite',
+  },
+  {
+    id: 'gouvernance',
+    titre: "La gouvernance prévue par le RIA",
+    texte: `Le Règlement IA prévoit une gouvernance à plusieurs niveaux :
+- Au niveau européen : création d'un Bureau européen de l'IA chargé de la coordination, du suivi et de l'application du règlement.
+- Un Comité européen de l'IA réunit les représentants des États membres pour harmoniser les pratiques.
+- Au niveau national : chaque État membre désigne une ou plusieurs autorités compétentes pour superviser l'application du règlement.
+Cette gouvernance vise à assurer une application cohérente et efficace du Règlement IA dans toute l'Union européenne.`,
+    image: '/schemas/gouvernance.png',
+    url: '/schemas#gouvernance',
   },
 ]
 
@@ -484,10 +539,10 @@ export const SearchResultsPage = () => {
                       </a>
                       <div className="flex-1">
                         <a href={schema.url} target="_blank" rel="noopener noreferrer" className="text-blue-700 font-medium hover:underline text-base">
-                          {schema.titre}
+                          <span dangerouslySetInnerHTML={{ __html: highlight(schema.titre, keyword) }} />
                         </a>
                         <div className="text-xs md:text-sm text-gray-600 mt-1">
-                          {getExcerpt(schema.texte, keyword)}
+                          <span dangerouslySetInnerHTML={{ __html: highlight(getExcerpt(schema.texte, keyword), keyword) }} />
                         </div>
                       </div>
                     </li>
