@@ -27,6 +27,11 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/lexique" className="text-gray-600 hover:text-[#774792] text-sm">
+                  Lexique français-anglais
+                </Link>
+              </li>
+              <li>
                 <button
                   onClick={resetCookieConsent}
                   className="text-gray-600 hover:text-[#774792] cursor-pointer text-sm"

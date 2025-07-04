@@ -1,11 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+const POPUP_KEY = 'popup_contributeur_closed_at';
+const DELAY_DAYS = 30;
+
 const Popup = () => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const lastClosed = localStorage.getItem(POPUP_KEY);
+    if (!lastClosed) {
+      setIsOpen(true);
+    } else {
+      const diff = Date.now() - Number(lastClosed);
+      if (diff > DELAY_DAYS * 24 * 60 * 60 * 1000) {
+        setIsOpen(true);
+      }
+    }
+  }, []);
 
   const closePopup = () => {
     setIsOpen(false);
+    localStorage.setItem(POPUP_KEY, Date.now().toString());
   };
 
   return (
