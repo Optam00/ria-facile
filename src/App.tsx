@@ -18,6 +18,7 @@ import DoctrineArticlePage from './pages/DoctrineArticlePage'
 import { HelmetProvider } from 'react-helmet-async'
 import SearchResultsPage from './pages/SearchResultsPage'
 import { SchemasPage } from './pages/SchemasPage'
+import Lexique from './pages/Lexique'
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
               <Route path="/doctrine" element={<DoctrinePage />} />
               <Route path="/doctrine/:id" element={<DoctrineArticlePage />} />
               <Route path="/recherche" element={<SearchResultsPage />} />
+              <Route path="/lexique" element={<Lexique />} />
             </Routes>
           </div>
           <Footer />
