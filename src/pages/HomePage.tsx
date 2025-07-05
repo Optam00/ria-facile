@@ -42,12 +42,12 @@ export const HomePage = () => {
       answer: "Les systèmes d'IA à haut risque doivent respecter des exigences strictes tout au long de leur cycle de vie (Chapitre III, Section 2 - Articles 8 à 15). Celles-ci incluent :\n\n- Mise en place d'un <strong>système de gestion des risques</strong> (Article 9).\n- <strong>Gouvernance des données</strong> (qualité, pertinence, représentativité des jeux de données d'entraînement, de validation et de test) (Article 10).\n- <strong>Documentation technique</strong> détaillée (Article 11 et Annexe IV).\n- Capacités d'<strong>enregistrement automatique des événements</strong> (logs) (Article 12).\n- <strong>Transparence</strong> et fourniture d'informations claires aux déployeurs (notice d'utilisation) (Article 13).\n- Mise en place de mesures pour permettre une <strong>surveillance humaine</strong> effective (Article 14).\n- Assurer un niveau approprié d'<strong>exactitude</strong>, de <strong>robustesse</strong> et de <strong>cybersécurité</strong> (Article 15).\n\nDe plus, les fournisseurs doivent mettre en place un système de gestion de la qualité (Article 17), effectuer une évaluation de la conformité (Article 43), apposer le marquage CE (Article 48) et enregistrer le système dans une base de données européenne (Article 49)."
     },
     {
-      question: "Quelles sont les obligations spécifiques des déployeurs (utilisateurs) de systèmes d'IA à haut risque ?",
+      question: "Quelles sont les obligations spécifiques des déployeurs de systèmes d'IA à haut risque ?",
       answer: "Les déployeurs ont également des obligations importantes (Article 26), notamment :\n\n- Utiliser le système conformément à sa <strong>notice d'utilisation</strong>.\n- Assurer une <strong>surveillance humaine</strong> par du personnel compétent et formé.\n- S'assurer que les <strong>données d'entrée</strong> sous leur contrôle sont pertinentes pour l'usage prévu.\n- <strong>Surveiller le fonctionnement</strong> du système et informer le fournisseur/distributeur en cas de risque ou d'incident grave.\n- Conserver les <strong>logs</strong> générés par le système (si sous leur contrôle).\n- Informer les personnes concernées lorsqu'elles font l'objet d'une décision basée sur un système d'IA à haut risque (sauf exceptions).\n- Pour certains déployeurs (organismes publics, certains acteurs privés fournissant des services publics, etc.), réaliser une <strong>analyse d'impact sur les droits fondamentaux (AIDF)</strong> avant le déploiement (Article 27)."
     },
     {
-      question: "Qu'en est-il des modèles d'IA à usage général (GPAI) / modèles de fondation ?",
-      answer: "Le Règlement introduit des règles spécifiques pour les modèles d'IA à usage général (Chapitre V), qui sont des modèles capables d'accomplir une large gamme de tâches (comme les grands modèles de langage).\n\n- Tous les fournisseurs de GPAI doivent respecter des obligations de <strong>transparence</strong>, notamment fournir une documentation technique aux fournisseurs en aval (qui intègrent le modèle dans leur propre système IA) (Article 53 et Annexe XII), et mettre en place une politique de respect du droit d'auteur de l'UE (notamment pour l'entraînement).\n- Les modèles GPAI présentant des <strong>risques systémiques</strong> (basés sur des capacités élevées, comme un seuil de calcul d'entraînement - initialement >10^25 FLOPS - ou désignés par la Commission) (Article 51) sont soumis à des obligations supplémentaires (Article 55), comme réaliser des évaluations de modèle, évaluer et atténuer les risques systémiques, assurer un niveau adéquat de cybersécurité et signaler les incidents graves.\n- Des <strong>codes de bonne pratique</strong> sont encouragés pour détailler la mise en œuvre de ces obligations (Article 56)."
+      question: "Qu'en est-il des modèles d'IA à usage général ?",
+      answer: "Le Règlement introduit des règles spécifiques pour les modèles d'IA à usage général (Chapitre V), qui sont des modèles capables d'accomplir une large gamme de tâches (comme les grands modèles de langage).\n\n- Tous les fournisseurs de modèles d'IA à usage général doivent respecter des obligations de transparence, notamment fournir une documentation technique aux fournisseurs en aval (qui intègrent le modèle dans leur propre système IA) (Article 53 et Annexe XII), et mettre en place une politique de respect du droit d'auteur de l'UE (notamment pour l'entraînement).\n- Les modèles d'IA à usage général présentant des risques systémiques (basés sur des capacités élevées, comme un seuil de calcul d'entraînement - initialement >10^25 FLOPS - ou désignés par la Commission) (Article 51) sont soumis à des obligations supplémentaires (Article 55), comme réaliser des évaluations de modèle, évaluer et atténuer les risques systémiques, assurer un niveau adéquat de cybersécurité et signaler les incidents graves.\n- Des codes de bonne pratique sont encouragés pour détailler la mise en œuvre de ces obligations (Article 56).\n\nCes modèles d'IA à usage général sont parfois appelés \"GPAI\", ce qui est l'abréviation du terme en anglais : General Purpose AI model."
     },
     {
       question: "Quelles sont les obligations de transparence spécifiques ?",
@@ -55,11 +55,14 @@ export const HomePage = () => {
     },
     {
       question: "Comment le Règlement IA sera-t-il appliqué et contrôlé ?",
-      answer: "La gouvernance est structurée à plusieurs niveaux (Chapitre VII) :\n\n- Un <strong>Bureau européen de l'IA (AI Office)</strong> au sein de la Commission européenne, avec un rôle central, notamment pour la surveillance des modèles GPAI et la coordination. (Article 64)\n- Un <strong>Comité européen de l'intelligence artificielle (Comité IA)</strong>, composé de représentants des États membres, pour assurer une application cohérente. (Article 65)\n- Des <strong>autorités nationales compétentes</strong> désignées par chaque État membre (autorité notifiante et autorité de surveillance du marché). (Article 70)\n- Un <strong>forum consultatif</strong> et un <strong>groupe scientifique d'experts indépendants</strong> pour fournir une expertise. (Articles 67 et 68)"
+      answer: `La gouvernance est structurée à plusieurs niveaux (Chapitre VII) :\n\n- Un Bureau européen de l'IA (AI Office) au sein de la Commission européenne, avec un rôle central, notamment pour la surveillance des modèles d'IA à usage général et la coordination. (Article 64)\n- Un Comité européen de l'intelligence artificielle (Comité IA), composé de représentants des États membres, pour assurer une application cohérente. (Article 65)\n- Des autorités nationales compétentes désignées par chaque État membre (autorité notifiante et autorité de surveillance du marché). (Article 70)\n- Un forum consultatif et un groupe scientifique d'experts indépendants pour fournir une expertise. (Articles 67 et 68)`,
     },
     {
       question: "Quelles sont les sanctions en cas de non-conformité ?",
-      answer: "Les États membres doivent établir des sanctions effectives, proportionnées et dissuasives (Article 99). Le règlement fixe des plafonds pour les amendes administratives :\n\n- Jusqu'à <strong>35 millions d'euros</strong> ou <strong>7% du chiffre d'affaires annuel mondial</strong> (le montant le plus élevé étant retenu) pour les infractions aux pratiques interdites (Article 5) ou aux exigences sur les données pour les systèmes à haut risque (certains aspects de l'Article 10).\n- Jusqu'à <strong>15 millions d'euros</strong> ou <strong>3% du chiffre d'affaires annuel mondial</strong> pour la non-conformité à la plupart des autres obligations du règlement (y compris celles pour les systèmes à haut risque, les GPAI, la transparence...).\n- Jusqu'à <strong>7,5 millions d'euros</strong> ou <strong>1,5% du chiffre d'affaires annuel mondial</strong> pour la fourniture d'informations incorrectes, incomplètes ou trompeuses aux autorités ou organismes notifiés.\n\nDes seuils inférieurs sont prévus pour les PME et les jeunes pousses. La Commission peut également infliger des amendes aux fournisseurs de modèles GPAI (Article 101)."
+      answer: `Les États membres doivent établir des sanctions effectives, proportionnées et dissuasives (Article 99). Le règlement fixe des plafonds pour les amendes administratives :
+- Jusqu'à 35 millions d'euros ou 7% du chiffre d'affaires annuel mondial (le montant le plus élevé étant retenu) pour les infractions aux pratiques interdites (Article 5).
+- Jusqu'à 15 millions d'euros ou 3% du chiffre d'affaires annuel mondial pour la non-conformité à la plupart des autres obligations du règlement (y compris celles pour les systèmes à haut risque, les modèles d'IA à usage général, la transparence...).
+- Jusqu'à 7,5 millions d'euros ou 1,5% du chiffre d'affaires annuel mondial pour la fourniture d'informations incorrectes, incomplètes ou trompeuses aux autorités ou organismes notifiés.`,
     }
   ]
 
@@ -224,8 +227,14 @@ export const HomePage = () => {
                           let listItems = [];
                           let currentLi = null;
                           let inList = false;
+                          let intro = [];
+                          let outro = [];
+                          let afterList = false;
                           lines.forEach((line, i) => {
                             if (line.startsWith('- ')) {
+                              if (!inList && !afterList) {
+                                afterList = true;
+                              }
                               if (currentLi !== null) {
                                 listItems.push(currentLi);
                               }
@@ -242,13 +251,16 @@ export const HomePage = () => {
                               inList = false;
                             } else if (inList) {
                               currentLi += ' ' + line.trim();
-                            } else if (line.trim() !== '') {
-                              elements.push(<p key={`p-${i}`}>{line}</p>);
+                            } else if (!afterList && line.trim() !== '') {
+                              intro.push(<p key={`intro-${i}`}>{line}</p>);
+                            } else if (afterList && line.trim() !== '') {
+                              outro.push(<p key={`outro-${i}`}>{line}</p>);
                             }
                           });
                           if (currentLi !== null) {
                             listItems.push(currentLi);
                           }
+                          elements.push(...intro);
                           if (listItems.length > 0) {
                             elements.push(
                               <ul key={`ul-end`}>
@@ -258,6 +270,7 @@ export const HomePage = () => {
                               </ul>
                             );
                           }
+                          elements.push(...outro);
                           return elements;
                         })()}
                       </div>
