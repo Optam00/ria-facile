@@ -8,6 +8,7 @@ import { LastDoctrineArticle } from '../components/LastDoctrineArticle'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { SchemaPreviewHome } from '../components/SchemaPreviewHome'
+import { Helmet } from 'react-helmet'
 
 export const HomePage = () => {
   const [openQuestion, setOpenQuestion] = useState<number | null>(null)
@@ -27,7 +28,7 @@ export const HomePage = () => {
     },
     {
       question: "Comment le Règlement IA classe-t-il les systèmes d'IA ?",
-      answer: "Le Règlement adopte une approche basée sur les risques, classant les systèmes d'IA en quatre catégories principales :\n\n- <strong>Risque inacceptable</strong> : Pratiques d'IA interdites car contraires aux valeurs de l'UE (Article 5).\n- <strong>Haut risque</strong> : Systèmes d'IA soumis à des exigences strictes avant leur mise sur le marché et tout au long de leur cycle de vie (Articles 6 à 15 et obligations connexes).\n- <strong>Risque limité</strong> : Systèmes d'IA soumis à des obligations spécifiques de transparence (Article 50).\n- <strong>Risque minimal</strong> : Majorité des systèmes d'IA. Le règlement n'impose pas d'obligations, mais encourage l'adhésion volontaire à des codes de conduite (Recital 28)."
+      answer: "Le Règlement adopte une approche basée sur les risques, classant les systèmes d'IA en quatre catégories principales :\n\n- <strong>Risque inacceptable</strong> : Pratiques d'IA interdites car contraires aux valeurs de l'UE (Article 5).\n- <strong>Haut risque</strong> : Systèmes d'IA soumis à des exigences strictes avant leur mise sur le marché et tout au long de leur cycle de vie (Articles 6 à 15 et obligations connexes).\n- <strong>Risque limité</strong> : Systèmes d'IA soumis à des obligations spécifiques de transparence (Article 50).\n- <strong>Risque minimal</strong> : Majorité des systèmes d'IA. Le règlement n'impose pas d'obligations, mais encourage l'adhésion volontaire à des codes de conduite (considérant 28)."
     },
     {
       question: "Quelles sont les pratiques d'IA interdites (risque inacceptable) ?",
@@ -66,8 +67,31 @@ export const HomePage = () => {
     }
   ]
 
+  // Données structurées pour la FAQ
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map(item => ({
+      "@type": "Question",
+      "name": item.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.answer.replace(/<[^>]*>/g, '') // Supprimer les balises HTML
+      }
+    }))
+  }
+
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>RIA Facile - Comprendre et appliquer le Règlement IA (AI Act, IA Act, RIA)</title>
+        <meta name="description" content="RIA Facile vous aide à comprendre et appliquer le Règlement européen sur l'Intelligence Artificielle. Outils interactifs, quiz, schémas explicatifs et documentation complète." />
+        <meta name="keywords" content="RIA, AI Act, règlement IA, intelligence artificielle, conformité, Europe, GPAI, systèmes d'IA haut risque, deepfakes, chatbots" />
+        <script type="application/ld+json">
+          {JSON.stringify(faqStructuredData)}
+        </script>
+      </Helmet>
+      
       {/* Carrousel d'actualités */}
       <div className="max-w-5xl mx-auto">
         <ActuCarousel />

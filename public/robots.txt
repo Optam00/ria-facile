@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://ria-facile.com/sitemap.xml
+Sitemap: https://ria-facile.com/sitemap-images.xml
+
+# Optimisation pour les moteurs de recherche
+Crawl-delay: 1
+
+# Pages importantes à indexer en priorité
+Allow: /consulter
+Allow: /schemas
+Allow: /quiz
+Allow: /documentation
+Allow: /doctrine
+Allow: /actualites
+Allow: /lexique
+
+# Pages moins importantes
+Allow: /contact
+Allow: /mentions-legales
+Allow: /politique-de-confidentialite 
