@@ -132,6 +132,78 @@ Cette gouvernance vise à assurer une application cohérente et efficace du Règ
     image: '/schemas/gouvernance.png',
     url: '/schemas#gouvernance',
   },
+  {
+    id: 'sanctions',
+    titre: "Montant des sanctions prévus par le RIA",
+    texte: `Le montant retenu est toujours le plus élevé entre la somme fixe et le pourcentage du chiffre d'affaires annuel mondial de l'exercice précédent (sauf pour les PME et jeunes pousses)
+
+1. Niveau 1 : Jusqu'à 35 millions d'euros ou 7% du chiffre d'affaires mondial
+
+Pour quelle infraction ? C'est la sanction la plus sévère, réservée au non-respect des pratiques d'IA interdites.
+
+Exemples : Mettre sur le marché ou utiliser un système de notation sociale, de manipulation subliminale, etc.
+
+Article de référence : Article 99, paragraphe 3.
+
+2. Niveau 2 : Jusqu'à 15 millions d'euros ou 3% du chiffre d'affaires mondial
+
+Pour quelle infraction ? Non-respect de la plupart des autres obligations clés du règlement, notamment :
+
+Les obligations des fournisseurs d'IA à haut risque (exigences de qualité, de documentation, etc. - Art. 16).
+
+Les obligations des déployeurs d'IA à haut risque (contrôle humain, surveillance, etc. - Art. 26).
+
+Les obligations des organismes notifiés (organismes de certification).
+
+Les obligations de transparence pour les IA à risque limité (chatbots, deepfakes - Art. 50).
+
+Les obligations relatives aux fournisseurs de modèles d'IA à usage générale (Art. 101).
+
+Article de référence : Article 99, paragraphe 4.
+
+3. Niveau 3 : Jusqu'à 7,5 millions d'euros ou 1% du chiffre d'affaires mondial
+
+Pour quelle infraction ? Fourniture d'informations incorrectes, incomplètes ou trompeuses aux organismes notifiés ou aux autorités nationales compétentes.
+
+Article de référence : Article 99, paragraphe 5.`,
+    image: '/schemas/sanctions.png',
+    url: '/schemas#sanctions',
+  },
+  {
+    id: 'exigences_SIAHR',
+    titre: "Exigences concernant les systèmes d'IA à haut risque",
+    texte: `Ces exigences s'appliquent aux systèmes, des obligations reposent sur les déployeurs et fournisseurs de ces systèmes (voir le schéma dédié)
+
+Système de gestion des risques (Article 9)
+
+Un processus continu d'identification, d'analyse et d'atténuation des risques pour la santé, la sécurité et les droits fondamentaux, qui doit être maintenu tout au long du cycle de vie du système.
+
+Qualité et gouvernance des données (Article 10)
+
+Les jeux de données utilisés pour l'entraînement, la validation et les tests doivent être de haute qualité : pertinents, représentatifs, exempts d'erreurs et complets. Des pratiques de gouvernance des données appropriées sont obligatoires pour prévenir et atténuer les biais discriminatoires.
+
+Documentation technique (Article 11)
+
+Une documentation complète doit être créée avant la mise sur le marché. Elle doit détailler le fonctionnement du système, ses capacités, ses limites et les processus de développement afin de permettre aux autorités d'évaluer sa conformité.
+
+Tenue de registres (Journaux) (Article 12)
+
+Le système doit être capable d'enregistrer automatiquement les événements ("logs") pendant son fonctionnement pour garantir la traçabilité des résultats et faciliter le suivi et les audits post-commercialisation.
+
+Transparence et fourniture d'informations aux utilisateurs (Article 13)
+
+Le système doit être suffisamment transparent pour que les utilisateurs (déployeurs) puissent en comprendre le fonctionnement. Il doit être accompagné d'une notice d'utilisation claire et complète.
+
+Contrôle humain (Article 14)
+
+Le système doit être conçu pour pouvoir être contrôlé efficacement par des humains. Ceux-ci doivent être en mesure de comprendre les sorties du système, de décider de ne pas les utiliser, d'ignorer ou d'annuler une décision, ou d'arrêter le système.
+
+Exactitude, robustesse et cybersécurité (Article 15)
+
+Le système doit atteindre un niveau approprié d'exactitude, être résilient aux erreurs ou aux incohérences, et être protégé contre les vulnérabilités et les attaques malveillantes (cybersécurité).`,
+    image: '/schemas/exigences_SIAHR.png',
+    url: '/schemas#exigences_SIAHR',
+  },
 ]
 
 export const SearchResultsPage = () => {

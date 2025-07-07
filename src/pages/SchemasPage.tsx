@@ -18,6 +18,7 @@ export const SchemasPage = () => {
     'sias': false,
     'limite': false,
     'gouvernance': false,
+    'exigences_SIAHR': false,
   })
   // État pour le sommaire replié/déplié
   const [sommaireOuvert, setSommaireOuvert] = useState(false)
@@ -34,6 +35,7 @@ export const SchemasPage = () => {
         'gpai': refGPAI,
         'sias': refSIAs,
         'gouvernance': refGouvernance,
+        'exigences_SIAHR': refGouvernance,
       }
       const ref = refMap[id]
       if (ref && ref.current) {
@@ -179,6 +181,18 @@ export const SchemasPage = () => {
                 <a href="#gouvernance" className="flex items-center gap-2 text-violet-700 font-medium rounded px-2 py-1 transition-all hover:bg-violet-100 hover:underline">
                   <span className="inline-block w-2 h-2 bg-violet-400 rounded-full"></span>
                   La gouvernance prévue par le RIA
+                </a>
+              </li>
+              <li>
+                <a href="#sanctions" className="flex items-center gap-2 text-violet-700 font-medium rounded px-2 py-1 transition-all hover:bg-violet-100 hover:underline">
+                  <span className="inline-block w-2 h-2 bg-violet-400 rounded-full"></span>
+                  Montant des sanctions prévues par le RIA
+                </a>
+              </li>
+              <li>
+                <a href="#exigences_SIAHR" className="flex items-center gap-2 text-violet-700 font-medium rounded px-2 py-1 transition-all hover:bg-violet-100 hover:underline">
+                  <span className="inline-block w-2 h-2 bg-violet-400 rounded-full"></span>
+                  Exigences concernant les systèmes d'IA à haut risque
                 </a>
               </li>
             </ul>
@@ -704,6 +718,132 @@ export const SchemasPage = () => {
             )}
           </div>
         </div>
+
+        {/* Nouvelle section : Montant des sanctions prévus par le RIA */}
+        <section className="mb-12" id="sanctions">
+          <div className="white-container rounded-2xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Montant des sanctions prévus par le RIA</h2>
+            <img src="/schemas/sanctions.png" alt="Schéma des sanctions prévues par le Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <div className="text-center mb-6">
+              <button
+                onClick={() => toggleSection('sanctions')}
+                className="btn btn-primary flex items-center gap-2 mx-auto"
+              >
+                {expandedSections['sanctions'] ? (
+                  <>
+                    <span>Masquer les détails</span>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </>
+                ) : (
+                  <>
+                    <span>Voir plus de détails</span>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            </div>
+            {expandedSections['sanctions'] && (
+              <div className="text-black space-y-8 max-w-3xl mx-auto text-left animate-fade-in">
+                <div>
+                  <h3 className="font-bold text-lg mb-2">1. Niveau 1 : Jusqu'à 35 millions d'euros ou 7% du chiffre d'affaires mondial</h3>
+                  <p><span className="font-semibold">Pour quelle infraction ?</span> C'est la sanction la plus sévère, réservée au non-respect des pratiques d'IA interdites.</p>
+                  <p><span className="font-semibold">Exemples :</span> Mettre sur le marché ou utiliser un système de notation sociale, de manipulation subliminale, etc.</p>
+                  <p><span className="font-semibold">Article de référence :</span> Article 99, paragraphe 3.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">2. Niveau 2 : Jusqu'à 15 millions d'euros ou 3% du chiffre d'affaires mondial</h3>
+                  <p><span className="font-semibold">Pour quelle infraction ?</span> Non-respect de la plupart des autres obligations clés du règlement, notamment :</p>
+                  <ul className="list-disc ml-8 mb-2">
+                    <li>Les obligations des fournisseurs d'IA à haut risque (exigences de qualité, de documentation, etc. - Art. 16).</li>
+                    <li>Les obligations des déployeurs d'IA à haut risque (contrôle humain, surveillance, etc. - Art. 26).</li>
+                    <li>Les obligations des organismes notifiés (organismes de certification).</li>
+                    <li>Les obligations de transparence pour les IA à risque limité (chatbots, deepfakes - Art. 50).</li>
+                    <li>Les obligations relatives aux fournisseurs de modèles d'IA à usage générale (Art. 101).</li>
+                  </ul>
+                  <p><span className="font-semibold">Article de référence :</span> Article 99, paragraphe 4.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">3. Niveau 3 : Jusqu'à 7,5 millions d'euros ou 1% du chiffre d'affaires mondial</h3>
+                  <p><span className="font-semibold">Pour quelle infraction ?</span> Fourniture d'informations incorrectes, incomplètes ou trompeuses aux organismes notifiés ou aux autorités nationales compétentes.</p>
+                  <p><span className="font-semibold">Article de référence :</span> Article 99, paragraphe 5.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Nouvelle section : Exigences concernant les systèmes d'IA à haut risque */}
+        <section className="mb-12" id="exigences_SIAHR">
+          <div className="white-container rounded-2xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Exigences concernant les systèmes d'IA à haut risque</h2>
+            <img src="/schemas/exigences_SIAHR.png" alt="Schéma des exigences concernant les systèmes d'IA à haut risque - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <div className="text-center mb-6">
+              <button
+                onClick={() => toggleSection('exigences_SIAHR')}
+                className="btn btn-primary flex items-center gap-2 mx-auto"
+              >
+                {expandedSections['exigences_SIAHR'] ? (
+                  <>
+                    <span>Masquer les détails</span>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </>
+                ) : (
+                  <>
+                    <span>Voir plus de détails</span>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            </div>
+            {expandedSections['exigences_SIAHR'] && (
+              <div className="text-black space-y-8 max-w-3xl mx-auto text-left animate-fade-in">
+                <div>
+                  <h3 className="font-bold text-lg mb-2">1. Système de gestion des risques</h3>
+                  <p><span className="font-semibold">Description :</span> Un processus continu d'identification, d'analyse et d'atténuation des risques pour la santé, la sécurité et les droits fondamentaux, qui doit être maintenu tout au long du cycle de vie du système.</p>
+                  <p><span className="font-semibold">Article de référence :</span> Article 9.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">2. Qualité et gouvernance des données</h3>
+                  <p><span className="font-semibold">Description :</span> Les jeux de données utilisés pour l'entraînement, la validation et les tests doivent être de haute qualité : pertinents, représentatifs, exempts d'erreurs et complets. Des pratiques de gouvernance des données appropriées sont obligatoires pour prévenir et atténuer les biais discriminatoires.</p>
+                  <p><span className="font-semibold">Article de référence :</span> Article 10.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">3. Documentation technique</h3>
+                  <p><span className="font-semibold">Description :</span> Une documentation complète doit être créée avant la mise sur le marché. Elle doit détailler le fonctionnement du système, ses capacités, ses limites et les processus de développement afin de permettre aux autorités d'évaluer sa conformité.</p>
+                  <p><span className="font-semibold">Article de référence :</span> Article 11.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">4. Tenue de registres (Journaux)</h3>
+                  <p><span className="font-semibold">Description :</span> Le système doit être capable d'enregistrer automatiquement les événements ("logs") pendant son fonctionnement pour garantir la traçabilité des résultats et faciliter le suivi et les audits post-commercialisation.</p>
+                  <p><span className="font-semibold">Article de référence :</span> Article 12.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">5. Transparence et fourniture d'informations aux utilisateurs</h3>
+                  <p><span className="font-semibold">Description :</span> Le système doit être suffisamment transparent pour que les utilisateurs (déployeurs) puissent en comprendre le fonctionnement. Il doit être accompagné d'une notice d'utilisation claire et complète.</p>
+                  <p><span className="font-semibold">Article de référence :</span> Article 13.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">6. Contrôle humain</h3>
+                  <p><span className="font-semibold">Description :</span> Le système doit être conçu pour pouvoir être contrôlé efficacement par des humains. Ceux-ci doivent être en mesure de comprendre les sorties du système, de décider de ne pas les utiliser, d'ignorer ou d'annuler une décision, ou d'arrêter le système.</p>
+                  <p><span className="font-semibold">Article de référence :</span> Article 14.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">7. Exactitude, robustesse et cybersécurité</h3>
+                  <p><span className="font-semibold">Description :</span> Le système doit atteindre un niveau approprié d'exactitude, être résilient aux erreurs ou aux incohérences, et être protégé contre les vulnérabilités et les attaques malveillantes (cybersécurité).</p>
+                  <p><span className="font-semibold">Article de référence :</span> Article 15.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   )

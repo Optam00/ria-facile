@@ -127,7 +127,7 @@ body::after {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #666;
-}
+} 
 
 /* Styles pour les schémas */
 .schema-card {
