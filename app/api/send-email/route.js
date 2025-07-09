@@ -23,7 +23,7 @@ export async function POST(req) {
 
     const data = await resend.emails.send({
       from: 'onboarding@resend.dev',
-      to: 'matthieu.polaina@gmail.com',
+      to: 'ria-facile@outlook.fr',
       reply_to: email,
       subject: `[RIA Facile] ${subject}`,
       html: `
