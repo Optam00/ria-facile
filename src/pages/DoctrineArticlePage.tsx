@@ -75,6 +75,18 @@ const DoctrineArticlePage: React.FC = () => {
       <Helmet>
         <title>{article.titre} - RIA Facile</title>
         <meta name="description" content={article.abstract} />
+        {/* Open Graph */}
+        <meta property="og:title" content={article.titre + ' - RIA Facile'} />
+        <meta property="og:description" content={article.abstract} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={window.location.href} />
+        {/* Si tu as une image d'illustration, remplace l'URL ci-dessous */}
+        <meta property="og:image" content="https://www.ria-facile.com/favicon.ico" />
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={article.titre + ' - RIA Facile'} />
+        <meta name="twitter:description" content={article.abstract} />
+        <meta name="twitter:image" content="https://www.ria-facile.com/favicon.ico" />
       </Helmet>
 
       <div className="bg-white rounded-3xl shadow-lg p-8 md:p-12">

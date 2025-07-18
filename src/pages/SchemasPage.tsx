@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useLocation } from 'react-router-dom'
+import ImageLightbox from '../components/ImageLightbox';
 
 export const SchemasPage = () => {
   // Référence pour la section du schéma
@@ -101,6 +102,28 @@ export const SchemasPage = () => {
       }
     ]
   }
+
+  // Liste des schémas à afficher dans la lightbox
+  const schemaImages = [
+    { src: '/schemas/Dates.png', alt: "Calendrier d'entrée en application du Règlement IA (AI Act) - Dates de mise en œuvre 2025-2027 - RIA Facile" },
+    { src: '/schemas/modele%20vs%20systeme.png', alt: "Schéma explicatif : distinction entre modèle d'IA et système d'IA - Règlement IA - RIA Facile" },
+    { src: '/schemas/GPAI.png', alt: "Schéma des modèles d'IA à usage général (GPAI) - Classification et obligations - Règlement IA - RIA Facile" },
+    { src: '/schemas/SIAs.png', alt: "Schéma des niveaux de risques des systèmes d'IA - Risque inacceptable, élevé, limité, minimal - RIA Facile" },
+    { src: '/schemas/gouvernance.png', alt: "Schéma de la gouvernance prévue par le Règlement IA - Bureau de l'IA, Comité IA, autorités nationales - RIA Facile" },
+    { src: '/schemas/limite.png', alt: "Obligations pour les systèmes d'IA à risque limité - RIA Facile" },
+    { src: '/schemas/exigences_SIAHR.png', alt: "Exigences concernant les systèmes d'IA à haut risque - RIA Facile" },
+    { src: '/schemas/obligations_SIAHR.png', alt: "Obligations SIAHR - RIA Facile" },
+    { src: '/schemas/sanctions.png', alt: "Montant des sanctions prévues par le RIA - RIA Facile" },
+  ];
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+  const closeLightbox = () => setLightboxOpen(false);
+  const prevLightbox = () => setLightboxIndex(i => (i > 0 ? i - 1 : i));
+  const nextLightbox = () => setLightboxIndex(i => (i < schemaImages.length - 1 ? i + 1 : i));
 
   return (
     <div className="min-h-screen">
@@ -204,7 +227,16 @@ export const SchemasPage = () => {
         <section className="mb-12" ref={refDateMiseEnOeuvre} id="date-mise-en-oeuvre">
           <div className="white-container rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Calendrier d'entrée en application du règlement IA</h2>
-            <img src="/schemas/Dates.png" alt="Calendrier d'entrée en application du Règlement IA (AI Act) - Dates de mise en œuvre 2025-2027 - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <img
+              src="/schemas/Dates.png"
+              alt="Calendrier d'entrée en application du Règlement IA (AI Act) - Dates de mise en œuvre 2025-2027 - RIA Facile"
+              className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8 cursor-zoom-in transition hover:scale-105"
+              onClick={() => openLightbox(0)}
+              tabIndex={0}
+              role="button"
+              aria-label="Agrandir le schéma"
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(0); }}
+            />
 
             {/* Bouton pour afficher/masquer les détails */}
             <div className="text-center mb-6">
@@ -278,7 +310,16 @@ export const SchemasPage = () => {
         <section className="mb-12" ref={refModeleVsSysteme} id="modele-vs-systeme">
           <div className="white-container rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">La distinction entre modèle d'IA et système d'IA</h2>
-            <img src="/schemas/modele%20vs%20systeme.png" alt="Schéma explicatif : distinction entre modèle d'IA et système d'IA - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <img
+              src="/schemas/modele%20vs%20systeme.png"
+              alt="Schéma explicatif : distinction entre modèle d'IA et système d'IA - Règlement IA - RIA Facile"
+              className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8 cursor-zoom-in transition hover:scale-105"
+              onClick={() => openLightbox(1)}
+              tabIndex={0}
+              role="button"
+              aria-label="Agrandir le schéma"
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(1); }}
+            />
             
             {/* Bouton pour afficher/masquer les détails */}
             <div className="text-center mb-6">
@@ -338,7 +379,16 @@ export const SchemasPage = () => {
         <section className="mb-12" ref={refGPAI} id="gpai">
           <div className="white-container rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Les différents modèles d'IA à usage général</h2>
-            <img src="/schemas/GPAI.png" alt="Schéma des modèles d'IA à usage général (GPAI) - Classification et obligations - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <img
+              src="/schemas/GPAI.png"
+              alt="Schéma des modèles d'IA à usage général (GPAI) - Classification et obligations - Règlement IA - RIA Facile"
+              className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8 cursor-zoom-in transition hover:scale-105"
+              onClick={() => openLightbox(2)}
+              tabIndex={0}
+              role="button"
+              aria-label="Agrandir le schéma"
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(2); }}
+            />
             
             {/* Bouton pour afficher/masquer les détails */}
             <div className="text-center mb-6">
@@ -415,7 +465,16 @@ export const SchemasPage = () => {
         <section className="mb-12" ref={refSIAs} id="sias">
           <div className="white-container rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Les niveaux de risques des systèmes d'IA</h2>
-            <img src="/schemas/SIAs.png" alt="Schéma des niveaux de risques des systèmes d'IA - Risque inacceptable, élevé, limité, minimal - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <img
+              src="/schemas/SIAs.png"
+              alt="Schéma des niveaux de risques des systèmes d'IA - Risque inacceptable, élevé, limité, minimal - RIA Facile"
+              className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8 cursor-zoom-in transition hover:scale-105"
+              onClick={() => openLightbox(3)}
+              tabIndex={0}
+              role="button"
+              aria-label="Agrandir le schéma"
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(3); }}
+            />
             
             {/* Bouton pour afficher/masquer les détails */}
             <div className="text-center mb-6">
@@ -503,7 +562,16 @@ export const SchemasPage = () => {
         <section className="mb-12" id="limite">
           <div className="white-container rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Obligations pour les systèmes d'IA à risque limité</h2>
-            <img src="/schemas/limite.png" alt="Schéma des obligations pour les systèmes d'IA à risque limité - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <img
+              src="/schemas/limite.png"
+              alt="Obligations pour les systèmes d'IA à risque limité - RIA Facile"
+              className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8 cursor-zoom-in transition hover:scale-105"
+              onClick={() => openLightbox(4)}
+              tabIndex={0}
+              role="button"
+              aria-label="Agrandir le schéma"
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(4); }}
+            />
             <div className="text-center mb-6">
               <button
                 onClick={() => toggleSection('limite')}
@@ -594,7 +662,12 @@ export const SchemasPage = () => {
               <img
                 src="/schemas/gouvernance.png"
                 alt="Schéma de la gouvernance prévue par le Règlement IA - Bureau de l'IA, Comité IA, autorités nationales - RIA Facile"
-                className="w-full max-w-full sm:max-w-3xl mx-auto rounded-xl shadow-md border mb-8"
+                className="w-full max-w-full sm:max-w-3xl mx-auto rounded-xl shadow-md border mb-8 cursor-zoom-in transition hover:scale-105"
+                onClick={() => openLightbox(5)}
+                tabIndex={0}
+                role="button"
+                aria-label="Agrandir le schéma"
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(5); }}
               />
             </div>
             
@@ -723,7 +796,16 @@ export const SchemasPage = () => {
         <section className="mb-12" id="sanctions">
           <div className="white-container rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Montant des sanctions prévus par le RIA</h2>
-            <img src="/schemas/sanctions.png" alt="Schéma des sanctions prévues par le Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <img
+              src="/schemas/sanctions.png"
+              alt="Montant des sanctions prévues par le RIA - RIA Facile"
+              className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8 cursor-zoom-in transition hover:scale-105"
+              onClick={() => openLightbox(6)}
+              tabIndex={0}
+              role="button"
+              aria-label="Agrandir le schéma"
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(6); }}
+            />
             <div className="text-center mb-6">
               <button
                 onClick={() => toggleSection('sanctions')}
@@ -780,7 +862,16 @@ export const SchemasPage = () => {
         <section className="mb-12" id="exigences_SIAHR">
           <div className="white-container rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">Exigences concernant les systèmes d'IA à haut risque</h2>
-            <img src="/schemas/exigences_SIAHR.png" alt="Schéma des exigences concernant les systèmes d'IA à haut risque - Règlement IA - RIA Facile" className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8" />
+            <img
+              src="/schemas/exigences_SIAHR.png"
+              alt="Exigences concernant les systèmes d'IA à haut risque - Règlement IA - RIA Facile"
+              className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8 cursor-zoom-in transition hover:scale-105"
+              onClick={() => openLightbox(7)}
+              tabIndex={0}
+              role="button"
+              aria-label="Agrandir le schéma"
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(7); }}
+            />
             <div className="text-center mb-6">
               <button
                 onClick={() => toggleSection('exigences_SIAHR')}
@@ -845,6 +936,16 @@ export const SchemasPage = () => {
           </div>
         </section>
       </div>
+      {/* Lightbox d'image */}
+      {lightboxOpen && (
+        <ImageLightbox
+          images={schemaImages}
+          currentIndex={lightboxIndex}
+          onClose={closeLightbox}
+          onPrev={prevLightbox}
+          onNext={nextLightbox}
+        />
+      )}
     </div>
   )
 }
