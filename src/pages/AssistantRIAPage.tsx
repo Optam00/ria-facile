@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import msgImage from '../assets/msg.jpeg';
+import ReactMarkdown from 'react-markdown';
+// @ts-ignore
+import remarkGfm from 'remark-gfm';
+// @ts-ignore
+import remarkBreaks from 'remark-breaks';
 
 const suggestions = [
   "Quelles sont les obligations pour les systèmes d'IA à haut risque ?",
@@ -15,21 +20,37 @@ export const AssistantRIAPage = () => {
   const [question, setQuestion] = useState('');
   const [history, setHistory] = useState<{question: string, answer: string}[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  // Placeholder pour la réponse (sera remplacé par l'appel API plus tard)
-  const getFakeAnswer = (q: string) => {
-    return "(Réponse simulée) Cette fonctionnalité sera bientôt connectée à l'assistant IA spécialisé dans le règlement IA. Vous pourrez poser toutes vos questions sur la conformité, les obligations, les risques, etc.";
+  // Appel réel à l'API Gemini via le backend Python
+  const callGeminiAPI = async (question: string) => {
+    const response = await fetch('http://localhost:8000/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question }),
+    });
+    const data = await response.json();
+    return data.answer;
   };
 
   const handleAsk = async (q?: string) => {
     const userQuestion = q || question;
     if (!userQuestion.trim()) return;
     setIsLoading(true);
-    setTimeout(() => {
-      setHistory(prev => [...prev, { question: userQuestion, answer: getFakeAnswer(userQuestion) }]);
-      setQuestion('');
-      setIsLoading(false);
-    }, 900);
+    try {
+      const answer = await callGeminiAPI(userQuestion);
+      setHistory(prev => [...prev, { question: userQuestion, answer }]);
+    } catch (e) {
+      setHistory(prev => [...prev, { question: userQuestion, answer: "Erreur lors de la connexion à l'assistant IA." }]);
+    }
+    setQuestion('');
+    setIsLoading(false);
+  };
+
+  const handleCopy = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(idx);
+    setTimeout(() => setCopiedIndex(null), 1200);
   };
 
   return (
@@ -43,79 +64,78 @@ export const AssistantRIAPage = () => {
         <div className="bg-white rounded-3xl shadow-md p-8 text-center">
           <h1 className="text-4xl font-bold mb-4" style={{ color: '#774792' }}>Assistant RIA</h1>
           <p className="text-gray-700 max-w-3xl mx-auto">
-            Posez vos questions sur le règlement européen sur l'intelligence artificielle (RIA, AI Act) et obtenez des réponses instantanées.<br/>
-            <span className="text-gray-500 text-sm block mt-2">Cet assistant est conçu pour vous aider à comprendre vos obligations, les risques, et les bonnes pratiques en matière de conformité IA.</span>
+            Posez vos questions sur le règlement européen sur l'intelligence artificielle (RIA, AI Act) et obtenez des réponses instantanées.
           </p>
         </div>
       </div>
 
-      {/* Encart chatbot et suggestions */}
-      <div className="max-w-7xl mx-auto px-4 mt-8">
-        <div className="bg-white rounded-3xl shadow-md p-8">
-          <div className="flex flex-col md:flex-row gap-8 items-center mb-8">
-            <img src={msgImage} alt="Assistant RIA" className="w-32 h-32 object-contain rounded-2xl shadow-lg bg-gradient-to-tr from-purple-100 to-blue-100" />
-            <div className="w-full">
-              {/* Suggestions */}
-              <h2 className="text-lg font-semibold text-purple-800 mb-2">Suggestions de questions :</h2>
-              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                {suggestions.map((s, i) => (
-                  <button
-                    key={i}
-                    className="bg-purple-50 border border-purple-200 text-purple-700 px-4 py-2 rounded-xl hover:bg-purple-100 transition"
-                    onClick={() => handleAsk(s)}
-                    disabled={isLoading}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* Historique */}
-          <div className="mb-6 max-h-72 overflow-y-auto pr-2">
-            {history.length === 0 && (
-              <div className="text-gray-400 italic text-center">Aucune question posée pour l'instant.</div>
-            )}
-            {history.map((item, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: idx * 0.05 }}
-                className="mb-4"
-              >
-                <div className="font-semibold text-[#774792]">Vous :</div>
-                <div className="bg-purple-50 rounded-xl p-3 mb-1 text-gray-800">{item.question}</div>
-                <div className="font-semibold text-blue-800">Assistant :</div>
-                <div className="bg-blue-50 rounded-xl p-3 text-gray-700">{item.answer}</div>
-              </motion.div>
-            ))}
-          </div>
-          {/* Formulaire */}
-          <form
-            onSubmit={e => { e.preventDefault(); handleAsk(); }}
-            className="flex gap-2 items-end"
+      {/* (Suggestions et image supprimées pour un rendu épuré) */}
+
+      {/* Historique */}
+      <div className="mb-6 max-w-7xl mx-auto mt-6 pr-2">
+        {history.length === 0 && (
+          <div className="text-gray-400 italic text-center">Aucune question posée pour l'instant.</div>
+        )}
+        {history.map((item, idx) => (
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: idx * 0.05 }}
+            className="mb-4"
           >
-            <textarea
-              className="flex-1 px-4 py-3 rounded-2xl border border-gray-200 focus:border-purple-400 focus:ring focus:ring-purple-100 focus:ring-opacity-50 transition-colors shadow-sm resize-none min-h-[56px]"
-              placeholder="Posez votre question sur le règlement IA..."
-              value={question}
-              onChange={e => setQuestion(e.target.value)}
-              disabled={isLoading}
-              rows={2}
-              required
-            />
-            <button
-              type="submit"
-              className="bg-gradient-to-r from-blue-600 to-[#774792] text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-60"
-              disabled={isLoading || !question.trim()}
-            >
-              {isLoading ? 'Envoi...' : 'Envoyer'}
-            </button>
-          </form>
-          <div className="text-xs text-gray-400 mt-4 text-center">Prochainement : réponses en temps réel grâce à l’IA Google (Gemini) spécialisée RIA.</div>
-        </div>
+            <div className="font-semibold text-[#774792]">Vous :</div>
+            <div className="bg-white rounded-xl p-3 mb-1 text-gray-800 border border-gray-100">{item.question}</div>
+            <div className="font-semibold text-blue-800 flex items-center gap-2">Assistant :
+              <button
+                onClick={() => handleCopy(item.answer, idx)}
+                className="ml-2 p-1 rounded hover:bg-blue-100 transition text-blue-700 text-xs border border-blue-200"
+                title="Copier la réponse"
+              >
+                {copiedIndex === idx ? (
+                  <span>✔️</span>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="inline w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8M8 12h8m-7 8h6a2 2 0 002-2V7a2 2 0 00-2-2h-5.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 007.586 2H6a2 2 0 00-2 2v16a2 2 0 002 2h2" /></svg>
+                )}
+              </button>
+            </div>
+            <div className="bg-white rounded-xl p-3 text-gray-700 prose-ria max-w-none border border-gray-100">
+              <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                {item.answer.replace(/\n/g, '\n\n')}
+              </ReactMarkdown>
+            </div>
+          </motion.div>
+        ))}
       </div>
+
+      {/* Formulaire minimaliste façon ChatGPT */}
+      <form
+        onSubmit={e => { e.preventDefault(); handleAsk(); }}
+        className="flex items-center max-w-7xl mx-auto mb-8 bg-white rounded-xl border border-gray-100 shadow-sm px-2 py-1"
+      >
+        <textarea
+          className="flex-1 px-4 py-2 rounded-xl border-0 focus:ring-0 focus:outline-none resize-none min-h-[44px] text-sm bg-transparent"
+          placeholder="Posez votre question sur le règlement IA..."
+          value={question}
+          onChange={e => setQuestion(e.target.value)}
+          disabled={isLoading}
+          rows={1}
+          required
+          style={{resize: 'none'}}
+        />
+        <button
+          type="submit"
+          className="ml-2 p-2 rounded-full bg-gradient-to-r from-blue-600 to-[#774792] text-white shadow hover:shadow-md transition-all duration-300 disabled:opacity-60 flex items-center justify-center"
+          disabled={isLoading || !question.trim()}
+          aria-label="Envoyer"
+        >
+          {isLoading ? (
+            <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" /></svg>
+          )}
+        </button>
+      </form>
     </div>
   );
 };
