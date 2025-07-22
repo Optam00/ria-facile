@@ -196,7 +196,7 @@ body::after {
 .prose-ria p {
   margin-top: 1.1em;
   margin-bottom: 1.1em;
-  line-height: 1.9;
+  line-height: 1.5;
 }
 .prose-ria p:first-child {
   margin-top: 0;
@@ -226,4 +226,9 @@ body::after {
   padding: 0.2em 0.4em;
   border-radius: 4px;
   font-size: 0.95em;
+} 
+
+/* Plus de padding dans les bulles de chat */
+.ria-bubble {
+  padding: 1.1em 1.3em;
 } 

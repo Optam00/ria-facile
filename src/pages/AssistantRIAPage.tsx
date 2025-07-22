@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -12,6 +12,7 @@ export const AssistantRIAPage = () => {
   const [history, setHistory] = useState<{question: string, answer: string}[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Appel réel à l'API Gemini via le backend Python
   const callGeminiAPI = async (question: string) => {
@@ -42,6 +43,23 @@ export const AssistantRIAPage = () => {
     navigator.clipboard.writeText(text);
     setCopiedIndex(idx);
     setTimeout(() => setCopiedIndex(null), 1200);
+  };
+
+  // Auto-expand textarea
+  const handleTextareaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setQuestion(e.target.value);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  };
+
+  // Envoi avec Ctrl+Entrée ou Cmd+Entrée
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleAsk();
+    }
   };
 
   return (
@@ -76,21 +94,21 @@ export const AssistantRIAPage = () => {
             className="mb-4"
           >
             <div className="font-semibold text-[#774792]">Vous :</div>
-            <div className="bg-white rounded-xl p-3 mb-1 text-gray-800 border border-gray-100">{item.question}</div>
+            <div className="bg-white rounded-xl ria-bubble mb-1 text-gray-800 border border-gray-100">{item.question}</div>
             <div className="font-semibold text-blue-800 flex items-center gap-2">Assistant :
               <button
                 onClick={() => handleCopy(item.answer, idx)}
-                className="ml-2 p-1 rounded hover:bg-blue-100 transition text-blue-700 text-xs border border-blue-200"
+                className="ml-2 px-3 py-1 rounded bg-blue-50 hover:bg-blue-100 transition text-blue-700 text-xs border border-blue-200"
                 title="Copier la réponse"
               >
                 {copiedIndex === idx ? (
-                  <span>✔️</span>
+                  <span>✔️ Copié !</span>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="inline w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8M8 12h8m-7 8h6a2 2 0 002-2V7a2 2 0 00-2-2h-5.586a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 007.586 2H6a2 2 0 00-2 2v16a2 2 0 002 2h2" /></svg>
+                  <span>📋 Copier la réponse</span>
                 )}
               </button>
             </div>
-            <div className="bg-white rounded-xl p-3 text-gray-700 prose-ria max-w-none border border-gray-100">
+            <div className="bg-white rounded-xl ria-bubble text-gray-700 prose-ria max-w-none border border-gray-100">
               <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
                 {item.answer.replace(/\n/g, '\n\n')}
               </ReactMarkdown>
@@ -105,20 +123,23 @@ export const AssistantRIAPage = () => {
         className="flex items-center max-w-7xl mx-auto mb-8 bg-white rounded-xl border border-gray-100 shadow-sm px-2 py-1"
       >
         <textarea
-          className="flex-1 px-4 py-2 rounded-xl border-0 focus:ring-0 focus:outline-none resize-none min-h-[44px] text-sm bg-transparent"
+          ref={textareaRef}
+          className="flex-1 px-4 py-2 rounded-xl border-0 focus:ring-0 focus:outline-none resize-none min-h-[44px] text-sm bg-transparent leading-[1.7] flex items-center"
           placeholder="Posez votre question sur le règlement IA..."
           value={question}
-          onChange={e => setQuestion(e.target.value)}
+          onChange={handleTextareaInput}
+          onKeyDown={handleTextareaKeyDown}
           disabled={isLoading}
           rows={1}
           required
-          style={{resize: 'none'}}
+          style={{resize: 'none', display: 'flex', alignItems: 'center'}}
         />
         <button
           type="submit"
           className="ml-2 p-2 rounded-full bg-gradient-to-r from-blue-600 to-[#774792] text-white shadow hover:shadow-md transition-all duration-300 disabled:opacity-60 flex items-center justify-center"
           disabled={isLoading || !question.trim()}
-          aria-label="Envoyer"
+          aria-label="Envoyer (Ctrl+Entrée ou Cmd+Entrée)"
+          title="Envoyer (Ctrl+Entrée ou Cmd+Entrée)"
         >
           {isLoading ? (
             <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
