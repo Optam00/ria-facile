@@ -9,7 +9,12 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://ria-facile.com",
+        "https://www.ria-facile.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
