@@ -24,7 +24,7 @@ export const AssistantRIAPage = () => {
 
   // Appel réel à l'API Gemini via le backend Python
   const callGeminiAPI = async (question: string) => {
-    const response = await fetch('http://localhost:8000/ask', {
+    const response = await fetch('https://assistant-ria-backend.onrender.com/ask', { ... })
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question }),
