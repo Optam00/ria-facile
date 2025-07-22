@@ -1,20 +1,11 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import msgImage from '../assets/msg.jpeg';
 import ReactMarkdown from 'react-markdown';
 // @ts-ignore
 import remarkGfm from 'remark-gfm';
 // @ts-ignore
 import remarkBreaks from 'remark-breaks';
-
-const suggestions = [
-  "Quelles sont les obligations pour les systèmes d'IA à haut risque ?",
-  "Quels sont les risques inacceptables selon le règlement IA ?",
-  "Comment se mettre en conformité avec le RIA ?",
-  "Quelles sanctions en cas de non-conformité ?",
-  "À qui s'applique le règlement IA ?"
-];
 
 export const AssistantRIAPage = () => {
   const [question, setQuestion] = useState('');
@@ -24,7 +15,7 @@ export const AssistantRIAPage = () => {
 
   // Appel réel à l'API Gemini via le backend Python
   const callGeminiAPI = async (question: string) => {
-    const response = await fetch('https://assistant-ria-backend.onrender.com/ask', { ... })
+    const response = await fetch('https://assistant-ria-backend.onrender.com/ask', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question }),
