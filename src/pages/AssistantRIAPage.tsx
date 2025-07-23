@@ -98,15 +98,6 @@ export const AssistantRIAPage = () => {
 
       {/* Historique */}
       <div className="mb-6 max-w-7xl mx-auto mt-6 pr-2">
-        {history.length === 0 && (
-          <div className="text-gray-400 italic text-center">Aucune question posée pour l'instant.</div>
-        )}
-        {history.length > MAX_HISTORY && (
-          <div className="text-red-500 text-center mb-4 font-semibold">
-            ⚠️ Seules les 5 dernières questions sont prises en compte par l'assistant. <br />
-            Pour garantir la cohérence des réponses, démarrez une nouvelle conversation si besoin.
-          </div>
-        )}
         {history.map((item, idx) => (
           <motion.div
             key={idx}
@@ -142,7 +133,7 @@ export const AssistantRIAPage = () => {
       {/* Formulaire minimaliste façon ChatGPT */}
       <form
         onSubmit={e => { e.preventDefault(); handleAsk(); }}
-        className="flex items-center max-w-7xl mx-auto mb-8 bg-white rounded-xl border border-gray-100 shadow-sm px-2 py-1"
+        className="flex items-center max-w-7xl mx-auto mb-2 bg-white rounded-xl border border-gray-100 shadow-sm px-2 py-1"
       >
         <textarea
           ref={textareaRef}
@@ -179,6 +170,13 @@ export const AssistantRIAPage = () => {
           )}
         </button>
       </form>
+      {history.length > MAX_HISTORY && (
+        <div className="text-red-600 text-center mb-8 font-semibold text-base bg-red-50 border border-red-200 rounded-xl max-w-2xl mx-auto px-4 py-3">
+          ⚠️ <b>Attention&nbsp;:</b> Seules les <b>5 dernières questions</b> sont prises en compte par l'assistant.<br />
+          Si vous posez une nouvelle question, <b>l'historique de l'échange ne sera plus pris en compte</b> et la cohérence des réponses ne sera plus garantie.<br />
+          Pensez à démarrer une nouvelle conversation si besoin.
+        </div>
+      )}
     </div>
   );
 };
