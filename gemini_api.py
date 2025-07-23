@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google import genai
 from google.genai import types
+from typing import List, Optional
 
 app = FastAPI()
 
@@ -20,19 +21,42 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class HistoryItem(BaseModel):
+    question: str
+    answer: str
+
 class Question(BaseModel):
     question: str
+    history: Optional[List[HistoryItem]] = None
 
 @app.post("/ask")
 async def ask_gemini(data: Question):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
     model = "gemini-2.5-pro"
-    contents = [
+
+    # Construction du prompt avec l'historique
+    contents = []
+    if data.history:
+        for item in data.history:
+            contents.append(
+                types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=item.question)],
+                )
+            )
+            contents.append(
+                types.Content(
+                    role="model",
+                    parts=[types.Part.from_text(text=item.answer)],
+                )
+            )
+    # Ajout de la nouvelle question
+    contents.append(
         types.Content(
             role="user",
             parts=[types.Part.from_text(text=data.question)],
-        ),
-    ]
+        )
+    )
     tools = [
         types.Tool(url_context=types.UrlContext()),
         types.Tool(googleSearch=types.GoogleSearch()),
