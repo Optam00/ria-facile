@@ -15,6 +15,9 @@ export const AssistantRIAPage = () => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [loadingTooLong, setLoadingTooLong] = useState(false);
+  const [responseTimer, setResponseTimer] = useState(0);
+  const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
 
   const MAX_HISTORY = 5;
 
@@ -44,13 +47,14 @@ export const AssistantRIAPage = () => {
     const userQuestion = q || question;
     if (!userQuestion.trim()) return;
     setIsLoading(true);
+    setPendingQuestion(userQuestion);
     try {
       // Sauvegarde la question dans Supabase
       saveQuestionToSupabase(userQuestion);
       const answer = await callGeminiAPI(userQuestion, history);
       setHistory(prev => [...prev, { question: userQuestion, answer }]);
     } catch (e) {
-      setHistory(prev => [...prev, { question: userQuestion, answer: "Erreur lors de la connexion à l'assistant IA." }]);
+      setHistory(prev => [...prev, { question: userQuestion, answer: "Le service est momentanément saturé en raison d’un grand nombre de demandes. Merci de réessayer dans quelques instants." }]);
     }
     setQuestion('');
     setIsLoading(false);
@@ -81,11 +85,19 @@ export const AssistantRIAPage = () => {
 
   useEffect(() => {
     if (isLoading) {
-      const timer = setTimeout(() => setLoadingTooLong(true), 15000); // 15 secondes
-      return () => clearTimeout(timer);
+      setResponseTimer(0);
+      setPendingQuestion(question);
+      const interval = setInterval(() => {
+        setResponseTimer((t) => t + 1);
+      }, 1000);
+      setTimerInterval(interval);
     } else {
-      setLoadingTooLong(false);
+      if (timerInterval) clearInterval(timerInterval);
+      setTimerInterval(null);
+      setResponseTimer(0);
+      setPendingQuestion(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading]);
 
   return (
@@ -183,17 +195,26 @@ export const AssistantRIAPage = () => {
           <span role="img" aria-label="nouvelle conversation">🗑️</span> Nouvelle conversation
         </button>
       </div>
-      {/* Message d'attente pendant le chargement */}
-      {isLoading && (
-        <div className="text-center text-sm text-gray-500 mt-2">
-          L’assistant réfléchit… Cela peut prendre quelques secondes.
-        </div>
-      )}
-      {/* Message si attente trop longue */}
-      {isLoading && loadingTooLong && (
-        <div className="text-center text-sm text-red-500 mt-2">
-          Le service est momentanément lent, merci de patienter ou de réessayer plus tard.
-        </div>
+      {/* Bulle de réponse animée pendant le chargement */}
+      {isLoading && pendingQuestion && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-4"
+        >
+          <div className="font-semibold text-[#774792]">Vous :</div>
+          <div className="bg-white rounded-xl ria-bubble mb-1 text-gray-800 border border-gray-100">{pendingQuestion}</div>
+          <div className="font-semibold text-blue-800 flex items-center gap-2">Assistant :</div>
+          <div className="bg-white rounded-xl ria-bubble text-gray-700 prose-ria max-w-none border border-gray-100 flex items-center gap-2">
+            <span className="animate-pulse text-lg">{[".", "..", "...", ""].map((dots, i) => (
+              <span key={i} style={{ opacity: responseTimer % 4 === i ? 1 : 0.2 }}>
+                {dots}
+              </span>
+            ))}</span>
+            <span className="ml-2 text-xs text-gray-400">{responseTimer}s</span>
+          </div>
+        </motion.div>
       )}
       {history.length > MAX_HISTORY && (
         <div className="text-red-600 text-center mb-8 font-semibold text-base bg-red-50 border border-red-200 rounded-xl max-w-2xl mx-auto px-4 py-3">
