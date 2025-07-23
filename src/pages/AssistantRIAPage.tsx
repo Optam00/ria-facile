@@ -203,8 +203,6 @@ export const AssistantRIAPage = () => {
           transition={{ duration: 0.3 }}
           className="mb-4"
         >
-          <div className="font-semibold text-[#774792]">Vous :</div>
-          <div className="bg-white rounded-xl ria-bubble mb-1 text-gray-800 border border-gray-100">{pendingQuestion}</div>
           <div className="font-semibold text-blue-800 flex items-center gap-2">Assistant :</div>
           <div className="bg-white rounded-xl ria-bubble text-gray-700 prose-ria max-w-none border border-gray-100 flex items-center gap-2">
             <span className="animate-pulse text-lg">{[".", "..", "...", ""].map((dots, i) => (
