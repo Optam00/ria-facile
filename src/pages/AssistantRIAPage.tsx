@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
@@ -14,6 +14,7 @@ export const AssistantRIAPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [loadingTooLong, setLoadingTooLong] = useState(false);
 
   const MAX_HISTORY = 5;
 
@@ -77,6 +78,15 @@ export const AssistantRIAPage = () => {
       handleAsk();
     }
   };
+
+  useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => setLoadingTooLong(true), 15000); // 15 secondes
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingTooLong(false);
+    }
+  }, [isLoading]);
 
   return (
     <div className="min-h-screen">
@@ -173,6 +183,18 @@ export const AssistantRIAPage = () => {
           <span role="img" aria-label="nouvelle conversation">🗑️</span> Nouvelle conversation
         </button>
       </div>
+      {/* Message d'attente pendant le chargement */}
+      {isLoading && (
+        <div className="text-center text-sm text-gray-500 mt-2">
+          L’assistant réfléchit… Cela peut prendre quelques secondes.
+        </div>
+      )}
+      {/* Message si attente trop longue */}
+      {isLoading && loadingTooLong && (
+        <div className="text-center text-sm text-red-500 mt-2">
+          Le service est momentanément lent, merci de patienter ou de réessayer plus tard.
+        </div>
+      )}
       {history.length > MAX_HISTORY && (
         <div className="text-red-600 text-center mb-8 font-semibold text-base bg-red-50 border border-red-200 rounded-xl max-w-2xl mx-auto px-4 py-3">
           ⚠️ <b>Attention&nbsp;:</b> Seules les <b>5 dernières questions</b> sont prises en compte par l'assistant.<br />
