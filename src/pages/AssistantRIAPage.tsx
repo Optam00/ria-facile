@@ -14,30 +14,17 @@ export const AssistantRIAPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const MAX_HISTORY = 5;
 
   // Appel réel à l'API Gemini via le backend Python
-  const callGeminiAPI = async (question: string, history: {question: string, answer: string}[], file?: File | null) => {
+  const callGeminiAPI = async (question: string, history: {question: string, answer: string}[]) => {
     const recentHistory = history.slice(-MAX_HISTORY);
-    let response;
-    if (file) {
-      const formData = new FormData();
-      formData.append('question', question);
-      formData.append('history', JSON.stringify(recentHistory));
-      formData.append('file', file);
-      response = await fetch('https://assistant-ria-backend.onrender.com/ask', {
-        method: 'POST',
-        body: formData,
-      });
-    } else {
-      response = await fetch('https://assistant-ria-backend.onrender.com/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, history: recentHistory }),
-      });
-    }
+    const response = await fetch('https://assistant-ria-backend.onrender.com/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, history: recentHistory }),
+    });
     const data = await response.json();
     return data.answer;
   };
@@ -59,13 +46,12 @@ export const AssistantRIAPage = () => {
     try {
       // Sauvegarde la question dans Supabase
       saveQuestionToSupabase(userQuestion);
-      const answer = await callGeminiAPI(userQuestion, history, uploadedFile);
+      const answer = await callGeminiAPI(userQuestion, history);
       setHistory(prev => [...prev, { question: userQuestion, answer }]);
     } catch (e) {
       setHistory(prev => [...prev, { question: userQuestion, answer: "Erreur lors de la connexion à l'assistant IA." }]);
     }
     setQuestion('');
-    setUploadedFile(null);
     setIsLoading(false);
   };
 
@@ -147,56 +133,20 @@ export const AssistantRIAPage = () => {
       {/* Formulaire minimaliste façon ChatGPT */}
       <form
         onSubmit={e => { e.preventDefault(); handleAsk(); }}
-        className="flex items-center max-w-7xl mx-auto mb-2 bg-white rounded-xl border border-gray-100 shadow-sm px-2 py-1 gap-2"
+        className="flex items-center max-w-7xl mx-auto mb-2 bg-white rounded-xl border border-gray-100 shadow-sm px-2 py-1"
       >
-        {/* Icône d'upload PDF intégrée dans la barre */}
-        <div className="relative flex items-center">
-          <label
-            className="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer hover:bg-blue-100 transition group"
-            title="Joindre un document PDF"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-purple-700 group-hover:text-purple-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path d="M21.44 11.05l-8.49 8.49a5.25 5.25 0 01-7.43-7.43l9.19-9.19a3.25 3.25 0 014.6 4.6l-9.19 9.19a1.25 1.25 0 01-1.77-1.77l8.49-8.49" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <input
-              type="file"
-              accept="application/pdf"
-              className="hidden"
-              onChange={e => setUploadedFile(e.target.files && e.target.files[0] ? e.target.files[0] : null)}
-              disabled={isLoading}
-            />
-          </label>
-        </div>
-        {/* Zone de texte */}
-        <div className="flex-1 flex flex-col">
-          <textarea
-            ref={textareaRef}
-            className="w-full px-4 py-2 rounded-xl border-0 focus:ring-0 focus:outline-none resize-none min-h-[44px] text-sm bg-transparent leading-[1.7] flex items-center"
-            placeholder="Posez votre question sur le règlement IA..."
-            value={question}
-            onChange={handleTextareaInput}
-            onKeyDown={handleTextareaKeyDown}
-            disabled={isLoading}
-            rows={1}
-            required
-            style={{resize: 'none', display: 'flex', alignItems: 'center'}}
-          />
-          {/* Affichage du nom du fichier sélectionné, avec croix pour retirer */}
-          {uploadedFile && (
-            <div className="flex items-center mt-1 text-xs text-blue-700 bg-blue-50 rounded px-2 py-1 w-fit gap-2">
-              <span className="truncate max-w-[180px]">{uploadedFile.name}</span>
-              <button
-                type="button"
-                className="ml-1 text-blue-500 hover:text-red-500 transition"
-                onClick={() => setUploadedFile(null)}
-                title="Retirer le document"
-              >
-                ✖️
-              </button>
-            </div>
-          )}
-        </div>
-        {/* Bouton envoyer */}
+        <textarea
+          ref={textareaRef}
+          className="flex-1 px-4 py-2 rounded-xl border-0 focus:ring-0 focus:outline-none resize-none min-h-[44px] text-sm bg-transparent leading-[1.7] flex items-center"
+          placeholder="Posez votre question sur le règlement IA..."
+          value={question}
+          onChange={handleTextareaInput}
+          onKeyDown={handleTextareaKeyDown}
+          disabled={isLoading}
+          rows={1}
+          required
+          style={{resize: 'none', display: 'flex', alignItems: 'center'}}
+        />
         <button
           type="submit"
           className="ml-2 p-2 rounded-full bg-gradient-to-r from-blue-600 to-[#774792] text-white shadow hover:shadow-md transition-all duration-300 disabled:opacity-60 flex items-center justify-center"
@@ -211,12 +161,12 @@ export const AssistantRIAPage = () => {
           )}
         </button>
       </form>
-      {/* Bouton Nouvelle conversation centré sous la barre */}
+      {/* Bouton Nouvelle conversation centré sous la zone de saisie */}
       <div className="flex justify-center mb-6">
         <button
           type="button"
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm border border-gray-300 shadow-sm transition disabled:opacity-60"
-          onClick={() => { setHistory([]); setUploadedFile(null); }}
+          onClick={() => setHistory([])}
           disabled={isLoading || history.length === 0}
           title="Démarrer une nouvelle conversation"
         >
