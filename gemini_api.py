@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google import genai
@@ -30,31 +30,57 @@ class Question(BaseModel):
     history: Optional[List[HistoryItem]] = None
 
 @app.post("/ask")
-async def ask_gemini(data: Question):
+async def ask_gemini(
+    request: Request,
+    question: str = Form(None),
+    history: str = Form(None),
+    file: UploadFile = File(None)
+):
+    # Si la requête est multipart (upload de fichier)
+    if file is not None:
+        # Ici, il faudra intégrer l'appel à Gemini 1.5 Pro avec le PDF
+        return {"answer": "L'analyse de PDF n'est pas encore disponible, mais le backend accepte bien le fichier."}
+
+    # Sinon, on traite comme avant (JSON ou form sans fichier)
+    if question is None:
+        # Si ce n'est pas un form, on tente de lire le JSON
+        data = await request.json()
+        question = data.get("question")
+        history = data.get("history")
+
+    # On parse l'historique si besoin
+    parsed_history = []
+    if history:
+        if isinstance(history, str):
+            import json
+            parsed_history = json.loads(history)
+        else:
+            parsed_history = history
+
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
     model = "gemini-2.5-pro"
 
     # Construction du prompt avec l'historique
     contents = []
-    if data.history:
-        for item in data.history:
+    if parsed_history:
+        for item in parsed_history:
             contents.append(
                 types.Content(
                     role="user",
-                    parts=[types.Part.from_text(text=item.question)],
+                    parts=[types.Part.from_text(text=item["question"])],
                 )
             )
             contents.append(
                 types.Content(
                     role="model",
-                    parts=[types.Part.from_text(text=item.answer)],
+                    parts=[types.Part.from_text(text=item["answer"])],
                 )
             )
     # Ajout de la nouvelle question
     contents.append(
         types.Content(
             role="user",
-            parts=[types.Part.from_text(text=data.question)],
+            parts=[types.Part.from_text(text=question)],
         )
     )
     tools = [
