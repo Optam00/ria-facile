@@ -129,7 +129,7 @@ export const AssistantRIAPage = () => {
             className="mb-4"
           >
             <div className="font-semibold text-[#774792]">Vous :</div>
-            <div className="bg-white rounded-xl ria-bubble mb-1 text-gray-800 border border-gray-100">{item.question}</div>
+            <div className="bg-white rounded-xl ria-bubble text-gray-800 max-w-none border border-gray-100 mb-1 px-4 py-3">{item.question}</div>
             <div className="font-semibold text-blue-800 flex items-center gap-2">Assistant :
               <button
                 onClick={() => handleCopy(item.answer, idx)}
@@ -150,40 +150,26 @@ export const AssistantRIAPage = () => {
             </div>
           </motion.div>
         ))}
-      </div>
-
-      {/* Formulaire minimaliste façon ChatGPT */}
-      <form
-        onSubmit={e => { e.preventDefault(); handleAsk(); }}
-        className="flex items-center max-w-7xl mx-auto mb-2 bg-white rounded-xl border border-gray-100 shadow-sm px-2 py-1"
-      >
-        <textarea
-          ref={textareaRef}
-          className="flex-1 px-4 py-2 rounded-xl border-0 focus:ring-0 focus:outline-none resize-none min-h-[44px] text-sm bg-transparent leading-[1.7] flex items-center"
-          placeholder="Posez votre question sur le règlement IA..."
-          value={question}
-          onChange={handleTextareaInput}
-          onKeyDown={handleTextareaKeyDown}
-          disabled={isLoading}
-          rows={1}
-          required
-          style={{resize: 'none', display: 'flex', alignItems: 'center'}}
-        />
-        <button
-          type="submit"
-          className="ml-2 p-2 rounded-full bg-gradient-to-r from-blue-600 to-[#774792] text-white shadow hover:shadow-md transition-all duration-300 disabled:opacity-60 flex items-center justify-center"
-          disabled={isLoading || !question.trim()}
-          aria-label="Envoyer (Ctrl+Entrée ou Cmd+Entrée)"
-          title="Envoyer (Ctrl+Entrée ou Cmd+Entrée)"
+      {/* Bulle de réponse animée pendant le chargement */}
+      {isLoading && pendingQuestion && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-4"
         >
-          {isLoading ? (
-            <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" /></svg>
-          )}
-        </button>
-      </form>
-      {/* Bouton Nouvelle conversation centré sous la zone de saisie */}
+          <div className="font-semibold text-blue-800 flex items-center gap-2">Assistant :</div>
+          <div className="bg-white rounded-xl ria-bubble text-gray-700 prose-ria max-w-none border border-gray-100 flex items-center gap-2 px-4 py-3">
+            <span className="animate-pulse text-lg">{[".", "..", "...", ""].map((dots, i) => (
+              <span key={i} style={{ opacity: responseTimer % 4 === i ? 1 : 0.2 }}>
+                {dots}
+              </span>
+            ))}</span>
+            <span className="ml-2 text-xs text-gray-400">{responseTimer}s</span>
+          </div>
+        </motion.div>
+      )}
+      {/* Bouton Nouvelle conversation centré sous la dernière réponse */}
       <div className="flex justify-center mb-6">
         <button
           type="button"
@@ -195,25 +181,6 @@ export const AssistantRIAPage = () => {
           <span role="img" aria-label="nouvelle conversation">🗑️</span> Nouvelle conversation
         </button>
       </div>
-      {/* Bulle de réponse animée pendant le chargement */}
-      {isLoading && pendingQuestion && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-4"
-        >
-          <div className="font-semibold text-blue-800 flex items-center gap-2">Assistant :</div>
-          <div className="bg-white rounded-xl ria-bubble text-gray-700 prose-ria max-w-none border border-gray-100 flex items-center gap-2">
-            <span className="animate-pulse text-lg">{[".", "..", "...", ""].map((dots, i) => (
-              <span key={i} style={{ opacity: responseTimer % 4 === i ? 1 : 0.2 }}>
-                {dots}
-              </span>
-            ))}</span>
-            <span className="ml-2 text-xs text-gray-400">{responseTimer}s</span>
-          </div>
-        </motion.div>
-      )}
       {history.length > MAX_HISTORY && (
         <div className="text-red-600 text-center mb-8 font-semibold text-base bg-red-50 border border-red-200 rounded-xl max-w-2xl mx-auto px-4 py-3">
           ⚠️ <b>Attention&nbsp;:</b> Seules les <b>5 dernières questions</b> sont prises en compte par l'assistant.<br />
