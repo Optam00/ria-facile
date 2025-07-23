@@ -148,15 +148,6 @@ export const AssistantRIAPage = () => {
           style={{resize: 'none', display: 'flex', alignItems: 'center'}}
         />
         <button
-          type="button"
-          className="ml-2 px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs border border-gray-300 mr-2"
-          onClick={() => setHistory([])}
-          disabled={isLoading || history.length === 0}
-          title="Démarrer une nouvelle conversation"
-        >
-          🗑️ Nouvelle conversation
-        </button>
-        <button
           type="submit"
           className="ml-2 p-2 rounded-full bg-gradient-to-r from-blue-600 to-[#774792] text-white shadow hover:shadow-md transition-all duration-300 disabled:opacity-60 flex items-center justify-center"
           disabled={isLoading || !question.trim()}
@@ -170,6 +161,18 @@ export const AssistantRIAPage = () => {
           )}
         </button>
       </form>
+      {/* Bouton Nouvelle conversation centré sous la zone de saisie */}
+      <div className="flex justify-center mb-6">
+        <button
+          type="button"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm border border-gray-300 shadow-sm transition disabled:opacity-60"
+          onClick={() => setHistory([])}
+          disabled={isLoading || history.length === 0}
+          title="Démarrer une nouvelle conversation"
+        >
+          <span role="img" aria-label="nouvelle conversation">🗑️</span> Nouvelle conversation
+        </button>
+      </div>
       {history.length > MAX_HISTORY && (
         <div className="text-red-600 text-center mb-8 font-semibold text-base bg-red-50 border border-red-200 rounded-xl max-w-2xl mx-auto px-4 py-3">
           ⚠️ <b>Attention&nbsp;:</b> Seules les <b>5 dernières questions</b> sont prises en compte par l'assistant.<br />
