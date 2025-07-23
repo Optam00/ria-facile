@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 // @ts-ignore
 import remarkBreaks from 'remark-breaks';
+import { supabase } from '../lib/supabase';
 
 export const AssistantRIAPage = () => {
   const [question, setQuestion] = useState('');
@@ -14,15 +15,28 @@ export const AssistantRIAPage = () => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const MAX_HISTORY = 5;
+
   // Appel réel à l'API Gemini via le backend Python
-  const callGeminiAPI = async (question: string) => {
+  const callGeminiAPI = async (question: string, history: {question: string, answer: string}[]) => {
+    const recentHistory = history.slice(-MAX_HISTORY);
     const response = await fetch('https://assistant-ria-backend.onrender.com/ask', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question, history: recentHistory }),
     });
     const data = await response.json();
     return data.answer;
+  };
+
+  // Sauvegarde la question dans Supabase
+  const saveQuestionToSupabase = async (question: string) => {
+    try {
+      await supabase.from('assistant_ria').insert([{ question }]);
+    } catch (error) {
+      // Optionnel : log ou gestion d'erreur
+      console.error('Erreur lors de la sauvegarde de la question dans Supabase', error);
+    }
   };
 
   const handleAsk = async (q?: string) => {
@@ -30,7 +44,9 @@ export const AssistantRIAPage = () => {
     if (!userQuestion.trim()) return;
     setIsLoading(true);
     try {
-      const answer = await callGeminiAPI(userQuestion);
+      // Sauvegarde la question dans Supabase
+      saveQuestionToSupabase(userQuestion);
+      const answer = await callGeminiAPI(userQuestion, history);
       setHistory(prev => [...prev, { question: userQuestion, answer }]);
     } catch (e) {
       setHistory(prev => [...prev, { question: userQuestion, answer: "Erreur lors de la connexion à l'assistant IA." }]);
@@ -85,6 +101,12 @@ export const AssistantRIAPage = () => {
         {history.length === 0 && (
           <div className="text-gray-400 italic text-center">Aucune question posée pour l'instant.</div>
         )}
+        {history.length > MAX_HISTORY && (
+          <div className="text-red-500 text-center mb-4 font-semibold">
+            ⚠️ Seules les 5 dernières questions sont prises en compte par l'assistant. <br />
+            Pour garantir la cohérence des réponses, démarrez une nouvelle conversation si besoin.
+          </div>
+        )}
         {history.map((item, idx) => (
           <motion.div
             key={idx}
@@ -134,6 +156,15 @@ export const AssistantRIAPage = () => {
           required
           style={{resize: 'none', display: 'flex', alignItems: 'center'}}
         />
+        <button
+          type="button"
+          className="ml-2 px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs border border-gray-300 mr-2"
+          onClick={() => setHistory([])}
+          disabled={isLoading || history.length === 0}
+          title="Démarrer une nouvelle conversation"
+        >
+          🗑️ Nouvelle conversation
+        </button>
         <button
           type="submit"
           className="ml-2 p-2 rounded-full bg-gradient-to-r from-blue-600 to-[#774792] text-white shadow hover:shadow-md transition-all duration-300 disabled:opacity-60 flex items-center justify-center"
