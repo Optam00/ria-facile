@@ -132,7 +132,16 @@ export const AssistantRIAPage = () => {
               </button>
             </div>
             <div className="bg-white rounded-xl ria-bubble text-gray-700 prose-ria max-w-none border border-gray-100">
-              <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkBreaks]}
+                components={{
+                  a: (props) => (
+                    <a {...props} target="_blank" rel="noopener noreferrer">
+                      {props.children}
+                    </a>
+                  ),
+                }}
+              >
                 {item.answer.replace(/\n/g, '\n\n')}
               </ReactMarkdown>
             </div>
