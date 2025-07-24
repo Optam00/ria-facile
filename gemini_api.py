@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, File, UploadFile, Form, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google import genai
@@ -30,57 +30,31 @@ class Question(BaseModel):
     history: Optional[List[HistoryItem]] = None
 
 @app.post("/ask")
-async def ask_gemini(
-    request: Request,
-    question: str = Form(None),
-    history: str = Form(None),
-    file: UploadFile = File(None)
-):
-    # Si la requête est multipart (upload de fichier)
-    if file is not None:
-        # Ici, il faudra intégrer l'appel à Gemini 1.5 Pro avec le PDF
-        return {"answer": "L'analyse de PDF n'est pas encore disponible, mais le backend accepte bien le fichier."}
-
-    # Sinon, on traite comme avant (JSON ou form sans fichier)
-    if question is None:
-        # Si ce n'est pas un form, on tente de lire le JSON
-        data = await request.json()
-        question = data.get("question")
-        history = data.get("history")
-
-    # On parse l'historique si besoin
-    parsed_history = []
-    if history:
-        if isinstance(history, str):
-            import json
-            parsed_history = json.loads(history)
-        else:
-            parsed_history = history
-
+async def ask_gemini(data: Question):
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
     model = "gemini-2.5-pro"
 
     # Construction du prompt avec l'historique
     contents = []
-    if parsed_history:
-        for item in parsed_history:
+    if data.history:
+        for item in data.history:
             contents.append(
                 types.Content(
                     role="user",
-                    parts=[types.Part.from_text(text=item["question"])],
+                    parts=[types.Part.from_text(text=item.question)],
                 )
             )
             contents.append(
                 types.Content(
                     role="model",
-                    parts=[types.Part.from_text(text=item["answer"])],
+                    parts=[types.Part.from_text(text=item.answer)],
                 )
             )
     # Ajout de la nouvelle question
     contents.append(
         types.Content(
             role="user",
-            parts=[types.Part.from_text(text=question)],
+            parts=[types.Part.from_text(text=data.question)],
         )
     )
     tools = [
@@ -95,7 +69,7 @@ async def ask_gemini(
         tools=tools,
         response_mime_type="text/plain",
         system_instruction=[
-            types.Part.from_text(text="""tu es un avocat de renommée mondiale spécialisé dans la conformité de l'intelligence artificielle, plus particulièrement sur le RÈGLEMENT (UE) 2024/1689 DU PARLEMENT EUROPÉEN ET DU CONSEIL du 13 juin 2024 établissant des règles harmonisées concernant l’intelligence artificielle et modifiant les règlements (CE) no 300/2008, (UE) no 167/2013, (UE) no 168/2013, (UE) 2018/858, (UE) 2018/1139 et (UE) 2019/2144 et les directives 2014/90/UE, (UE) 2016/797 et (UE) 2020/1828 (règlement sur l’intelligence artificielle), dans sa version publiée au journal officiel le 12 juillet 2024.
+            types.Part.from_text(text="""Tu es un expert du règlement européen sur l'IA. 
 
 Tu dois répondre aux questions avec la plus grande rigueur juridique possible. 
 Tu dois avant tout te baser sur le règlement IA pour fonder tes réponses, mais tu peux aussi citer d'autres sources, par exemple les documents mentionnés par cette page (que tu dois lire et analyser avant de les citer) : https://www.ria-facile.com/documentation.
@@ -105,7 +79,13 @@ Tes réponses doivent absolument contenir les références de tes sources dans l
 
 Tu ne doit pas te présenter lorsque tu donnes une réponse, tu dois répondre directement.
 
-Tes réponses doivent être rédigées de façon claires avec des bullet points et des emoji, pour faciliter la lecture. Le contenu doit être très sérieux et exact, mais les réponses doivent être faciles à lire.""")
+Tes réponses doivent être rédigées de façon claires avec des bullet points et des emoji, pour faciliter la lecture. Le contenu doit être très sérieux et exact, mais les réponses doivent être faciles à lire.
+Si tu penses que ta réponse pourrait être plus précise en ayant plus d'informations, tu peux indiquer à l'auteur de la question que tu pourrais lui apporter une réponse plus précise si tu avais plus d'informations, et tu lui poses les questions pour obtenir les informations dont tu as besoin.
+
+Chacun de tes réponses doit finir par les phrases suivantes en italique : 
+Ce contenu a été généré par une IA, consultez le texte pour vérifier les informations : https://www.ria-facile.com/consulter
+Pour être accompagné dans votre mise en conformité par des professionnels, contactez-nous via ce formulaire : https://www.ria-facile.com/contact
+""")
         ],
     )
     response = ""
