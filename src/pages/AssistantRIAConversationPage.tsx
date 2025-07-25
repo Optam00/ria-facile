@@ -106,10 +106,10 @@ const AssistantRIAConversationPage = () => {
             <div className="font-semibold text-blue-800 flex items-center gap-2 mb-1">Assistant RIA :
               <button
                 onClick={() => handleCopy(item.answer, idx)}
-                className="ml-2 px-3 py-1 rounded-full bg-[#ede6fa] hover:bg-[#d1b3f7] transition text-[#774792] text-xs font-medium flex items-center gap-1 border border-[#d1b3f7] shadow-sm hover:shadow-md focus:outline-none"
+                className="ml-2 px-2 py-0.5 rounded-full bg-[#f6f0fa] hover:bg-[#ede6fa] transition text-[#a58fd6] text-[11px] font-normal flex items-center gap-1 border border-[#e5d8fa] shadow-none hover:shadow focus:outline-none"
                 title="Copier la réponse"
               >
-                <span className="text-base">📋</span>
+                <span className="text-xs">📋</span>
                 {copiedIndex === idx ? (
                   <span>Copié !</span>
                 ) : (
