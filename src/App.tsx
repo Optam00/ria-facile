@@ -20,6 +20,7 @@ import SearchResultsPage from './pages/SearchResultsPage'
 import { SchemasPage } from './pages/SchemasPage'
 import Lexique from './pages/Lexique'
 import AssistantRIAPage from './pages/AssistantRIAPage'
+import AssistantRIAConversationPage from './pages/AssistantRIAConversationPage';
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
               <Route path="/recherche" element={<SearchResultsPage />} />
               <Route path="/lexique" element={<Lexique />} />
               <Route path="/assistant-ria" element={<AssistantRIAPage />} />
+              <Route path="/assistant-ria/conversation" element={<AssistantRIAConversationPage />} />
             </Routes>
           </div>
           <Footer />
