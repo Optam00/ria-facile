@@ -147,7 +147,7 @@ const AssistantRIAConversationPage = () => {
       >
         <textarea
           ref={textareaRef}
-          className="flex-1 px-4 py-2 rounded-xl border-0 focus:outline-none resize-none min-h-[80px] sm:min-h-[44px] text-lg bg-transparent leading-[1.7] flex items-center"
+          className={`flex-1 px-4 py-2 rounded-xl border-0 focus:outline-none resize-none ${history.length > 0 ? 'min-h-[36px]' : 'min-h-[80px]'} sm:min-h-[44px] text-lg bg-transparent leading-[1.7] flex items-center`}
           placeholder="Posez votre question"
           value={question}
           onChange={handleTextareaInput}
@@ -187,7 +187,7 @@ const AssistantRIAConversationPage = () => {
         </div>
       )}
       {isLoading && (
-        <div className="text-center text-sm text-gray-500 mt-2">
+        <div className="text-center text-sm text-gray-500 mt-2 max-w-xs mx-auto">
           L’assistant réfléchit… Cela peut prendre plusieurs dizaines de secondes.
         </div>
       )}
