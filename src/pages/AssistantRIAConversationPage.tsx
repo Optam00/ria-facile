@@ -98,30 +98,36 @@ const AssistantRIAConversationPage = () => {
         />
       )}
       {/* Historique des échanges */}
-      <div className="w-full max-w-4xl mt-4 flex flex-col items-center">
+      <div className="w-full max-w-xs sm:max-w-2xl lg:max-w-4xl mt-4 flex flex-col items-center px-2 sm:px-0">
         {history.map((item, idx) => (
           <div key={idx} className="mb-6 w-full">
             <div className="font-semibold text-[#774792] mb-1">Vous :</div>
-            <div className="bg-white rounded-xl border border-gray-100 px-4 py-2 mb-2 text-gray-800">{item.question}</div>
-            <div className="font-semibold text-blue-800 flex items-center gap-2 mb-1">Assistant :
+            <div className="bg-white rounded-xl border border-[#d1b3f7] px-4 py-2 mb-2 text-gray-800">{item.question}</div>
+            <div className="font-semibold text-blue-800 flex items-center gap-2 mb-1">Assistant RIA :
               <button
                 onClick={() => handleCopy(item.answer, idx)}
-                className="ml-2 px-3 py-1 rounded bg-blue-50 hover:bg-blue-100 transition text-blue-700 text-xs border border-blue-200"
+                className="ml-2 px-3 py-1 rounded-full bg-[#ede6fa] hover:bg-[#d1b3f7] transition text-[#774792] text-xs font-medium flex items-center gap-1 border border-[#d1b3f7] shadow-sm hover:shadow-md focus:outline-none"
                 title="Copier la réponse"
               >
+                <span className="text-base">📋</span>
                 {copiedIndex === idx ? (
-                  <span>✔️ Copié !</span>
+                  <span>Copié !</span>
                 ) : (
-                  <span>📋 Copier la réponse</span>
+                  <span>Copier la réponse</span>
                 )}
               </button>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 px-4 py-2 text-gray-700 prose-ria max-w-none">
+            <div className="bg-white rounded-xl border border-[#d1b3f7] px-4 py-2 text-gray-700 prose-ria max-w-none">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkBreaks]}
                 components={{
                   a: (props) => (
-                    <a {...props} target="_blank" rel="noopener noreferrer">
+                    <a
+                      {...props}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#774792] underline hover:text-violet-900 transition-colors"
+                    >
                       {props.children}
                     </a>
                   ),
@@ -136,12 +142,12 @@ const AssistantRIAConversationPage = () => {
       {/* Zone de saisie toujours en bas */}
       <form
         onSubmit={handleAsk}
-        className="flex items-center w-full max-w-4xl mt-6 bg-white rounded-xl border-2 border-[#774792] shadow-sm px-2 py-1"
-        style={{ position: 'sticky', bottom: 0, zIndex: 10, background: 'white' }}
+        className="w-full max-w-xs sm:max-w-2xl lg:max-w-4xl mt-6 bg-[#f6f0fa] rounded-xl border-2 border-[#774792] shadow-sm px-2 sm:px-4 py-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
+        style={{ position: 'sticky', bottom: 0, zIndex: 10 }}
       >
         <textarea
           ref={textareaRef}
-          className="flex-1 px-4 py-2 rounded-xl border-0 focus:ring-2 focus:ring-[#774792] focus:outline-none resize-none min-h-[44px] text-lg bg-[#f6f0fa] leading-[1.7] flex items-center"
+          className="flex-1 px-4 py-2 rounded-xl border-0 focus:outline-none resize-none min-h-[80px] sm:min-h-[44px] text-lg bg-transparent leading-[1.7] flex items-center"
           placeholder="Posez votre question"
           value={question}
           onChange={handleTextareaInput}
@@ -153,7 +159,7 @@ const AssistantRIAConversationPage = () => {
         />
         <button
           type="submit"
-          className="ml-2 p-2 rounded-full bg-gradient-to-r from-indigo-500 to-[#774792] text-white shadow hover:shadow-md transition-all duration-300 disabled:opacity-60 flex items-center justify-center"
+          className="sm:ml-2 p-2 rounded-full bg-gradient-to-r from-indigo-500 to-[#774792] text-white shadow hover:shadow-md transition-all duration-300 disabled:opacity-60 flex items-center justify-center self-end sm:self-auto"
           disabled={isLoading || !question.trim()}
           aria-label="Envoyer (Ctrl+Entrée ou Cmd+Entrée)"
           title="Envoyer (Ctrl+Entrée ou Cmd+Entrée)"
@@ -182,7 +188,7 @@ const AssistantRIAConversationPage = () => {
       )}
       {isLoading && (
         <div className="text-center text-sm text-gray-500 mt-2">
-          L’assistant réfléchit… Cela peut prendre quelques secondes.
+          L’assistant réfléchit… Cela peut prendre plusieurs dizaines de secondes.
         </div>
       )}
     </div>
