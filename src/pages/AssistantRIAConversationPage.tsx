@@ -98,7 +98,7 @@ const AssistantRIAConversationPage = () => {
         />
       )}
       {/* Historique des échanges */}
-      <div className="w-full max-w-xl mt-4 flex flex-col items-center">
+      <div className="w-full max-w-4xl mt-4 flex flex-col items-center">
         {history.map((item, idx) => (
           <div key={idx} className="mb-6 w-full">
             <div className="font-semibold text-[#774792] mb-1">Vous :</div>
@@ -136,7 +136,7 @@ const AssistantRIAConversationPage = () => {
       {/* Zone de saisie toujours en bas */}
       <form
         onSubmit={handleAsk}
-        className="flex items-center w-full max-w-xl mt-6 bg-white rounded-xl border-2 border-[#774792] shadow-sm px-2 py-1"
+        className="flex items-center w-full max-w-4xl mt-6 bg-white rounded-xl border-2 border-[#774792] shadow-sm px-2 py-1"
         style={{ position: 'sticky', bottom: 0, zIndex: 10, background: 'white' }}
       >
         <textarea
@@ -165,6 +165,21 @@ const AssistantRIAConversationPage = () => {
           )}
         </button>
       </form>
+      {/* Message et bouton pour nouvelle discussion si l'historique dépasse MAX_HISTORY */}
+      {history.length > MAX_HISTORY && (
+        <div className="flex flex-col items-center mt-2">
+          <div className="text-sm text-gray-600 mb-2 text-center">
+            Seuls les 5 derniers échanges sont pris en compte pour chaque nouvelle question.<br />
+            Pour repartir sur une nouvelle base, commencez une nouvelle discussion.
+          </div>
+          <button
+            className="px-4 py-2 rounded bg-gradient-to-r from-indigo-500 to-[#774792] text-white shadow hover:shadow-md transition-all duration-300 text-sm"
+            onClick={() => setHistory([])}
+          >
+            Commencer une nouvelle discussion
+          </button>
+        </div>
+      )}
       {isLoading && (
         <div className="text-center text-sm text-gray-500 mt-2">
           L’assistant réfléchit… Cela peut prendre quelques secondes.
