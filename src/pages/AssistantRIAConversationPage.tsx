@@ -101,7 +101,20 @@ const AssistantRIAConversationPage = () => {
       <div className="w-full max-w-xs sm:max-w-2xl lg:max-w-4xl mt-4 flex flex-col items-center px-2 sm:px-0">
         {history.map((item, idx) => (
           <div key={idx} className="mb-6 w-full">
-            <div className="font-semibold text-[#774792] mb-1">Vous :</div>
+            <div className="font-semibold text-[#774792] flex items-center gap-2 mb-1">Vous :
+              <button
+                onClick={() => handleCopy(item.question, idx)}
+                className="ml-2 px-2 py-0.5 rounded-full bg-[#f6f0fa] hover:bg-[#ede6fa] transition text-[#a58fd6] text-[11px] font-normal flex items-center gap-1 border border-[#e5d8fa] shadow-none hover:shadow focus:outline-none"
+                title="Copier la question"
+              >
+                <span className="text-xs">📋</span>
+                {copiedIndex === idx ? (
+                  <span>Copié !</span>
+                ) : (
+                  <span>Copier la question</span>
+                )}
+              </button>
+            </div>
             <div className="bg-white rounded-xl border border-[#d1b3f7] px-4 py-2 mb-2 text-gray-800">{item.question}</div>
             <div className="font-semibold text-blue-800 flex items-center gap-2 mb-1">Assistant RIA :
               <button
