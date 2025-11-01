@@ -11,6 +11,7 @@ export const ActuCarousel = () => {
   const [mobileIndex, setMobileIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredTitle, setHoveredTitle] = useState<number | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -153,7 +154,7 @@ export const ActuCarousel = () => {
                 <h2 className="text-xl md:text-2xl font-bold tracking-tight">L'actu en un clic</h2>
               </div>
               
-              <div className="flex-grow relative overflow-hidden px-4 order-2 md:order-none">
+              <div className="flex-grow relative overflow-hidden md:overflow-visible px-4 order-2 md:order-none">
                 {/* Version mobile - un seul article */}
                 <div className="block md:hidden">
                   <div className="w-full flex flex-col justify-between min-h-[150px] bg-white/5 p-4 rounded-lg">
@@ -186,7 +187,7 @@ export const ActuCarousel = () => {
                   {currentActus.map((actu) => (
                     <div
                       key={actu.id}
-                      className="w-full flex flex-col justify-between min-h-[150px]"
+                      className="w-full flex flex-col justify-between min-h-[150px] relative"
                     >
                       <div className="flex flex-col space-y-3">
                         <div className="flex flex-col space-y-1 text-gray-300 text-sm">
@@ -196,7 +197,22 @@ export const ActuCarousel = () => {
                           </div>
                           <div className="text-sm">{actu.media}</div>
                         </div>
-                        <h3 className="font-semibold text-base leading-tight line-clamp-3 flex-grow">{actu.Titre}</h3>
+                        <div className="relative z-10">
+                          <h3 
+                            className="font-semibold text-base leading-tight line-clamp-3 flex-grow cursor-help"
+                            onMouseEnter={() => setHoveredTitle(actu.id)}
+                            onMouseLeave={() => setHoveredTitle(null)}
+                          >
+                            {actu.Titre}
+                          </h3>
+                          {/* Tooltip personnalisé pour desktop uniquement */}
+                          {hoveredTitle === actu.id && (
+                            <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] p-3 bg-gray-900 text-white text-sm rounded-lg shadow-2xl z-[1000] break-words whitespace-normal pointer-events-none">
+                              {actu.Titre}
+                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-b-[8px] border-transparent border-b-gray-900"></span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <a
                         href={actu.lien}
