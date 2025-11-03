@@ -22,6 +22,7 @@ interface ArticleContent {
   numero: string
   contenu: string
   resume?: string
+  recitals?: string
   chapitre_titre?: string
   section_titre?: string
 }
@@ -204,7 +205,7 @@ export const ConsulterPage = () => {
           case 'article':
             const { data: article } = await supabase
               .from('article')
-              .select('id_article, titre, numero, contenu, resume')
+              .select('id_article, titre, numero, contenu, resume, recitals')
               .eq('id_article', parseInt(id))
               .single()
             if (article) {
@@ -213,7 +214,8 @@ export const ConsulterPage = () => {
                 titre: article.titre,
                 numero: article.numero,
                 contenu: article.contenu,
-                resume: (article as any).resume
+                resume: (article as any).resume,
+                recitals: (article as any).recitals
               })
             }
             break
@@ -333,6 +335,7 @@ export const ConsulterPage = () => {
           numero: data.numero,
           contenu: data.contenu,
           resume: (data as any).resume,
+          recitals: (data as any).recitals,
           chapitre_titre: data.chapitre?.titre,
           section_titre: data.section?.titre
         })
@@ -372,6 +375,7 @@ export const ConsulterPage = () => {
           numero: data.numero,
           contenu: data.contenu,
           resume: (data as any).resume,
+          recitals: (data as any).recitals,
           chapitre_titre: data.chapitre?.titre,
           section_titre: data.section?.titre
         })
@@ -519,6 +523,7 @@ export const ConsulterPage = () => {
           titre,
           numero,
           contenu,
+          recitals,
           resume,
           chapitre:id_chapitre(titre)
         `)
@@ -546,6 +551,7 @@ export const ConsulterPage = () => {
           numero: firstArticle.numero,
           contenu: firstArticle.contenu,
           resume: (firstArticle as any).resume,
+          recitals: (firstArticle as any).recitals,
           chapitre_titre: firstArticle.chapitre?.titre || '',
           section_titre: section.titre
         })
@@ -979,7 +985,7 @@ export const ConsulterPage = () => {
                           </svg>
                         </button>
                         {isSummaryOpen && (
-                          <div className="mt-2 border border-yellow-200 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap italic" style={{ backgroundColor: '#f3f1ff' }}>
+                          <div className="mt-2 border rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap italic" style={{ backgroundColor: '#f3f1ff', borderColor: '#f3f1ff' }}>
                             {selectedArticle.resume && selectedArticle.resume.trim().length > 0
                               ? selectedArticle.resume
                               : 'Aucun résumé disponible pour cet article.'}
@@ -1002,8 +1008,10 @@ export const ConsulterPage = () => {
                           </svg>
                         </button>
                         {isArticleConsiderantsOpen && (
-                          <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-gray-700">
-                            Liste des considérants à venir.
+                          <div className="mt-2 border rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap" style={{ backgroundColor: '#f3f1ff', borderColor: '#f3f1ff' }}>
+                            {selectedArticle.recitals && selectedArticle.recitals.trim().length > 0
+                              ? selectedArticle.recitals
+                              : 'Aucun considérant associé pour cet article.'}
                           </div>
                         )}
                       </div>
