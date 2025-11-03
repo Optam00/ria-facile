@@ -143,7 +143,6 @@ export const ConsulterPage = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isSummaryOpen, setIsSummaryOpen] = useState(false)
   const [isArticleConsiderantsOpen, setIsArticleConsiderantsOpen] = useState(false)
-  const contentRef = useRef<HTMLDivElement>(null)
 
   // Sauvegarder les préférences quand elles changent
   useEffect(() => {
@@ -688,14 +687,6 @@ export const ConsulterPage = () => {
     return unique
   }
 
-  // Navigation douce vers un considérant dans la même page
-  const goToConsiderant = async (numero: number) => {
-    await handleConsiderantClick(numero)
-    setTimeout(() => {
-      contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 0)
-  }
-
   // Fonction pour charger tout le contenu
   const loadFullContent = async () => {
     setIsLoadingFullContent(true)
@@ -1058,7 +1049,7 @@ export const ConsulterPage = () => {
                 {loadingContent ? (
                   <p className="text-gray-400 text-sm">Chargement...</p>
                 ) : selectedArticle ? (
-                  <div className="relative mt-4 px-6" ref={contentRef}>
+                  <div className="relative mt-4 px-6">
                     <div className={`w-full ${isFullscreen ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`} style={contentStyle}>
                       <div className="mb-4">
                         <div className="text-sm mb-3">
@@ -1119,13 +1110,13 @@ export const ConsulterPage = () => {
                                 <span className="pointer-events-auto">
                                   {nums.map((n, i) => (
                                     <React.Fragment key={n}>
-                                      <button
-                                        type="button"
-                                        onClick={() => goToConsiderant(n)}
-                                        className="text-[#774792] underline hover:text-violet-900 cursor-pointer bg-transparent p-0"
+                                      <a
+                                        href={`/consulter?type=considerant&id=${n}`}
+                                        target="_blank" rel="noopener noreferrer"
+                                        className="text-[#774792] underline hover:text-violet-900 cursor-pointer"
                                       >
                                         {n}
-                                      </button>
+                                      </a>
                                       {i < nums.length - 1 ? ', ' : ''}
                                     </React.Fragment>
                                   ))}
