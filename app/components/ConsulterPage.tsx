@@ -627,6 +627,30 @@ export const ConsulterPage = () => {
     document.removeEventListener('mouseup', stopResizing)
   }
 
+  // Utilitaire: parse liste de considérants ("12, 13; 14-16") en numéros uniques, ordre d'apparition
+  const parseRecitalNumbers = (value?: string): number[] => {
+    if (!value) return []
+    const tokens = value.split(/[,;]+/).map(t => t.trim()).filter(Boolean)
+    const out: number[] = []
+    for (const token of tokens) {
+      const m = token.match(/^(\d+)\s*-\s*(\d+)$/)
+      if (m) {
+        const a = parseInt(m[1], 10)
+        const b = parseInt(m[2], 10)
+        if (!isNaN(a) && !isNaN(b) && b >= a) {
+          for (let n = a; n <= b; n++) out.push(n)
+        }
+        continue
+      }
+      const n = parseInt(token, 10)
+      if (!isNaN(n)) out.push(n)
+    }
+    const seen = new Set<number>()
+    const unique: number[] = []
+    for (const n of out) { if (!seen.has(n)) { seen.add(n); unique.push(n) } }
+    return unique
+  }
+
   // Fonction pour charger tout le contenu
   const loadFullContent = async () => {
     setIsLoadingFullContent(true)
@@ -1008,10 +1032,27 @@ export const ConsulterPage = () => {
                           </svg>
                         </button>
                         {isArticleConsiderantsOpen && (
-                          <div className="mt-2 border rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap" style={{ backgroundColor: '#f3f1ff', borderColor: '#f3f1ff' }}>
-                            {selectedArticle.recitals && selectedArticle.recitals.trim().length > 0
-                              ? selectedArticle.recitals
-                              : 'Aucun considérant associé pour cet article.'}
+                          <div className="mt-2 border rounded-lg p-3 text-sm text-gray-700" style={{ backgroundColor: '#f3f1ff', borderColor: '#f3f1ff' }}>
+                            {(() => {
+                              const nums = parseRecitalNumbers(selectedArticle.recitals)
+                              if (nums.length === 0) return 'Aucun considérant associé pour cet article.'
+                              return (
+                                <span className="pointer-events-auto">
+                                  {nums.map((n, i) => (
+                                    <React.Fragment key={n}>
+                                      <a
+                                        href={`/consulter?type=considerant&id=${n}`}
+                                        target="_blank" rel="noopener noreferrer"
+                                        className="text-[#774792] underline hover:text-violet-900 cursor-pointer"
+                                      >
+                                        {n}
+                                      </a>
+                                      {i < nums.length - 1 ? ', ' : ''}
+                                    </React.Fragment>
+                                  ))}
+                                </span>
+                              )
+                            })()}
                           </div>
                         )}
                       </div>
