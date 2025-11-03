@@ -20,6 +20,7 @@ interface ArticleContent {
   titre: string
   numero: string
   contenu: string
+  resume?: string
   chapitre_titre?: string
   section_titre?: string
 }
@@ -139,6 +140,8 @@ export const ConsulterPage = () => {
   const startPosRef = useRef(0)
   const startWidthRef = useRef(0)
   const [isOpen, setIsOpen] = useState(false)
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false)
+  const [isArticleConsiderantsOpen, setIsArticleConsiderantsOpen] = useState(false)
 
   // Sauvegarder les préférences quand elles changent
   useEffect(() => {
@@ -202,7 +205,7 @@ export const ConsulterPage = () => {
           case 'article':
             const { data: article } = await supabase
               .from('article')
-              .select('id_article, titre, numero, contenu')
+              .select('id_article, titre, numero, contenu, resume')
               .eq('id_article', parseInt(id))
               .single()
             if (article) {
@@ -210,7 +213,8 @@ export const ConsulterPage = () => {
                 id_article: article.id_article,
                 titre: article.titre,
                 numero: article.numero,
-                contenu: article.contenu
+                contenu: article.contenu,
+                resume: article.resume
               })
             }
             break
@@ -355,11 +359,13 @@ export const ConsulterPage = () => {
       }
 
       if (data) {
+        console.log('handleArticleClick data', data)
         setSelectedArticle({
           id_article: data.id_article,
           titre: data.titre,
           numero: data.numero,
           contenu: data.contenu,
+          resume: (data as any).resume,
           chapitre_titre: data.chapitre?.titre,
           section_titre: data.section?.titre
         })
@@ -393,11 +399,13 @@ export const ConsulterPage = () => {
       }
 
       if (data) {
+        console.log('navigateToNextArticle data', data)
         setSelectedArticle({
           id_article: data.id_article,
           titre: data.titre,
           numero: data.numero,
           contenu: data.contenu,
+          resume: (data as any).resume,
           chapitre_titre: data.chapitre?.titre,
           section_titre: data.section?.titre
         })
@@ -428,11 +436,13 @@ export const ConsulterPage = () => {
       }
 
       if (data) {
+        console.log('navigateToPreviousArticle data', data)
         setSelectedArticle({
           id_article: data.id_article,
           titre: data.titre,
           numero: data.numero,
           contenu: data.contenu,
+          resume: (data as any).resume,
           chapitre_titre: data.chapitre?.titre,
           section_titre: data.section?.titre
         })
@@ -544,6 +554,7 @@ export const ConsulterPage = () => {
           titre,
           numero,
           contenu,
+          resume,
           chapitre:id_chapitre(titre)
         `)
         .eq('id_section', section.id_section)
@@ -569,6 +580,7 @@ export const ConsulterPage = () => {
           titre: firstArticle.titre,
           numero: firstArticle.numero,
           contenu: firstArticle.contenu,
+          resume: (firstArticle as any).resume,
           chapitre_titre: firstArticle.chapitre?.titre || '',
           section_titre: section.titre
         })
@@ -1023,8 +1035,46 @@ export const ConsulterPage = () => {
                           <span className="flex-1">{selectedArticle.titre}</span>
                         </h2>
                       </div>
+                      <div className="mb-4">
+                        <button
+                          type="button"
+                          onClick={() => setIsSummaryOpen(!isSummaryOpen)}
+                          className="w-full flex items-center justify-between px-3 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors"
+                          aria-expanded={isSummaryOpen}
+                        >
+                          <span className="text-sm font-medium">Résumé</span>
+                          <svg className={`w-4 h-4 transition-transform ${isSummaryOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {isSummaryOpen && (
+                          <div className="mt-2 border border-yellow-200 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap italic" style={{ backgroundColor: '#f3f1ff' }}>
+                            {selectedArticle.resume && selectedArticle.resume.trim().length > 0
+                              ? selectedArticle.resume
+                              : 'Aucun résumé disponible pour cet article.'}
+                          </div>
+                        )}
+                      </div>
                       <div className="break-words whitespace-pre-wrap">
                         {selectedArticle.contenu}
+                      </div>
+                      <div className="mt-6">
+                        <button
+                          type="button"
+                          onClick={() => setIsArticleConsiderantsOpen(!isArticleConsiderantsOpen)}
+                          className="w-full flex items-center justify-between px-3 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors"
+                          aria-expanded={isArticleConsiderantsOpen}
+                        >
+                          <span className="text-sm font-medium">Considérants associés</span>
+                          <svg className={`w-4 h-4 transition-transform ${isArticleConsiderantsOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {isArticleConsiderantsOpen && (
+                          <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-gray-700">
+                            Liste des considérants à venir.
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="mt-12 mb-8">
