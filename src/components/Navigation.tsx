@@ -121,7 +121,7 @@ export const Navigation = () => {
 
         {/* Menu horizontal centré (xl+) */}
         {!showSearchInline && (
-          <div className="hidden xl:flex flex-1 justify-center">
+          <div className="hidden lg:flex flex-1 justify-center">
             <div className="flex gap-8 items-center whitespace-nowrap">
               <Link to="/" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/') ? 'text-purple-700' : 'text-gray-900'}`}>Accueil</Link>
               <Link to="/consulter" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/consulter') ? 'text-purple-700' : 'text-gray-900'}`}>Consulter le RIA</Link>
@@ -193,7 +193,7 @@ export const Navigation = () => {
           {/* Bouton contact */}
           <Link
             to="/contact"
-            className="hidden xl:inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold shadow-none hover:from-purple-700 hover:to-blue-700 transition-all text-base"
+            className="hidden lg:inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold shadow-none hover:from-purple-700 hover:to-blue-700 transition-all text-base"
             style={{ minWidth: 140, justifyContent: 'center' }}
           >
             <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -203,7 +203,7 @@ export const Navigation = () => {
           {!showSearchInline && (
             <button
               onClick={() => setShowSearchInline(true)}
-              className="hidden xl:flex p-2.5 rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 text-gray-500 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
+              className="hidden lg:flex p-2.5 rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 text-gray-500 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
               aria-label="Ouvrir la recherche"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,7 +215,7 @@ export const Navigation = () => {
         </div>
 
         {/* Menu burger mobile/tablette (en dessous de xl) */}
-        <div className="flex xl:hidden flex-1 justify-end">
+        <div className="flex lg:hidden flex-1 justify-end">
           <button
             onClick={() => setIsOpen(true)}
             className="p-2.5 rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 text-gray-700 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
