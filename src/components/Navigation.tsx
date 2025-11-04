@@ -7,6 +7,14 @@ export const Navigation = () => {
   const [search, setSearch] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [showSearchInline, setShowSearchInline] = useState(false)
+  const [openMaster, setOpenMaster] = useState(false)
+  const [openConformite, setOpenConformite] = useState(false)
+  const [mOpenMaster, setMOpenMaster] = useState(false)
+  const [mOpenConformite, setMOpenConformite] = useState(false)
+  const masterRef = useRef<HTMLDivElement>(null)
+  const conformiteRef = useRef<HTMLDivElement>(null)
+  const masterCloseTimeout = useRef<number | null>(null)
+  const conformiteCloseTimeout = useRef<number | null>(null)
   const location = useLocation()
   const navigate = useNavigate()
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -30,6 +38,40 @@ export const Navigation = () => {
       searchInputRef.current.focus()
     }
   }, [showSearch])
+
+  // Fermer les menus au clic extérieur / navigation
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (masterRef.current && !masterRef.current.contains(t) && conformiteRef.current && !conformiteRef.current.contains(t)) {
+        setOpenMaster(false)
+        setOpenConformite(false)
+      }
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
+
+  const cancelMasterClose = () => {
+    if (masterCloseTimeout.current) {
+      window.clearTimeout(masterCloseTimeout.current)
+      masterCloseTimeout.current = null
+    }
+  }
+  const scheduleMasterClose = () => {
+    cancelMasterClose()
+    masterCloseTimeout.current = window.setTimeout(() => setOpenMaster(false), 220)
+  }
+  const cancelConformiteClose = () => {
+    if (conformiteCloseTimeout.current) {
+      window.clearTimeout(conformiteCloseTimeout.current)
+      conformiteCloseTimeout.current = null
+    }
+  }
+  const scheduleConformiteClose = () => {
+    cancelConformiteClose()
+    conformiteCloseTimeout.current = window.setTimeout(() => setOpenConformite(false), 220)
+  }
 
   return (
     <nav className="bg-white sticky top-0 z-50 w-full">
@@ -83,10 +125,65 @@ export const Navigation = () => {
             <div className="flex gap-8 items-center whitespace-nowrap">
               <Link to="/" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/') ? 'text-purple-700' : 'text-gray-900'}`}>Accueil</Link>
               <Link to="/consulter" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/consulter') ? 'text-purple-700' : 'text-gray-900'}`}>Consulter le RIA</Link>
-              <Link to="/schemas" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/schemas') ? 'text-purple-700' : 'text-gray-900'}`}>Le RIA en schémas</Link>
-              <Link to="/documentation" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/documentation') ? 'text-purple-700' : 'text-gray-900'}`}>Documentation utile</Link>
-              <Link to="/doctrine" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/doctrine') ? 'text-purple-700' : 'text-gray-900'}`}>Doctrine</Link>
-              <Link to="/quiz" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/quiz') ? 'text-purple-700' : 'text-gray-900'}`}>Quiz</Link>
+              {/* Maîtriser le RIA dropdown */}
+              <div
+                className="relative"
+                ref={masterRef}
+                onMouseEnter={() => { cancelMasterClose(); setOpenMaster(true); setOpenConformite(false) }}
+                onMouseLeave={() => scheduleMasterClose()}
+              >
+                <button onClick={() => {
+                  setOpenMaster(prev => {
+                    const next = !prev
+                    if (next) setOpenConformite(false)
+                    return next
+                  })
+                }} className="text-lg font-semibold text-gray-900 hover:text-purple-700 flex items-center gap-1">
+                  Maîtriser le RIA
+                  <svg className={`w-4 h-4 transition-transform ${openMaster ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                {openMaster && (
+                  <div
+                    className="absolute mt-2 bg-white shadow-xl rounded-lg border p-2 min-w-[240px] z-50"
+                    onMouseEnter={cancelMasterClose}
+                    onMouseLeave={scheduleMasterClose}
+                  >
+                    <Link to="/schemas" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenMaster(false)}>Le RIA en schémas</Link>
+                    <Link to="/documentation" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenMaster(false)}>Documentation utile</Link>
+                    <Link to="/doctrine" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenMaster(false)}>Doctrine</Link>
+                    <Link to="/quiz" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenMaster(false)}>Quiz</Link>
+                  </div>
+                )}
+              </div>
+              {/* Se mettre en conformité dropdown */}
+              <div
+                className="relative"
+                ref={conformiteRef}
+                onMouseEnter={() => { cancelConformiteClose(); setOpenConformite(true); setOpenMaster(false) }}
+                onMouseLeave={() => scheduleConformiteClose()}
+              >
+                <button onClick={() => {
+                  setOpenConformite(prev => {
+                    const next = !prev
+                    if (next) setOpenMaster(false)
+                    return next
+                  })
+                }} className="text-lg font-semibold text-gray-900 hover:text-purple-700 flex items-center gap-1">
+                  Se mettre en conformité au RIA
+                  <svg className={`w-4 h-4 transition-transform ${openConformite ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                {openConformite && (
+                  <div
+                    className="absolute mt-2 bg-white shadow-xl rounded-lg border p-2 min-w-[260px] z-50"
+                    onMouseEnter={cancelConformiteClose}
+                    onMouseLeave={scheduleConformiteClose}
+                  >
+                    <Link to="/assistant-ria" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Assistant RIA</Link>
+                    <Link to="/verificateur" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Vérificateur de conformité</Link>
+                    <Link to="/fiches-pratiques" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Fiches pratiques</Link>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -169,10 +266,35 @@ export const Navigation = () => {
                 </form>
                 <Link to="/" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Accueil</Link>
                 <Link to="/consulter" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Consulter le RIA</Link>
-                <Link to="/schemas" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Le RIA en schémas</Link>
-                <Link to="/documentation" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Documentation utile</Link>
-                <Link to="/doctrine" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Doctrine</Link>
-                <Link to="/quiz" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Quiz</Link>
+                {/* Maîtriser le RIA group (accordéon) */}
+                <div className="mt-3 border-t pt-3">
+                  <button onClick={() => setMOpenMaster(v => !v)} aria-expanded={mOpenMaster} className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 text-left">
+                    <span className="text-base font-semibold tracking-wide">Maîtriser le RIA</span>
+                    <svg className={`w-5 h-5 transition-transform ${mOpenMaster ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                  {mOpenMaster && (
+                    <div className="ml-1 flex flex-col gap-1 mt-1">
+                      <Link to="/schemas" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Le RIA en schémas</Link>
+                      <Link to="/documentation" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Documentation utile</Link>
+                      <Link to="/doctrine" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Doctrine</Link>
+                      <Link to="/quiz" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Quiz</Link>
+                    </div>
+                  )}
+                </div>
+                {/* Conformité group (accordéon) */}
+                <div className="mt-3 border-t pt-3">
+                  <button onClick={() => setMOpenConformite(v => !v)} aria-expanded={mOpenConformite} className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 text-left">
+                    <span className="text-base font-semibold tracking-wide">Se mettre en conformité au RIA</span>
+                    <svg className={`w-5 h-5 transition-transform ${mOpenConformite ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+                  </button>
+                  {mOpenConformite && (
+                    <div className="ml-1 flex flex-col gap-1 mt-1">
+                      <Link to="/assistant-ria" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Assistant RIA</Link>
+                      <Link to="/verificateur" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Vérificateur de conformité</Link>
+                      <Link to="/fiches-pratiques" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Fiches pratiques</Link>
+                    </div>
+                  )}
+                </div>
                 <Link to="/contact" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Nous contacter</Link>
               </div>
             </div>
