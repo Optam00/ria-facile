@@ -64,9 +64,9 @@ export const SchemasPage = () => {
   }, [location, schemaRefsMap])
 
   // Liste des schémas pour la lightbox
-  const schemaImages = schemas.map((schema, index) => ({
+  const schemaImages = schemas.map((schema) => ({
     src: `/schemas/${encodeURIComponent(schema.filename)}`,
-    alt: `${schema.title} - RIA Facile`
+    alt: `Schéma explicatif : ${schema.title} - Règlement européen sur l'intelligence artificielle (AI Act) - RIA Facile`
   }))
 
   const [lightboxOpen, setLightboxOpen] = useState(false)
@@ -79,11 +79,56 @@ export const SchemasPage = () => {
   const prevLightbox = () => setLightboxIndex(i => (i > 0 ? i - 1 : i))
   const nextLightbox = () => setLightboxIndex(i => (i < schemaImages.length - 1 ? i + 1 : i))
 
+  // Structured data pour le SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Le RIA en schémas - RIA Facile",
+    "description": "Découvrez 22 schémas explicatifs et infographies pour comprendre le Règlement européen sur l'Intelligence Artificielle (AI Act). Visualisez les calendriers d'application, les niveaux de risques, les obligations, la gouvernance et bien plus encore.",
+    "url": "https://ria-facile.com/schemas",
+    "inLanguage": "fr-FR",
+    "about": {
+      "@type": "Thing",
+      "name": "Règlement européen sur l'intelligence artificielle",
+      "alternateName": "AI Act"
+    },
+    "image": schemas.map((schema) => {
+      const imageSrc = `/schemas/${encodeURIComponent(schema.filename)}`
+      const fullUrl = `https://ria-facile.com${imageSrc}`
+      return {
+        "@type": "ImageObject",
+        "url": fullUrl,
+        "name": schema.title,
+        "description": `Schéma explicatif : ${schema.title} - Règlement IA (AI Act)`,
+        "contentUrl": fullUrl,
+        "license": "https://ria-facile.com",
+        "copyrightHolder": {
+          "@type": "Organization",
+          "name": "RIA Facile"
+        }
+      }
+    })
+  }
+
+  const metaDescription = "22 schémas et infographies pour comprendre le Règlement IA (AI Act) : calendrier d'application, niveaux de risques, obligations des systèmes d'IA, gouvernance, sanctions. Visualisations explicatives du règlement européen sur l'intelligence artificielle."
+
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>Le RIA en schémas - RIA Facile</title>
-        <meta name="description" content="Visualisez le règlement IA en schémas et infographies." />
+        <title>Le RIA en schémas - 22 infographies explicatives du Règlement IA | RIA Facile</title>
+        <meta name="description" content={metaDescription} />
+        <meta name="keywords" content="Règlement IA, AI Act, schémas RIA, infographies intelligence artificielle, visualisation règlement IA, calendrier application RIA, niveaux de risques IA, obligations systèmes IA, gouvernance IA" />
+        <meta property="og:title" content="Le RIA en schémas - 22 infographies explicatives du Règlement IA" />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://ria-facile.com/schemas" />
+        <meta property="og:image" content={`https://ria-facile.com/schemas/${encodeURIComponent("1. AI act. Calendrier d'entree en application.png")}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Le RIA en schémas - 22 infographies explicatives du Règlement IA" />
+        <meta name="twitter:description" content={metaDescription} />
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
       </Helmet>
 
       {/* En-tête inspiré de Doctrine/Documentation */}
@@ -129,10 +174,10 @@ export const SchemasPage = () => {
                       href={`#${id}`} 
                       className="flex items-center gap-2 text-violet-700 font-medium rounded px-2 py-1 transition-all hover:bg-violet-100 hover:underline"
                     >
-                      <span className="inline-block w-2 h-2 bg-violet-400 rounded-full"></span>
+                  <span className="inline-block w-2 h-2 bg-violet-400 rounded-full"></span>
                       {schema.title}
-                    </a>
-                  </li>
+                </a>
+              </li>
                 )
               })}
             </ul>
@@ -148,20 +193,20 @@ export const SchemasPage = () => {
           
           return (
             <section key={index} className="mb-12" ref={schemaRefsMap[index]} id={id}>
-              <div className="white-container rounded-2xl shadow-lg p-8">
+          <div className="white-container rounded-2xl shadow-lg p-8">
                 <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">{schema.title}</h2>
-                <img
+            <img
                   src={imageSrc}
-                  alt={`${schema.title} - RIA Facile`}
-                  className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8 cursor-zoom-in transition hover:scale-105"
+                  alt={`Schéma explicatif : ${schema.title} - Règlement européen sur l'intelligence artificielle (AI Act) - RIA Facile`}
+              className="mx-auto rounded-xl shadow-md w-full max-w-full sm:max-w-3xl h-auto mb-8 cursor-zoom-in transition hover:scale-105"
                   onClick={() => openLightbox(index)}
-                  tabIndex={0}
-                  role="button"
-                  aria-label="Agrandir le schéma"
+              tabIndex={0}
+              role="button"
+                  aria-label={`Agrandir le schéma : ${schema.title}`}
                   onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(index); }}
                 />
-              </div>
-            </section>
+          </div>
+        </section>
           )
         })}
       </div>
@@ -180,4 +225,4 @@ export const SchemasPage = () => {
   )
 }
 
-export default SchemasPage;
+export default SchemasPage; 
