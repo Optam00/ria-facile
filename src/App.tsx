@@ -23,6 +23,7 @@ import AssistantRIAPage from './pages/AssistantRIAPage'
 import AssistantRIAConversationPage from './pages/AssistantRIAConversationPage';
 import VerifierPage from './pages/VerifierPage'
 import FichesPratiquesPage from './pages/FichesPratiquesPage'
+import VerifierSystemePage from './pages/VerifierSystemePage'
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
               <Route path="/assistant-ria" element={<AssistantRIAPage />} />
               <Route path="/assistant-ria/conversation" element={<AssistantRIAConversationPage />} />
               <Route path="/verificateur" element={<VerifierPage />} />
+              <Route path="/verificateur/systeme-ia" element={<VerifierSystemePage />} />
               <Route path="/fiches-pratiques" element={<FichesPratiquesPage />} />
             </Routes>
           </div>
