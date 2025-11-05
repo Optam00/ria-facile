@@ -11,29 +11,108 @@ type CardProps = {
 }
 
 const Card: React.FC<CardProps> = ({ title, color, to, disabled, subtitle }) => {
-  const base = 'md:rounded-2xl rounded-[18px] text-white text-center md:px-6 md:py-6 px-5 py-8 shadow-lg select-none max-w-[240px] md:max-w-none min-h-[140px] w-full mx-auto flex flex-col items-center justify-center'
-  const bg = color === 'violet'
-    ? { backgroundColor: '#842cd2' }
+  // Mobile et desktop: fond blanc avec bordures colorées
+  const baseMobile = 'md:hidden rounded-[18px] text-center px-4 py-6 shadow-lg select-none max-w-[240px] h-[140px] w-full mx-auto flex flex-col items-center justify-center'
+  const baseDesktop = 'hidden md:flex rounded-2xl text-center md:px-4 md:py-5 shadow-lg select-none md:max-w-[260px] min-h-[140px] w-full mx-auto flex-col items-center justify-center'
+  
+  const borderColor = color === 'violet'
+    ? '#842cd2'
     : color === 'blue'
-      ? { backgroundColor: '#2963e8' }
-      : { background: 'linear-gradient(90deg, #842cd2 0%, #2963e8 100%)' }
-  const content = (
+      ? '#2963e8'
+      : undefined
+  
+  const textColor = color === 'violet'
+    ? '#842cd2'
+    : color === 'blue'
+      ? '#2963e8'
+      : '#000'
+  
+  // Mobile: wrapper gradient ou bordure simple
+  const baseMobileGradientOuter = 'md:hidden rounded-[18px] p-[3px] shadow-lg max-w-[240px] h-[140px] w-full mx-auto'
+  const baseMobileGradientInner = 'flex rounded-[18px] text-center px-4 py-6 bg-white w-full h-full flex-col items-center justify-center'
+  
+  const contentMobile = color === 'gradient' ? (
     <div
-      className={`${base} ${disabled ? 'opacity-70 cursor-not-allowed' : 'hover:brightness-105 transition'} `}
-      style={bg}
+      className={`${baseMobileGradientOuter} ${disabled ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-xl transition'}`}
+      style={{ background: 'linear-gradient(90deg, #842cd2 0%, #2963e8 100%)' }}
     >
-      <div className="text-base md:text-lg leading-snug font-medium">{title}</div>
+      <div className={baseMobileGradientInner}>
+        <div className="text-base leading-snug font-medium text-gray-900">{title}</div>
+        {disabled ? (
+          <div className="mt-2 text-xs text-gray-600">En cours de construction</div>
+        ) : subtitle ? (
+          <div className="mt-2 text-xs text-gray-600">{subtitle}</div>
+        ) : null}
+      </div>
+    </div>
+  ) : (
+    <div
+      className={`${baseMobile} ${disabled ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-xl transition'}`}
+      style={{
+        backgroundColor: '#ffffff',
+        borderWidth: '3px',
+        borderStyle: 'solid',
+        borderColor: borderColor,
+      }}
+    >
+      <div className="text-base leading-snug font-medium" style={{ color: textColor }}>{title}</div>
       {disabled ? (
-        <div className="mt-2 text-xs text-white/90">En cours de construction</div>
+        <div className="mt-2 text-xs" style={{ color: `${textColor}CC` }}>En cours de construction</div>
       ) : subtitle ? (
-        <div className="mt-2 text-xs text-white/90">{subtitle}</div>
+        <div className="mt-2 text-xs" style={{ color: `${textColor}CC` }}>{subtitle}</div>
       ) : null}
     </div>
   )
-  if (disabled || !to) return content
+  
+  // Pour desktop: wrapper avec bordure gradient ou simple bordure
+  const baseDesktopInner = 'flex rounded-2xl text-center md:px-4 md:py-5 shadow-lg select-none md:max-w-[260px] min-h-[140px] w-full mx-auto flex-col items-center justify-center bg-white'
+  const baseDesktopGradientOuter = 'hidden md:block rounded-2xl p-[3px] shadow-lg md:max-w-[540px] min-h-[140px] w-full mx-auto'
+  const baseDesktopGradientInner = 'flex rounded-2xl text-center md:px-4 md:py-5 bg-white w-full h-full flex-col items-center justify-center min-h-[calc(140px-6px)]'
+  const contentDesktop = color === 'gradient' ? (
+    <div
+      className={`${baseDesktopGradientOuter} ${disabled ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-xl transition'}`}
+      style={{ background: 'linear-gradient(90deg, #842cd2 0%, #2963e8 100%)' }}
+    >
+      <div className={baseDesktopGradientInner}>
+        <div className="text-sm md:text-base leading-snug font-medium text-gray-900">{title}</div>
+        {disabled ? (
+          <div className="mt-2 text-xs text-gray-600">En cours de construction</div>
+        ) : subtitle ? (
+          <div className="mt-2 text-xs text-gray-600">{subtitle}</div>
+        ) : null}
+      </div>
+    </div>
+  ) : (
+    <div
+      className={`${baseDesktop} ${disabled ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-xl transition'}`}
+      style={{
+        backgroundColor: '#ffffff',
+        borderWidth: '3px',
+        borderStyle: 'solid',
+        borderColor: borderColor,
+      }}
+    >
+      <div className="text-sm md:text-base leading-snug font-medium" style={{ color: textColor }}>{title}</div>
+      {disabled ? (
+        <div className="mt-2 text-xs" style={{ color: `${textColor}CC` }}>En cours de construction</div>
+      ) : subtitle ? (
+        <div className="mt-2 text-xs" style={{ color: `${textColor}CC` }}>{subtitle}</div>
+      ) : null}
+    </div>
+  )
+  
+  if (disabled || !to) {
+    return (
+      <>
+        {contentMobile}
+        {contentDesktop}
+      </>
+    )
+  }
   return (
     <Link to={to} aria-disabled={false} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 rounded-2xl">
-      {content}
+      {contentMobile}
+      {contentDesktop}
     </Link>
   )
 }
@@ -59,7 +138,8 @@ const VerifierPage: React.FC = () => {
           <p className="text-gray-600">Qualifier votre solution d'IA, votre rôle et votre niveau de risque grâce aux questionnaires ci-dessous.</p>
         </div>
         {/* Grille inspirée du schéma fourni */}
-        <div className="grid grid-cols-2 md:[grid-template-columns:1fr_3rem_1fr] gap-3 items-center">
+        <div className="flex justify-center">
+          <div className="grid grid-cols-2 md:[grid-template-columns:1fr_1.5rem_1fr] gap-3 items-center md:max-w-[700px]">
           {/* Ligne 1 */}
           <div className="col-start-1">
             <Card
@@ -163,6 +243,7 @@ const VerifierPage: React.FC = () => {
               color="blue"
               disabled
             />
+          </div>
           </div>
         </div>
         {/* Bloc d'information contact */}
