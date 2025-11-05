@@ -3,6 +3,8 @@ import consulterImage from '../assets/consulter.jpeg'
 import quizImage from '../assets/quiz.jpeg'
 import msgImage from '../assets/msg.jpeg'
 import accueilImage from '../assets/accueil.jpeg'
+import assistantImage from '../assets/assistant accueil.png'
+import verificateurImage from '../assets/Vérificateur.png'
 import { ActuCarousel } from '../components/ActuCarousel'
 import { LastDoctrineArticle } from '../components/LastDoctrineArticle'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -135,7 +137,8 @@ export const HomePage = () => {
             <div className="w-24 h-1 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Première ligne : 3 encarts */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             {/* Consulter le RIA */}
             <Link to="/consulter" className="group h-full">
               <div className="bg-white rounded-3xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105 h-full flex flex-col">
@@ -192,6 +195,49 @@ export const HomePage = () => {
                 </div>
               </div>
             </Link>
+          </div>
+
+          {/* Deuxième ligne : 2 encarts centrés */}
+          <div className="flex justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
+              {/* Assistant RIA */}
+              <Link to="/assistant-ria" className="group h-full">
+                <div className="bg-white rounded-3xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105 h-full flex flex-col">
+                  <div className="flex-shrink-0 p-6 pt-8">
+                    <img 
+                      src={assistantImage} 
+                      alt="Assistant RIA" 
+                      className="w-full h-48 object-contain" 
+                    />
+                  </div>
+                  <div className="p-6 flex-grow">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">Assistant RIA</h2>
+                    <p className="text-gray-600">
+                      Obtenez des réponses personnalisées à vos questions sur le Règlement IA grâce à notre assistant intelligent.
+                    </p>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Vérificateurs de conformité */}
+              <Link to="/verificateur" className="group h-full">
+                <div className="bg-white rounded-3xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-105 h-full flex flex-col">
+                  <div className="flex-shrink-0 p-6 pt-8">
+                    <img 
+                      src={verificateurImage} 
+                      alt="Vérificateurs de conformité" 
+                      className="w-full h-48 object-contain" 
+                    />
+                  </div>
+                  <div className="p-6 flex-grow">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">Vérificateurs de conformité</h2>
+                    <p className="text-gray-600">
+                      Qualifiez votre solution d'IA, votre rôle et votre niveau de risque grâce à nos questionnaires interactifs.
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
