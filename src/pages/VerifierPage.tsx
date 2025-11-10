@@ -151,17 +151,19 @@ const VerifierPage: React.FC = () => {
           </div>
           <div className="col-start-2 md:hidden">
             <Card
-              title="Déterminer si une solution est un modèle d’IA"
+              title="Déterminer si une solution est un modèle d'IA à usage général"
               color="blue"
-              disabled
+              to="/verificateur/modele-ia"
+              subtitle="Cliquer pour accéder au questionnaire"
             />
           </div>
           <div className="hidden md:block" />
           <div className="hidden md:block col-start-3">
             <Card
-              title="Déterminer si une solution est un modèle d’IA"
+              title="Déterminer si une solution est un modèle d'IA à usage général"
               color="blue"
-              disabled
+              to="/verificateur/modele-ia"
+              subtitle="Cliquer pour accéder au questionnaire"
             />
           </div>
 
