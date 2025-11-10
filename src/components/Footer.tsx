@@ -13,8 +13,8 @@ export const Footer: React.FC = () => {
               Mentions légales
             </Link>
             <br />
-            <Link to="/assistant-ria" className="text-gray-600 hover:text-[#774792] text-sm">
-              Assistant RIA
+            <Link to="/matrice-des-obligations" className="text-gray-600 hover:text-[#774792] text-sm">
+              Matrice des obligations
             </Link>
           </div>
           <div>
