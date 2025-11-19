@@ -91,7 +91,7 @@ export const ActuCarousel = () => {
   // Si on est en chargement, on affiche un placeholder
   if (isLoading) {
     return (
-      <div className="w-full bg-gradient-to-r from-blue-600 to-[#774792] text-white py-4 md:py-6 rounded-lg mt-0 -mb-6">
+      <div className="w-full bg-[#FFE55C] text-gray-900 py-4 md:py-6 rounded-lg mt-0 -mb-6">
         <div className="max-w-[90rem] mx-auto px-2 md:px-4">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-center">
@@ -108,15 +108,15 @@ export const ActuCarousel = () => {
   // Si on a une erreur, on l'affiche
   if (error) {
     return (
-      <div className="w-full bg-gradient-to-r from-blue-600 to-[#774792] text-white py-4 md:py-6 rounded-lg mt-0 -mb-6">
+      <div className="w-full bg-[#FFE55C] text-gray-900 py-4 md:py-6 rounded-lg mt-0 -mb-6">
         <div className="max-w-[90rem] mx-auto px-2 md:px-4">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-center">
               <div className="text-center">
-                <h2 className="text-xl md:text-2xl font-bold tracking-tight text-red-300">
+                <h2 className="text-xl md:text-2xl font-bold tracking-tight text-red-600">
                   Impossible de charger les actualités
                 </h2>
-                <p className="mt-2 text-sm text-white/80">{error}</p>
+                <p className="mt-2 text-sm text-gray-800">{error}</p>
               </div>
             </div>
           </div>
@@ -135,13 +135,13 @@ export const ActuCarousel = () => {
   const mobileActu = actus[mobileIndex];
 
   return (
-    <div className="w-full bg-gradient-to-r from-blue-600 to-[#774792] text-white py-4 md:py-6 rounded-lg mt-0 -mb-6">
+    <div className="w-full bg-[#FFE55C] text-gray-900 py-4 md:py-6 rounded-lg mt-0 -mb-6">
       <div className="max-w-[90rem] mx-auto px-2 md:px-4">
         <div className="max-w-7xl mx-auto">
           <div className="relative">
             <Link
               to="/actualites"
-              className="absolute md:top-2 md:right-2 bottom-2 right-2 md:bottom-auto text-yellow-300 hover:text-yellow-200 transition-colors duration-200 text-sm font-medium flex items-center gap-1"
+              className="absolute md:top-2 md:right-2 bottom-2 right-2 md:bottom-auto text-[#774792] hover:text-[#5c3275] transition-colors duration-200 text-sm font-medium flex items-center gap-1"
             >
               Voir plus
               <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -157,22 +157,22 @@ export const ActuCarousel = () => {
               <div className="flex-grow relative overflow-hidden md:overflow-visible px-4 order-2 md:order-none">
                 {/* Version mobile - un seul article */}
                 <div className="block md:hidden">
-                  <div className="w-full flex flex-col justify-between min-h-[150px] bg-white/5 p-4 rounded-lg">
+                  <div className="w-full flex flex-col justify-between min-h-[150px] bg-white/80 p-4 rounded-lg">
                     <div className="flex flex-col space-y-3">
-                      <div className="flex flex-col space-y-1 text-gray-300 text-sm">
+                      <div className="flex flex-col space-y-1 text-gray-700 text-sm">
                         <div className="flex items-center gap-2">
                           <span>{format(new Date(mobileActu.Date), 'dd MMM yyyy', { locale: fr })}</span>
                           <span>•</span>
                         </div>
                         <div className="text-sm">{mobileActu.media}</div>
                       </div>
-                      <h3 className="font-semibold text-base leading-tight line-clamp-3 flex-grow">{mobileActu.Titre}</h3>
+                      <h3 className="font-semibold text-base leading-tight line-clamp-3 flex-grow text-gray-900">{mobileActu.Titre}</h3>
                     </div>
                     <a
                       href={mobileActu.lien}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center text-yellow-300 hover:text-yellow-200 transition-colors duration-200 text-sm font-medium mt-3"
+                      className="inline-flex items-center text-[#774792] hover:text-[#5c3275] transition-colors duration-200 text-sm font-medium mt-3"
                     >
                       Lire l'article
                       <svg className="w-4 h-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
@@ -190,7 +190,7 @@ export const ActuCarousel = () => {
                       className="w-full flex flex-col justify-between min-h-[150px] relative"
                     >
                       <div className="flex flex-col space-y-3">
-                        <div className="flex flex-col space-y-1 text-gray-300 text-sm">
+                        <div className="flex flex-col space-y-1 text-gray-700 text-sm">
                           <div className="flex items-center gap-2">
                             <span>{format(new Date(actu.Date), 'dd MMM yyyy', { locale: fr })}</span>
                             <span>•</span>
@@ -199,7 +199,7 @@ export const ActuCarousel = () => {
                         </div>
                         <div className="relative z-10">
                           <h3 
-                            className="font-semibold text-base leading-tight line-clamp-3 flex-grow cursor-help"
+                            className="font-semibold text-base leading-tight line-clamp-3 flex-grow cursor-help text-gray-900"
                             onMouseEnter={() => setHoveredTitle(actu.id)}
                             onMouseLeave={() => setHoveredTitle(null)}
                           >
@@ -218,7 +218,7 @@ export const ActuCarousel = () => {
                         href={actu.lien}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center text-yellow-300 hover:text-yellow-200 transition-colors duration-200 text-sm font-medium mt-3"
+                        className="inline-flex items-center text-[#774792] hover:text-[#5c3275] transition-colors duration-200 text-sm font-medium mt-3"
                       >
                         Lire l'article
                         <svg className="w-4 h-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
@@ -233,7 +233,7 @@ export const ActuCarousel = () => {
               <div className="flex-shrink-0 flex items-center justify-center space-x-3 mt-4 md:mt-0 md:ml-12 order-3 md:order-none">
                 <button
                   onClick={handlePrevious}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors duration-200 border border-white/20"
+                  className="p-2 hover:bg-black/5 rounded-full transition-colors duration-200 border border-black/10"
                   aria-label="Articles précédents"
                 >
                   <svg
@@ -256,7 +256,7 @@ export const ActuCarousel = () => {
                 </span>
                 <button
                   onClick={handleNext}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors duration-200 border border-white/20"
+                  className="p-2 hover:bg-black/5 rounded-full transition-colors duration-200 border border-black/10"
                   aria-label="Articles suivants"
                 >
                   <svg
