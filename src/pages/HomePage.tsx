@@ -122,11 +122,6 @@ export const HomePage = () => {
         </div>
       </div>
 
-      {/* Dernier article de doctrine */}
-      <div className="mb-8 max-w-5xl mx-auto">
-        <LastDoctrineArticle />
-      </div>
-
       {/* Section des cartes */}
       <div className="py-8 px-4">
         <div className="max-w-5xl mx-auto">
@@ -245,6 +240,11 @@ export const HomePage = () => {
       {/* Aperçu schéma aléatoire */}
       <div className="mb-8 max-w-5xl mx-auto">
         <SchemaPreviewHome />
+      </div>
+
+      {/* Dernier article de doctrine */}
+      <div className="mb-8 max-w-5xl mx-auto">
+        <LastDoctrineArticle />
       </div>
 
       {/* Section FAQ */}
