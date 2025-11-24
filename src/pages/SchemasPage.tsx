@@ -105,7 +105,7 @@ export const SchemasPage = () => {
         "copyrightHolder": {
           "@type": "Organization",
           "name": "RIA Facile"
-        }
+      }
       }
     })
   }
