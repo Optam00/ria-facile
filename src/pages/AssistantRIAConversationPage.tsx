@@ -15,7 +15,7 @@ const AssistantRIAConversationPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [loadingTooLong, setLoadingTooLong] = useState(false);
+  const [loadingStage, setLoadingStage] = useState<'idle' | 'thinking' | 'synthesizing' | 'finishing'>('idle');
 
   // Appel réel à l'API Gemini via le backend Python
   const callGeminiAPI = async (question: string, history: {question: string, answer: string}[]) => {
@@ -79,12 +79,21 @@ const AssistantRIAConversationPage = () => {
   };
 
   useEffect(() => {
+    let synthTimer: ReturnType<typeof setTimeout> | undefined;
+    let finishingTimer: ReturnType<typeof setTimeout> | undefined;
+
     if (isLoading) {
-      const timer = setTimeout(() => setLoadingTooLong(true), 15000); // 15 secondes
-      return () => clearTimeout(timer);
+      setLoadingStage('thinking');
+      synthTimer = setTimeout(() => setLoadingStage('synthesizing'), 3500);
+      finishingTimer = setTimeout(() => setLoadingStage('finishing'), 10000);
     } else {
-      setLoadingTooLong(false);
+      setLoadingStage('idle');
     }
+
+    return () => {
+      if (synthTimer) clearTimeout(synthTimer);
+      if (finishingTimer) clearTimeout(finishingTimer);
+    };
   }, [isLoading]);
 
   return (
@@ -201,7 +210,9 @@ const AssistantRIAConversationPage = () => {
       )}
       {isLoading && (
         <div className="text-center text-sm text-gray-500 mt-2 max-w-xs mx-auto">
-          L’assistant réfléchit… Cela peut prendre plusieurs dizaines de secondes.
+          {loadingStage === 'thinking' && "Je rassemble les informations nécessaires..."}
+          {loadingStage === 'synthesizing' && "Je synthétise votre réponse, cela arrive dans un instant."}
+          {loadingStage === 'finishing' && "Encore quelques secondes, je finalise votre réponse."}
         </div>
       )}
     </div>
