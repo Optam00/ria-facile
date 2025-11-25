@@ -9,13 +9,33 @@ import { supabase } from '../lib/supabase';
 
 const MAX_HISTORY = 5;
 
+const loadingStagesConfig = [
+  { stage: 'thinking', delay: 0 },
+  { stage: 'synthesizing', delay: 3500 },
+  { stage: 'finishing', delay: 10000 },
+  { stage: 'doubleChecking', delay: 20000 },
+  { stage: 'coffeeBreak', delay: 30000 },
+  { stage: 'stillWorking', delay: 45000 }
+] as const;
+
+type LoadingStage = typeof loadingStagesConfig[number]['stage'] | 'idle';
+
+const loadingMessages: Record<Exclude<LoadingStage, 'idle'>, string> = {
+  thinking: "Je rassemble les informations nécessaires...",
+  synthesizing: "Je synthétise votre réponse, cela arrive dans un instant.",
+  finishing: "Encore quelques secondes, je finalise votre réponse.",
+  doubleChecking: "Je relis pour éviter les hallucinations... la vigilance humaine, toujours !",
+  coffeeBreak: "Merci pour ta patience, je bois un rapide café de données ☕.",
+  stillWorking: "Toujours en train de réfléchir... tu peux me laisser finir ou relancer une nouvelle question."
+};
+
 const AssistantRIAConversationPage = () => {
   const [question, setQuestion] = useState('');
   const [history, setHistory] = useState<{question: string, answer: string}[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [loadingStage, setLoadingStage] = useState<'idle' | 'thinking' | 'synthesizing' | 'finishing'>('idle');
+  const [loadingStage, setLoadingStage] = useState<LoadingStage>('idle');
 
   // Appel réel à l'API Gemini via le backend Python
   const callGeminiAPI = async (question: string, history: {question: string, answer: string}[]) => {
@@ -79,20 +99,19 @@ const AssistantRIAConversationPage = () => {
   };
 
   useEffect(() => {
-    let synthTimer: ReturnType<typeof setTimeout> | undefined;
-    let finishingTimer: ReturnType<typeof setTimeout> | undefined;
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
     if (isLoading) {
-      setLoadingStage('thinking');
-      synthTimer = setTimeout(() => setLoadingStage('synthesizing'), 3500);
-      finishingTimer = setTimeout(() => setLoadingStage('finishing'), 10000);
+      loadingStagesConfig.forEach(({ stage, delay }) => {
+        const timer = setTimeout(() => setLoadingStage(stage), delay);
+        timers.push(timer);
+      });
     } else {
       setLoadingStage('idle');
     }
 
     return () => {
-      if (synthTimer) clearTimeout(synthTimer);
-      if (finishingTimer) clearTimeout(finishingTimer);
+      timers.forEach((timer) => clearTimeout(timer));
     };
   }, [isLoading]);
 
@@ -208,11 +227,9 @@ const AssistantRIAConversationPage = () => {
           </button>
         </div>
       )}
-      {isLoading && (
+      {isLoading && loadingStage !== 'idle' && (
         <div className="text-center text-sm text-gray-500 mt-2 max-w-xs mx-auto">
-          {loadingStage === 'thinking' && "Je rassemble les informations nécessaires..."}
-          {loadingStage === 'synthesizing' && "Je synthétise votre réponse, cela arrive dans un instant."}
-          {loadingStage === 'finishing' && "Encore quelques secondes, je finalise votre réponse."}
+          {loadingMessages[loadingStage] || "Merci de patienter pendant que je prépare votre réponse."}
         </div>
       )}
     </div>
