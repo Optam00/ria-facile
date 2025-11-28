@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { Sommaire } from '@/components/Sommaire'
 import { TextSettings } from '@/components/TextSettings'
 import { Helmet } from 'react-helmet-async'
+import { Link } from 'react-router-dom'
 
 interface ConsiderantContent {
   numero: number
@@ -24,6 +25,7 @@ interface ArticleContent {
   recitals?: string
   chapitre_titre?: string
   section_titre?: string
+  fiches?: string
 }
 
 interface AnnexeSubdivision {
@@ -105,6 +107,74 @@ export const ConsulterPage = () => {
     }
   }
 
+  // Mapping entre les titres des fiches pratiques et leurs IDs
+  const fichesPratiquesMapping: Record<string, string> = {
+    "Gérer l'exactitude (Accuracy) dans les systèmes IA": 'exactitude',
+    "Gérer l'exactitude (Accuracy) dans les systèmes IA.": 'exactitude',
+    "Gérer l'exactitude": 'exactitude',
+    "exactitude": 'exactitude',
+    "Exactitude": 'exactitude'
+  }
+
+  // Fonction pour normaliser un titre (enlever espaces, accents, casse)
+  const normalizeTitle = (title: string): string => {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, ' ')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
+  }
+
+  // Fonction pour obtenir les fiches pratiques associées à un article depuis le champ "fiches"
+  const getFichesPratiquesForArticle = (fichesString?: string) => {
+    if (!fichesString || fichesString.trim() === '') {
+      return []
+    }
+    
+    console.log('Fiches string depuis Supabase:', fichesString)
+    
+    // Le champ peut contenir plusieurs fiches séparées par des virgules ou des points-virgules
+    const fichesTitres = fichesString.split(/[,;]/).map(t => t.trim()).filter(Boolean)
+    
+    console.log('Fiches titres extraits:', fichesTitres)
+    
+    const result = fichesTitres
+      .map(titreInput => {
+        // Essayer d'abord une correspondance exacte
+        let id = fichesPratiquesMapping[titreInput]
+        
+        // Si pas de correspondance exacte, essayer une correspondance normalisée
+        if (!id) {
+          const normalizedInput = normalizeTitle(titreInput)
+          for (const [key, value] of Object.entries(fichesPratiquesMapping)) {
+            if (normalizeTitle(key) === normalizedInput) {
+              id = value
+              break
+            }
+          }
+        }
+        
+        // Si toujours pas trouvé, vérifier si c'est directement un ID
+        if (!id && titreInput.toLowerCase() === 'exactitude') {
+          id = 'exactitude'
+        }
+        
+        if (id) {
+          // Récupérer le titre complet depuis le mapping ou utiliser le titre original
+          const titreComplet = Object.keys(fichesPratiquesMapping).find(k => fichesPratiquesMapping[k] === id) || titreInput
+          return { id, titre: titreComplet }
+        }
+        
+        console.warn('Fiche pratique non trouvée pour:', titreInput)
+        return null
+      })
+      .filter((f): f is { id: string; titre: string } => f !== null)
+    
+    console.log('Résultat final:', result)
+    return result
+  }
+
   const [titre, setTitre] = useState<string>('')
   const [visa, setVisa] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
@@ -143,6 +213,7 @@ export const ConsulterPage = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isSummaryOpen, setIsSummaryOpen] = useState(false)
   const [isArticleConsiderantsOpen, setIsArticleConsiderantsOpen] = useState(false)
+  const [isArticleFichesOpen, setIsArticleFichesOpen] = useState(false)
 
   // Sauvegarder les préférences quand elles changent
   useEffect(() => {
@@ -206,7 +277,7 @@ export const ConsulterPage = () => {
           case 'article':
             const { data: article } = await supabase
               .from('article')
-              .select('id_article, titre, numero, contenu, resume, recitals')
+              .select('id_article, titre, numero, contenu, resume, recitals, fiches')
               .eq('id_article', parseInt(id))
               .single()
             if (article) {
@@ -362,6 +433,7 @@ export const ConsulterPage = () => {
 
       if (data) {
         console.log('handleArticleClick data', data)
+        console.log('Champ fiches récupéré:', (data as any).fiches)
         setSelectedArticle({
           id_article: data.id_article,
           titre: data.titre,
@@ -369,6 +441,7 @@ export const ConsulterPage = () => {
           contenu: data.contenu,
           resume: (data as any).resume,
           recitals: (data as any).recitals,
+          fiches: (data as any).fiches,
           chapitre_titre: data.chapitre?.titre,
           section_titre: data.section?.titre
         })
@@ -410,6 +483,7 @@ export const ConsulterPage = () => {
           contenu: data.contenu,
           resume: (data as any).resume,
           recitals: (data as any).recitals,
+          fiches: (data as any).fiches,
           chapitre_titre: data.chapitre?.titre,
           section_titre: data.section?.titre
         })
@@ -448,6 +522,7 @@ export const ConsulterPage = () => {
           contenu: data.contenu,
           resume: (data as any).resume,
           recitals: (data as any).recitals,
+          fiches: (data as any).fiches,
           chapitre_titre: data.chapitre?.titre,
           section_titre: data.section?.titre
         })
@@ -561,6 +636,7 @@ export const ConsulterPage = () => {
           contenu,
           recitals,
           resume,
+          fiches,
           chapitre:id_chapitre(titre)
         `)
         .eq('id_section', section.id_section)
@@ -588,6 +664,7 @@ export const ConsulterPage = () => {
           contenu: firstArticle.contenu,
           resume: (firstArticle as any).resume,
           recitals: (firstArticle as any).recitals,
+          fiches: (firstArticle as any).fiches,
           chapitre_titre: firstArticle.chapitre?.titre || '',
           section_titre: section.titre
         })
@@ -1089,6 +1166,7 @@ export const ConsulterPage = () => {
                       <div className="break-words whitespace-pre-wrap">
                         {selectedArticle.contenu}
                       </div>
+                      
                       <div className="mt-6">
                         <button
                           type="button"
@@ -1121,6 +1199,51 @@ export const ConsulterPage = () => {
                                     </React.Fragment>
                                   ))}
                                 </span>
+                              )
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Fiches pratiques associées */}
+                      <div className="mt-6">
+                        <button
+                          type="button"
+                          onClick={() => setIsArticleFichesOpen(!isArticleFichesOpen)}
+                          className="w-full flex items-center justify-between px-3 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors"
+                          aria-expanded={isArticleFichesOpen}
+                        >
+                          <span className="text-sm font-medium">Fiches pratiques</span>
+                          <svg className={`w-4 h-4 transition-transform ${isArticleFichesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {isArticleFichesOpen && (
+                          <div className="mt-2 border rounded-lg p-3 text-sm text-gray-700" style={{ backgroundColor: '#f3f1ff', borderColor: '#f3f1ff' }}>
+                            {(() => {
+                              console.log('selectedArticle.fiches:', selectedArticle.fiches)
+                              const fichesPratiques = getFichesPratiquesForArticle(selectedArticle.fiches)
+                              if (fichesPratiques.length === 0) {
+                                return 'Aucune fiche pratique associée pour cet article.'
+                              }
+                              return (
+                                <ul className="space-y-2">
+                                  {fichesPratiques.map((fiche) => (
+                                    <li key={fiche.id}>
+                                      <Link
+                                        to={`/fiches-pratiques/${fiche.id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[#774792] underline hover:text-violet-900 cursor-pointer inline-flex items-center gap-1"
+                                      >
+                                        {fiche.titre}
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
                               )
                             })()}
                           </div>
