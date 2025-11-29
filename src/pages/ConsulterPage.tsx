@@ -107,72 +107,43 @@ export const ConsulterPage = () => {
     }
   }
 
-  // Mapping entre les titres des fiches pratiques et leurs IDs
-  const fichesPratiquesMapping: Record<string, string> = {
-    "Gérer l'exactitude (Accuracy) dans les systèmes IA": 'exactitude',
-    "Gérer l'exactitude (Accuracy) dans les systèmes IA.": 'exactitude',
-    "Gérer l'exactitude": 'exactitude',
-    "exactitude": 'exactitude',
-    "Exactitude": 'exactitude'
+  // Mapping des URLs des fiches pratiques vers leurs titres
+  const fichesPratiquesTitres: Record<string, string> = {
+    '/fiches-pratiques/exactitude': "Gérer l'exactitude (Accuracy) dans les systèmes IA",
+    'exactitude': "Gérer l'exactitude (Accuracy) dans les systèmes IA"
   }
 
-  // Fonction pour normaliser un titre (enlever espaces, accents, casse)
-  const normalizeTitle = (title: string): string => {
-    return title
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, ' ')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
-  }
-
-  // Fonction pour obtenir les fiches pratiques associées à un article depuis le champ "fiches"
-  const getFichesPratiquesForArticle = (fichesString?: string) => {
+  // Fonction pour obtenir les fiches pratiques avec titre et lien depuis le champ "fiches"
+  const getFichesPratiques = (fichesString?: string): Array<{ titre: string; lien: string }> => {
     if (!fichesString || fichesString.trim() === '') {
       return []
     }
     
-    console.log('Fiches string depuis Supabase:', fichesString)
-    
-    // Le champ peut contenir plusieurs fiches séparées par des virgules ou des points-virgules
-    const fichesTitres = fichesString.split(/[,;]/).map(t => t.trim()).filter(Boolean)
-    
-    console.log('Fiches titres extraits:', fichesTitres)
-    
-    const result = fichesTitres
-      .map(titreInput => {
-        // Essayer d'abord une correspondance exacte
-        let id = fichesPratiquesMapping[titreInput]
-        
-        // Si pas de correspondance exacte, essayer une correspondance normalisée
-        if (!id) {
-          const normalizedInput = normalizeTitle(titreInput)
-          for (const [key, value] of Object.entries(fichesPratiquesMapping)) {
-            if (normalizeTitle(key) === normalizedInput) {
-              id = value
-              break
-            }
+    // Le champ peut contenir plusieurs liens séparés par des virgules ou des points-virgules
+    // Format supporté : "Titre|Lien" ou juste "Lien"
+    return fichesString
+      .split(/[,;]/)
+      .map(item => item.trim())
+      .filter(Boolean)
+      .map(item => {
+        // Vérifier si le format est "Titre|Lien"
+        if (item.includes('|')) {
+          const [titre, ...lienParts] = item.split('|')
+          return {
+            titre: titre.trim(),
+            lien: lienParts.join('|').trim()
           }
         }
         
-        // Si toujours pas trouvé, vérifier si c'est directement un ID
-        if (!id && titreInput.toLowerCase() === 'exactitude') {
-          id = 'exactitude'
-        }
+        // Sinon, c'est juste un lien - récupérer le titre depuis le mapping ou extraire depuis l'URL
+        const lien = item
+        const titre = fichesPratiquesTitres[lien] || 
+                     fichesPratiquesTitres[lien.split('/').pop() || ''] ||
+                     lien.split('/').pop() || 
+                     lien
         
-        if (id) {
-          // Récupérer le titre complet depuis le mapping ou utiliser le titre original
-          const titreComplet = Object.keys(fichesPratiquesMapping).find(k => fichesPratiquesMapping[k] === id) || titreInput
-          return { id, titre: titreComplet }
-        }
-        
-        console.warn('Fiche pratique non trouvée pour:', titreInput)
-        return null
+        return { titre, lien }
       })
-      .filter((f): f is { id: string; titre: string } => f !== null)
-    
-    console.log('Résultat final:', result)
-    return result
   }
 
   const [titre, setTitre] = useState<string>('')
@@ -433,7 +404,6 @@ export const ConsulterPage = () => {
 
       if (data) {
         console.log('handleArticleClick data', data)
-        console.log('Champ fiches récupéré:', (data as any).fiches)
         setSelectedArticle({
           id_article: data.id_article,
           titre: data.titre,
@@ -1221,28 +1191,45 @@ export const ConsulterPage = () => {
                         {isArticleFichesOpen && (
                           <div className="mt-2 border rounded-lg p-3 text-sm text-gray-700" style={{ backgroundColor: '#f3f1ff', borderColor: '#f3f1ff' }}>
                             {(() => {
-                              console.log('selectedArticle.fiches:', selectedArticle.fiches)
-                              const fichesPratiques = getFichesPratiquesForArticle(selectedArticle.fiches)
-                              if (fichesPratiques.length === 0) {
+                              const fiches = getFichesPratiques(selectedArticle.fiches)
+                              if (fiches.length === 0) {
                                 return 'Aucune fiche pratique associée pour cet article.'
                               }
                               return (
                                 <ul className="space-y-2">
-                                  {fichesPratiques.map((fiche) => (
-                                    <li key={fiche.id}>
-                                      <Link
-                                        to={`/fiches-pratiques/${fiche.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-[#774792] underline hover:text-violet-900 cursor-pointer inline-flex items-center gap-1"
-                                      >
-                                        {fiche.titre}
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                        </svg>
-                                      </Link>
-                                    </li>
-                                  ))}
+                                  {fiches.map((fiche, index) => {
+                                    const isRelativeLink = fiche.lien.startsWith('/')
+                                    
+                                    return (
+                                      <li key={index}>
+                                        {isRelativeLink ? (
+                                          <Link
+                                            to={fiche.lien}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-[#774792] underline hover:text-violet-900 cursor-pointer inline-flex items-center gap-1"
+                                          >
+                                            {fiche.titre}
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                          </Link>
+                                        ) : (
+                                          <a
+                                            href={fiche.lien}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-[#774792] underline hover:text-violet-900 cursor-pointer inline-flex items-center gap-1"
+                                          >
+                                            {fiche.titre}
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                          </a>
+                                        )}
+                                      </li>
+                                    )
+                                  })}
                                 </ul>
                               )
                             })()}
