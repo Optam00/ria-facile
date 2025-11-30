@@ -27,6 +27,7 @@ import VerifierSystemePage from './pages/VerifierSystemePage'
 import VerifierModelePage from './pages/VerifierModelePage'
 import MatriceDesObligationsPage from './pages/MatriceDesObligationsPage'
 import FichePratiqueExactitudePage from './pages/FichePratiqueExactitudePage'
+import FichePratiqueExplicabilitePage from './pages/FichePratiqueExplicabilitePage'
 
 // Composant pour scroller vers le haut à chaque changement de route
 function ScrollToTop() {
@@ -71,6 +72,7 @@ function App() {
               <Route path="/matrice-des-obligations" element={<MatriceDesObligationsPage />} />
               <Route path="/fiches-pratiques" element={<FichesPratiquesPage />} />
               <Route path="/fiches-pratiques/exactitude" element={<FichePratiqueExactitudePage />} />
+              <Route path="/fiches-pratiques/explicabilite" element={<FichePratiqueExplicabilitePage />} />
             </Routes>
           </div>
           <Footer />

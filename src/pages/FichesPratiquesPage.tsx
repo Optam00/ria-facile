@@ -10,6 +10,7 @@ interface FichePratique {
   categorie?: string
   duree?: string
   articlesRIA: string[] // Articles du RIA associés (ex: ["10", "15", "26"])
+  dateCreation: string // Date de création au format "YYYY-MM-DD"
 }
 
 interface FilterOption {
@@ -24,12 +25,29 @@ const fichesPratiques: FichePratique[] = [
     description: "Guide pratique pour la mise en conformité opérationnelle du principe d'exactitude. Croisement RGPD et AI Act.",
     categorie: 'Conformité',
     duree: '15 min de lecture',
-    articlesRIA: ['10', '15']
+    articlesRIA: ['10', '15'],
+    dateCreation: '2025-01-15'
+  },
+  {
+    id: 'explicabilite',
+    titre: "Explicabilité & Interprétabilité dans les systèmes IA",
+    description: "Guide pratique pour la mise en conformité opérationnelle de l'explicabilité et l'interprétabilité. Croisement RGPD et AI Act.",
+    categorie: 'Conformité',
+    duree: '15 min de lecture',
+    articlesRIA: ['13', '14', '86'],
+    dateCreation: '2025-01-20'
   }
 ]
 
 const FichesPratiquesPage: React.FC = () => {
   const [selectedArticles, setSelectedArticles] = useState<FilterOption[]>([])
+
+  // Fonction pour formater la date en français
+  const formaterDate = (dateString: string): string => {
+    const date = new Date(dateString)
+    const mois = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+    return `${date.getDate()} ${mois[date.getMonth()]} ${date.getFullYear()}`
+  }
 
   // Extraire tous les articles uniques des fiches
   const articlesDisponibles = useMemo(() => {
@@ -144,6 +162,11 @@ const FichesPratiquesPage: React.FC = () => {
                     <p className="text-gray-600 mb-4 line-clamp-3">
                       {fiche.description}
                     </p>
+                    {fiche.dateCreation && (
+                      <p className="text-xs text-gray-500 mb-4">
+                        Créée le {formaterDate(fiche.dateCreation)}
+                      </p>
+                    )}
                   </div>
                   <div className="px-6 pb-6">
                     <div className="flex items-center text-purple-600 font-medium text-sm group-hover:gap-2 transition-all">

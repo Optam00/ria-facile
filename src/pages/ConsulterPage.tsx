@@ -110,7 +110,9 @@ export const ConsulterPage = () => {
   // Mapping des URLs des fiches pratiques vers leurs titres
   const fichesPratiquesTitres: Record<string, string> = {
     '/fiches-pratiques/exactitude': "Gérer l'exactitude (Accuracy) dans les systèmes IA",
-    'exactitude': "Gérer l'exactitude (Accuracy) dans les systèmes IA"
+    'exactitude': "Gérer l'exactitude (Accuracy) dans les systèmes IA",
+    '/fiches-pratiques/explicabilite': "Explicabilité & Interprétabilité dans les systèmes IA",
+    'explicabilite': "Explicabilité & Interprétabilité dans les systèmes IA"
   }
 
   // Fonction pour obtenir les fiches pratiques avec titre et lien depuis le champ "fiches"
