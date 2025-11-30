@@ -7,7 +7,7 @@ interface SearchFilters {
   actualites: boolean;
   considerants: boolean;
   annexes: boolean;
-  schemas: boolean;
+  fichesPratiques: boolean;
 }
 
 interface AdvancedSearchProps {
@@ -24,7 +24,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, isLoad
     actualites: true,
     considerants: true,
     annexes: true,
-    schemas: true,
+    fichesPratiques: true,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -132,15 +132,15 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({ onSearch, isLoad
               />
               <span className="text-sm text-gray-700">Actualités</span>
             </label>
-            {/* Schémas */}
+            {/* Fiches pratiques */}
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={filters.schemas}
-                onChange={() => toggleFilter('schemas')}
+                checked={filters.fichesPratiques}
+                onChange={() => toggleFilter('fichesPratiques')}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-700">Schémas</span>
+              <span className="text-sm text-gray-700">Fiches pratiques</span>
             </label>
           </div>
         </div>

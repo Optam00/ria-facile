@@ -25,11 +25,11 @@ const FichePratiqueExplicabilitePage: React.FC = () => {
         </Link>
 
         {/* En-tête */}
-        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl shadow-lg p-8 mb-8 border-2" style={{ borderColor: '#774792' }}>
-          <div className="flex items-start gap-3 mb-4">
-            <span className="text-4xl">📄</span>
-            <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: '#774792' }}>
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl shadow-lg p-4 md:p-8 mb-8 border-2" style={{ borderColor: '#774792' }}>
+          <div className="flex items-start gap-2 md:gap-3 mb-4">
+            <span className="text-2xl md:text-4xl shrink-0">📄</span>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-3xl lg:text-4xl font-bold mb-4 break-words overflow-wrap-anywhere" style={{ color: '#774792' }}>
                 FICHE PRATIQUE : EXPLICABILITÉ & INTERPRÉTABILITÉ
               </h1>
               <div className="mt-4">

@@ -11,7 +11,7 @@ interface SearchFilters {
   actualites: boolean;
   considerants?: boolean;
   annexes?: boolean;
-  schemas: boolean;
+  fichesPratiques: boolean;
 }
 
 function useQuery() {
@@ -54,156 +54,20 @@ function getExcerpt(text: string, keyword: string, contextLength = 40) {
   return excerpt;
 }
 
-// Définition des schémas pour la recherche locale
-const SCHEMAS = [
+// Définition des fiches pratiques pour la recherche locale
+const FICHES_PRATIQUES = [
   {
-    id: 'calendrier',
-    titre: "Calendrier d'entrée en application du règlement IA",
-    texte: `La grande majorité des obligations du règlement deviennent applicables, notamment toutes les règles pour les systèmes d'IA classés à haut risque (à l'exception de ceux mentionnés au point suivant). ...`,
-    image: '/schemas/Dates.png',
-    url: '/schemas#date-mise-en-oeuvre',
+    id: 'exactitude',
+    titre: "Gérer l'exactitude (Accuracy) dans les systèmes IA",
+    description: "Guide pratique pour la mise en conformité opérationnelle du principe d'exactitude. Croisement RGPD et AI Act.",
+    articlesRIA: ['10', '15']
   },
   {
-    id: 'modele-vs-systeme',
-    titre: "La distinction entre modèle d'IA et système d'IA",
-    texte: `Le Modèle d'IA (Le Moteur) : il s'agit d'un système d'apprentissage automatique ou statistique qui génère des capacités d'IA, mais qui n'est pas directement déployé auprès des utilisateurs finaux. Le Système d'IA (Le Véhicule) : il intègre un ou plusieurs modèles d'IA et est déployé pour une finalité précise auprès des utilisateurs. Le Règlement IA encadre principalement les systèmes d'IA, mais certaines obligations s'appliquent aussi aux modèles d'IA à usage général (GPAI).`,
-    image: '/schemas/modele%20vs%20systeme.png',
-    url: '/schemas#modele-vs-systeme',
-  },
-  {
-    id: 'gpai',
-    titre: "Les différents modèles d'IA à usage général",
-    texte: `La réglementation cible spécifiquement les Modèles d'IA à Usage Général (GPAI), c'est-à-dire les modèles pouvant être intégrés dans de nombreux systèmes d'IA différents. Les GPAI sont soumis à des obligations spécifiques de transparence, de documentation et de gestion des risques, notamment pour les modèles présentant un risque systémique élevé.`,
-    image: '/schemas/GPAI.png',
-    url: '/schemas#gpai',
-  },
-  {
-    id: 'sias',
-    titre: "Les niveaux de risques des systèmes d'IA",
-    texte: `Le Règlement IA distingue quatre niveaux de risques pour les systèmes d'IA :
-- Risque inacceptable : systèmes strictement interdits (ex : manipulation cognitive, scoring social).
-- Risque élevé : systèmes soumis à des exigences strictes (ex : IA dans l'éducation, la santé, la justice, la sécurité).
-- Risque limité : obligations de transparence (ex : chatbots, deepfakes).
-- Risque minimal : usage libre, sans contrainte spécifique.
-Chaque niveau de risque détermine le niveau d'obligations et de contrôle applicable.`,
-    image: '/schemas/SIAs.png',
-    url: '/schemas#sias',
-  },
-  {
-    id: 'limite',
-    titre: "Obligations pour les systèmes d'IA à risque limité",
-    texte: `1. Systèmes d'Interaction avec les Humains (ex: Chatbots)
-- Obligation : Les utilisateurs doivent être informés de manière claire qu'ils interagissent avec un système d'IA.
-- Responsable : Le fournisseur doit concevoir le système dans ce but.
-- Article de référence : Article 50, paragraphe 1.
-- Exception : Cette obligation ne s'applique pas si l'interaction avec l'IA est "évidente" compte tenu des circonstances (par exemple, un avatar dans un jeu vidéo).
-
-2. Systèmes de Reconnaissance des Émotions ou de Catégorisation Biométrique
-- Obligation : Les personnes physiques exposées à un tel système doivent être informées de son fonctionnement.
-- Responsable : Le déployeur (celui qui utilise le système).
-- Article de référence : Article 50, paragraphe 3.
-- Note : S'applique uniquement aux systèmes non interdits et non classés à haut risque.
-
-3. Systèmes de Génération de Contenu Artificiel (ex: Deepfakes)
-Obligation du Fournisseur :
-- Marquer le contenu : Les systèmes doivent intégrer une solution technique pour que les sorties (images, audio, vidéo, texte) soient marquées dans un format lisible par machine, indiquant qu'elles ont été générées artificiellement.
-- Article de référence : Article 50, paragraphe 2.
-Obligation du Déployeur :
-- Déclarer le contenu :
-  - Pour les hypertrucages (images/audio/vidéo qui semblent réels), le déployeur doit clairement indiquer que le contenu est artificiel.
-  - Pour le texte généré par IA et publié pour informer le public sur des sujets d'intérêt général, le déployeur doit également le signaler.
-- Article de référence : Article 50, paragraphe 4.
-- Exception : Pour les contenus manifestement artistiques, créatifs, ou satiriques, l'obligation se limite à une divulgation appropriée qui ne gêne pas l'œuvre.
-
-Points Clés Communs à ces Obligations
-- Comment informer ? L'information doit être claire, reconnaissable et fournie au plus tard lors de la première interaction ou exposition. (Article 50, paragraphe 5).
-- Articulation avec les autres règles : Ces obligations de transparence sont un socle minimal et ne remplacent pas les exigences plus strictes pour les systèmes d'IA à haut risque. (Article 50, paragraphe 6).`,
-    image: '/schemas/limite.png',
-    url: '/schemas#limite',
-  },
-  {
-    id: 'gouvernance',
-    titre: "La gouvernance prévue par le RIA",
-    texte: `Le Règlement IA prévoit une gouvernance à plusieurs niveaux :
-- Au niveau européen : création d'un Bureau européen de l'IA chargé de la coordination, du suivi et de l'application du règlement.
-- Un Comité européen de l'IA réunit les représentants des États membres pour harmoniser les pratiques.
-- Au niveau national : chaque État membre désigne une ou plusieurs autorités compétentes pour superviser l'application du règlement.
-Cette gouvernance vise à assurer une application cohérente et efficace du Règlement IA dans toute l'Union européenne.`,
-    image: '/schemas/gouvernance.png',
-    url: '/schemas#gouvernance',
-  },
-  {
-    id: 'sanctions',
-    titre: "Montant des sanctions prévus par le RIA",
-    texte: `Le montant retenu est toujours le plus élevé entre la somme fixe et le pourcentage du chiffre d'affaires annuel mondial de l'exercice précédent (sauf pour les PME et jeunes pousses)
-
-1. Niveau 1 : Jusqu'à 35 millions d'euros ou 7% du chiffre d'affaires mondial
-
-Pour quelle infraction ? C'est la sanction la plus sévère, réservée au non-respect des pratiques d'IA interdites.
-
-Exemples : Mettre sur le marché ou utiliser un système de notation sociale, de manipulation subliminale, etc.
-
-Article de référence : Article 99, paragraphe 3.
-
-2. Niveau 2 : Jusqu'à 15 millions d'euros ou 3% du chiffre d'affaires mondial
-
-Pour quelle infraction ? Non-respect de la plupart des autres obligations clés du règlement, notamment :
-
-Les obligations des fournisseurs d'IA à haut risque (exigences de qualité, de documentation, etc. - Art. 16).
-
-Les obligations des déployeurs d'IA à haut risque (contrôle humain, surveillance, etc. - Art. 26).
-
-Les obligations des organismes notifiés (organismes de certification).
-
-Les obligations de transparence pour les IA à risque limité (chatbots, deepfakes - Art. 50).
-
-Les obligations relatives aux fournisseurs de modèles d'IA à usage générale (Art. 101).
-
-Article de référence : Article 99, paragraphe 4.
-
-3. Niveau 3 : Jusqu'à 7,5 millions d'euros ou 1% du chiffre d'affaires mondial
-
-Pour quelle infraction ? Fourniture d'informations incorrectes, incomplètes ou trompeuses aux organismes notifiés ou aux autorités nationales compétentes.
-
-Article de référence : Article 99, paragraphe 5.`,
-    image: '/schemas/sanctions.png',
-    url: '/schemas#sanctions',
-  },
-  {
-    id: 'exigences_SIAHR',
-    titre: "Exigences concernant les systèmes d'IA à haut risque",
-    texte: `Ces exigences s'appliquent aux systèmes, des obligations reposent sur les déployeurs et fournisseurs de ces systèmes (voir le schéma dédié)
-
-Système de gestion des risques (Article 9)
-
-Un processus continu d'identification, d'analyse et d'atténuation des risques pour la santé, la sécurité et les droits fondamentaux, qui doit être maintenu tout au long du cycle de vie du système.
-
-Qualité et gouvernance des données (Article 10)
-
-Les jeux de données utilisés pour l'entraînement, la validation et les tests doivent être de haute qualité : pertinents, représentatifs, exempts d'erreurs et complets. Des pratiques de gouvernance des données appropriées sont obligatoires pour prévenir et atténuer les biais discriminatoires.
-
-Documentation technique (Article 11)
-
-Une documentation complète doit être créée avant la mise sur le marché. Elle doit détailler le fonctionnement du système, ses capacités, ses limites et les processus de développement afin de permettre aux autorités d'évaluer sa conformité.
-
-Tenue de registres (Journaux) (Article 12)
-
-Le système doit être capable d'enregistrer automatiquement les événements ("logs") pendant son fonctionnement pour garantir la traçabilité des résultats et faciliter le suivi et les audits post-commercialisation.
-
-Transparence et fourniture d'informations aux utilisateurs (Article 13)
-
-Le système doit être suffisamment transparent pour que les utilisateurs (déployeurs) puissent en comprendre le fonctionnement. Il doit être accompagné d'une notice d'utilisation claire et complète.
-
-Contrôle humain (Article 14)
-
-Le système doit être conçu pour pouvoir être contrôlé efficacement par des humains. Ceux-ci doivent être en mesure de comprendre les sorties du système, de décider de ne pas les utiliser, d'ignorer ou d'annuler une décision, ou d'arrêter le système.
-
-Exactitude, robustesse et cybersécurité (Article 15)
-
-Le système doit atteindre un niveau approprié d'exactitude, être résilient aux erreurs ou aux incohérences, et être protégé contre les vulnérabilités et les attaques malveillantes (cybersécurité).`,
-    image: '/schemas/exigences_SIAHR.png',
-    url: '/schemas#exigences_SIAHR',
-  },
+    id: 'explicabilite',
+    titre: "Explicabilité & Interprétabilité dans les systèmes IA",
+    description: "Guide pratique pour la mise en conformité opérationnelle de l'explicabilité et l'interprétabilité. Croisement RGPD et AI Act.",
+    articlesRIA: ['13', '14', '86']
+  }
 ]
 
 export const SearchResultsPage = () => {
@@ -219,7 +83,7 @@ export const SearchResultsPage = () => {
     actualites: true,
     considerants: true,
     annexes: true,
-    schemas: true,
+    fichesPratiques: true,
   });
   const [results, setResults] = useState({
     reglement: [] as any[],
@@ -228,7 +92,7 @@ export const SearchResultsPage = () => {
     actualites: [] as any[],
     considerants: [] as any[],
     annexes: [] as any[],
-    schemas: [] as any[],
+    fichesPratiques: [] as any[],
   });
 
   useEffect(() => {
@@ -253,7 +117,7 @@ export const SearchResultsPage = () => {
       actualites: [] as any[],
       considerants: [] as any[],
       annexes: [] as any[],
-      schemas: [] as any[],
+      fichesPratiques: [] as any[],
     };
 
     try {
@@ -334,13 +198,14 @@ export const SearchResultsPage = () => {
         searchResults.annexes = annexesResults;
       }
 
-      // Recherche dans les schémas (locale)
-      if (searchFilters.schemas) {
-        const q = searchQuery.toLowerCase();
-        searchResults.schemas = SCHEMAS.filter(s =>
-          s.titre.toLowerCase().includes(q) ||
-          s.texte.toLowerCase().includes(q)
-        );
+      // Recherche dans les fiches pratiques (locale)
+      if (searchFilters.fichesPratiques) {
+        const q = removeDiacritics(searchQuery.toLowerCase());
+        searchResults.fichesPratiques = FICHES_PRATIQUES.filter(fiche => {
+          const titreNormalized = removeDiacritics(fiche.titre.toLowerCase());
+          const descriptionNormalized = removeDiacritics(fiche.description.toLowerCase());
+          return titreNormalized.includes(q) || descriptionNormalized.includes(q);
+        });
       }
 
       setResults(searchResults);
@@ -368,7 +233,7 @@ export const SearchResultsPage = () => {
           Recherche
         </h1>
         <p className="text-gray-600 max-w-3xl mx-auto text-lg">
-          Recherchez dans l'ensemble du site, le règlement IA, la documentation, la doctrine, les considérants et les annexes.
+          Recherchez dans l'ensemble du site, le règlement IA, la documentation, la doctrine, les considérants, les annexes et les fiches pratiques.
         </p>
       </div>
       
@@ -546,6 +411,47 @@ export const SearchResultsPage = () => {
             </CollapsibleSection>
           )}
 
+          {/* Section Fiches pratiques */}
+          {filters.fichesPratiques && (
+            <CollapsibleSection 
+              title="Dans les fiches pratiques" 
+              resultCount={results.fichesPratiques.length}
+              defaultOpen={false}
+            >
+              {results.fichesPratiques.length === 0 ? (
+                <div className="text-gray-400">Aucun résultat trouvé.</div>
+              ) : (
+                <ul className="space-y-3">
+                  {results.fichesPratiques.map(fiche => (
+                    <li key={fiche.id} className="bg-gray-50 rounded-lg p-3 md:p-4 mb-2 md:mb-0 hover:bg-gray-100 transition-colors">
+                      <a 
+                        href={`/fiches-pratiques/${fiche.id}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-blue-700 font-medium hover:underline text-sm md:text-base flex items-center gap-2"
+                      >
+                        <span dangerouslySetInnerHTML={{ __html: highlight(fiche.titre, keyword) }} />
+                      </a>
+                      <div className="text-xs md:text-sm text-gray-600 mt-1" dangerouslySetInnerHTML={{ __html: highlight(getExcerpt(fiche.description, keyword), keyword) }} />
+                      {fiche.articlesRIA && fiche.articlesRIA.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {fiche.articlesRIA.map((article) => (
+                            <span
+                              key={article}
+                              className="inline-block text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded"
+                            >
+                              Art. {article}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CollapsibleSection>
+          )}
+
           {/* Section Actualités */}
           {filters.actualites && (
             <CollapsibleSection 
@@ -585,37 +491,6 @@ export const SearchResultsPage = () => {
                         >
                           Lire →
                         </a>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CollapsibleSection>
-          )}
-
-          {/* Section Schémas */}
-          {filters.schemas && (
-            <CollapsibleSection 
-              title="Dans les schémas explicatifs" 
-              resultCount={results.schemas.length}
-              defaultOpen={false}
-            >
-              {results.schemas.length === 0 ? (
-                <div className="text-gray-400">Aucun résultat trouvé.</div>
-              ) : (
-                <ul className="space-y-3">
-                  {results.schemas.map(schema => (
-                    <li key={schema.id} className="bg-gray-50 rounded-lg p-3 md:p-4 mb-2 md:mb-0 hover:bg-gray-100 transition-colors flex gap-4 items-center">
-                      <a href={schema.url} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
-                        <img src={schema.image} alt={schema.titre} className="w-20 h-20 object-contain rounded-xl shadow" />
-                      </a>
-                      <div className="flex-1">
-                        <a href={schema.url} target="_blank" rel="noopener noreferrer" className="text-blue-700 font-medium hover:underline text-base">
-                          <span dangerouslySetInnerHTML={{ __html: highlight(schema.titre, keyword) }} />
-                        </a>
-                        <div className="text-xs md:text-sm text-gray-600 mt-1">
-                          <span dangerouslySetInnerHTML={{ __html: highlight(getExcerpt(schema.texte, keyword), keyword) }} />
-                        </div>
                       </div>
                     </li>
                   ))}
