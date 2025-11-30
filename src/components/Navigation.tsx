@@ -119,12 +119,12 @@ export const Navigation = () => {
           </form>
         )}
 
-        {/* Menu horizontal centré (xl+) */}
-        {!showSearchInline && (
-          <div className="hidden lg:flex flex-1 justify-center">
-            <div className="flex gap-8 items-center whitespace-nowrap">
-              <Link to="/" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/') ? 'text-purple-700' : 'text-gray-900'}`}>Accueil</Link>
-              <Link to="/consulter" className={`text-lg font-semibold transition-colors hover:text-purple-700 ${isActive('/consulter') ? 'text-purple-700' : 'text-gray-900'}`}>Consulter le RIA</Link>
+         {/* Menu horizontal centré (xl+) */}
+         {!showSearchInline && (
+           <div className="hidden lg:flex flex-1 justify-center">
+             <div className="flex gap-8 items-center whitespace-nowrap">
+               <Link to="/" className={`text-base font-semibold transition-colors hover:text-purple-700 ${isActive('/') ? 'text-purple-700' : 'text-gray-900'}`}>Accueil</Link>
+               <Link to="/consulter" className={`text-base font-semibold transition-colors hover:text-purple-700 ${isActive('/consulter') ? 'text-purple-700' : 'text-gray-900'}`}>Consulter le RIA</Link>
               {/* Maîtriser le RIA dropdown */}
               <div
                 className="relative"
@@ -138,10 +138,10 @@ export const Navigation = () => {
                     if (next) setOpenConformite(false)
                     return next
                   })
-                }} className="text-lg font-semibold text-gray-900 hover:text-purple-700 flex items-center gap-1">
-                  Maîtriser le RIA
-                  <svg className={`w-4 h-4 transition-transform ${openMaster ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
-                </button>
+                 }} className="text-base font-semibold text-gray-900 hover:text-purple-700 flex items-center gap-1">
+                   Maîtriser le RIA
+                   <svg className={`w-4 h-4 transition-transform ${openMaster ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+                 </button>
                 {openMaster && (
                   <div
                     className="absolute mt-2 bg-white shadow-xl rounded-lg border p-2 min-w-[240px] z-50"
@@ -168,10 +168,10 @@ export const Navigation = () => {
                     if (next) setOpenMaster(false)
                     return next
                   })
-                }} className="text-lg font-semibold text-gray-900 hover:text-purple-700 flex items-center gap-1">
-                  Se mettre en conformité au RIA
-                  <svg className={`w-4 h-4 transition-transform ${openConformite ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
-                </button>
+                 }} className="text-base font-semibold text-gray-900 hover:text-purple-700 flex items-center gap-1">
+                   Se mettre en conformité au RIA
+                   <svg className={`w-4 h-4 transition-transform ${openConformite ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
+                 </button>
                 {openConformite && (
                   <div
                     className="absolute mt-2 bg-white shadow-xl rounded-lg border p-2 min-w-[260px] z-50"
@@ -188,30 +188,51 @@ export const Navigation = () => {
           </div>
         )}
 
-        {/* Zone droite : bouton contact, loupe */}
+        {/* Zone droite : recherche, bouton contact */}
         <div className="flex items-center gap-3 flex-shrink-0">
-          {/* Bouton contact */}
-          <Link
-            to="/contact"
-            className="hidden lg:inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold shadow-none hover:from-purple-700 hover:to-blue-700 transition-all text-base"
-            style={{ minWidth: 140, justifyContent: 'center' }}
-          >
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-            Nous contacter
-          </Link>
-          {/* Loupe/recherche desktop uniquement (xl+) */}
+          {/* Champ de recherche compact (desktop uniquement) */}
           {!showSearchInline && (
-            <button
-              onClick={() => setShowSearchInline(true)}
-              className="hidden lg:flex p-2.5 rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 text-gray-500 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
-              aria-label="Ouvrir la recherche"
+            <form
+              onSubmit={handleSearchSubmit}
+              className="hidden lg:flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5 hover:border-purple-300 focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-200 transition-all"
+              style={{ minWidth: 220 }}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="11" cy="11" r="8" strokeWidth="2" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" strokeWidth="2" />
               </svg>
-            </button>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher..."
+                className="flex-1 bg-transparent border-none outline-none text-gray-800 text-xs placeholder:text-gray-400"
+                aria-label="Rechercher sur le site"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                  aria-label="Effacer la recherche"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18" strokeWidth="2" />
+                    <line x1="6" y1="6" x2="18" y2="18" strokeWidth="2" />
+                  </svg>
+                </button>
+              )}
+            </form>
           )}
+          {/* Bouton contact */}
+          <Link
+            to="/contact"
+            className="hidden lg:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold shadow-none hover:from-purple-700 hover:to-blue-700 transition-all text-sm"
+            style={{ minWidth: 120, justifyContent: 'center' }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            Nous contacter
+          </Link>
         </div>
 
         {/* Menu burger mobile/tablette (en dessous de xl) */}
