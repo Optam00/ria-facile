@@ -36,6 +36,15 @@ const fichesPratiques: FichePratique[] = [
     duree: '15 min de lecture',
     articlesRIA: ['13', '14', '86'],
     dateCreation: '2025-01-20'
+  },
+  {
+    id: 'droits-rgpd',
+    titre: "Gestion des droits RGPD dans les systèmes d'IA",
+    description: "Guide pratique pour organiser l'exercice des droits RGPD (accès, rectification, effacement, opposition) dans les systèmes d'IA, en articulation avec le Règlement IA.",
+    categorie: 'Conformité',
+    duree: '15 min de lecture',
+    articlesRIA: ['10', '13', '86'],
+    dateCreation: '2025-02-01'
   }
 ]
 
