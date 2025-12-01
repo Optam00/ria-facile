@@ -123,10 +123,10 @@ export const ConsulterPage = () => {
       return []
     }
     
-    // Le champ peut contenir plusieurs liens séparés par des virgules ou des points-virgules
+    // Le champ peut contenir plusieurs liens séparés par des virgules, des points-virgules ou des retours à la ligne
     // Format supporté : "Titre|Lien" ou juste "Lien"
     return fichesString
-      .split(/[,;]/)
+      .split(/[,;\n]+/)
       .map(item => item.trim())
       .filter(Boolean)
       .map(item => {
