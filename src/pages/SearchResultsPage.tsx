@@ -85,6 +85,18 @@ const FICHES_PRATIQUES = [
     titre: "Analyse d'impact sur les droits fondamentaux (FRIA)",
     description: "Guide pratique pour réaliser une analyse d'impact sur les droits fondamentaux (FRIA) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
     articlesRIA: ['13', '26', '27']
+  },
+  {
+    id: 'transparence',
+    titre: "Transparence et information des utilisateurs",
+    description: "Guide pratique pour la transparence et l'information des utilisateurs dans les systèmes d'IA. Croisement RGPD et AI Act.",
+    articlesRIA: ['13', '26', '50', '53']
+  },
+  {
+    id: 'controle-humain',
+    titre: "Le contrôle humain",
+    description: "Guide pratique pour la mise en place du contrôle humain dans les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
+    articlesRIA: ['14', '26']
   }
 ]
 

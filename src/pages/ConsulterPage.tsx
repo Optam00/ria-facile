@@ -118,7 +118,11 @@ export const ConsulterPage = () => {
     '/fiches-pratiques/rms': "Le système de gestion des risques (RMS)",
     'rms': "Le système de gestion des risques (RMS)",
     '/fiches-pratiques/fria': "Analyse d'impact sur les droits fondamentaux (FRIA)",
-    'fria': "Analyse d'impact sur les droits fondamentaux (FRIA)"
+    'fria': "Analyse d'impact sur les droits fondamentaux (FRIA)",
+    '/fiches-pratiques/transparence': "Transparence et information des utilisateurs",
+    'transparence': "Transparence et information des utilisateurs",
+    '/fiches-pratiques/controle-humain': "Le contrôle humain",
+    'controle-humain': "Le contrôle humain"
   }
 
   // Fonction pour obtenir les fiches pratiques avec titre et lien depuis le champ "fiches"

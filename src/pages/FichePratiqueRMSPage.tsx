@@ -351,6 +351,26 @@ const FichePratiqueRMSPage: React.FC = () => {
           </section>
         </div>
 
+        {/* Disclaimer */}
+        <div className="bg-blue-50 border-l-4 border-blue-400 rounded-r-lg p-6 mb-8">
+          <div className="flex items-start gap-3">
+            <svg className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-gray-700 mb-2">
+                <strong className="text-gray-900">Important :</strong> Cette fiche pratique peut impliquer des simplifications pour faciliter la compréhension. Une lecture attentive du texte officiel du Règlement IA est nécessaire pour une application complète et précise.
+              </p>
+              <p className="text-gray-700">
+                Pour bénéficier d'un accompagnement personnalisé par des experts,{' '}
+                <Link to="/contact" className="text-purple-600 hover:text-purple-700 font-semibold underline">
+                  contactez-nous via le formulaire
+                </Link>.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Bouton retour en bas */}
         <div className="mt-8 text-center">
           <Link 

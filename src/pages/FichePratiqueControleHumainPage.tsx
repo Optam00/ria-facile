@@ -2,14 +2,14 @@ import React, { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
-const FichePratiqueFRIAPage: React.FC = () => {
+const FichePratiqueControleHumainPage: React.FC = () => {
   const [sourcesOuvertes, setSourcesOuvertes] = useState(false)
 
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>Analyse d'impact sur les droits fondamentaux (FRIA) — Fiche pratique | RIA Facile</title>
-        <meta name="description" content="Guide pratique pour réaliser une analyse d'impact sur les droits fondamentaux (FRIA) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act." />
+        <title>Le contrôle humain — Fiche pratique | RIA Facile</title>
+        <meta name="description" content="Guide pratique pour la mise en place du contrôle humain dans les systèmes d'IA à haut risque. Croisement RGPD et AI Act." />
       </Helmet>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
@@ -30,12 +30,12 @@ const FichePratiqueFRIAPage: React.FC = () => {
             <span className="text-2xl md:text-4xl shrink-0">📄</span>
             <div className="flex-1 min-w-0">
               <h1 className="text-xl md:text-3xl lg:text-4xl font-bold mb-4 break-words overflow-wrap-anywhere" style={{ color: '#774792' }}>
-                FICHE PRATIQUE : ANALYSE D'IMPACT SUR LES DROITS FONDAMENTAUX (FRIA)
+                FICHE PRATIQUE : LE CONTRÔLE HUMAIN
               </h1>
               <div className="mt-4">
                 <p className="text-sm text-gray-600 mb-2">Articles RIA associés :</p>
                 <div className="flex flex-wrap gap-2">
-                  {['13', '26', '27'].map((article) => (
+                  {['14', '26'].map((article) => (
                     <span
                       key={article}
                       className="inline-block text-sm font-medium text-indigo-700 bg-indigo-100 px-3 py-1 rounded-lg border border-indigo-200"
@@ -57,52 +57,43 @@ const FichePratiqueFRIAPage: React.FC = () => {
               1. RAPPEL DES PRINCIPES FONDAMENTAUX
             </h2>
             <p className="text-gray-700 mb-4">
-              La <strong>Fundamental Rights Impact Assessment (FRIA)</strong> est un exercice de conformité <em>ex ante</em> (avant utilisation) qui vise à contextualiser les risques techniques d'une IA dans un environnement social réel.
+              Le contrôle humain (ou <em>Human-in-the-loop</em>) est la garantie ultime de sécurité. L'AI Act impose que les SIA à Haut Risque ne soient pas des "boîtes noires" autonomes, mais des outils sous supervision.
             </p>
             <div className="space-y-6">
               <div className="border-l-4 border-purple-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Obligation du Déployeur (Art. 27 §1) :
+                  Design (Art. 14) :
                 </h3>
                 <p className="text-gray-700">
-                  C'est l'utilisateur professionnel (et non le fournisseur) qui doit évaluer l'impact spécifique de l'IA sur les personnes affectées (employés, citoyens, clients).
+                  Le système doit être conçu avec des interfaces homme-machine permettant une supervision efficace <em>pendant</em> son utilisation.
                 </p>
               </div>
               <div className="border-l-4 border-indigo-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Périmètre étendu :
+                  Exécution (Art. 26) :
                 </h3>
                 <p className="text-gray-700">
-                  Contrairement à l'AIPD (RGPD) focalisée sur la vie privée, la FRIA couvre <strong>tous les droits fondamentaux</strong> (non-discrimination, liberté d'expression, droit à un procès équitable, droits de l'enfant, etc.).
+                  Le contrôle ne doit pas être théorique. Il doit être effectué par des personnes physiques disposant de la <strong>compétence</strong>, de la <strong>formation</strong> et de l'<strong>autorité</strong> nécessaires.
                 </p>
               </div>
               <div className="border-l-4 border-blue-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Transparence (Art. 27 §3) :
+                  Lutte contre le biais d'automatisation (Art. 14 §4) :
                 </h3>
                 <p className="text-gray-700">
-                  Les résultats de la FRIA doivent être notifiés à l'autorité de surveillance du marché.
+                  Le superviseur doit être capable de ne pas se fier aveuglément aux résultats de l'IA.
                 </p>
               </div>
             </div>
             <div className="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
-              <p className="font-semibold text-gray-900 mb-2">Périmètre d'application (Critique) :</p>
-              <div className="space-y-4 text-gray-700">
-                <div>
-                  <p className="mb-2">
-                    <strong>✅ Concerne uniquement certains Déployeurs de SIA à Haut Risque :</strong>
-                  </p>
-                  <ol className="list-decimal list-inside space-y-2 ml-4">
-                    <li><strong>Organismes de droit public</strong> (Administrations, Hôpitaux, Éducation, Police).</li>
-                    <li><strong>Entités privées assurant une mission de service public</strong> (ex: Transports, Énergie).</li>
-                    <li><strong>Banques et Assurances</strong>, spécifiquement pour les SIA d'évaluation du crédit (scoring) et de tarification (vie/santé).</li>
-                  </ol>
-                </div>
-                <div>
-                  <p>
-                    <strong>❌ Ne concerne pas :</strong> Les entreprises privées "classiques" (Retail, Industrie, Tech) utilisant des SIA à Haut Risque pour leurs besoins internes (ex: RH), sauf disposition nationale contraire.
-                  </p>
-                </div>
+              <p className="font-semibold text-gray-900 mb-2">Périmètre d'application :</p>
+              <div className="space-y-2 text-gray-700">
+                <p>
+                  <strong>✅ Concerne exclusivement :</strong> Les <strong>Systèmes d'IA à Haut Risque (SIA-HR)</strong> visés par l'Art. 6 et l'Annexe III (ex: Recrutement, Santé, Justice, Biométrie, Infrastructures critiques).
+                </p>
+                <p>
+                  <strong>❌ Ne concerne pas :</strong> Les IA à risque limité ou minimal (sauf choix volontaire de l'entreprise pour des raisons éthiques ou de qualité).
+                </p>
               </div>
             </div>
           </section>
@@ -115,7 +106,7 @@ const FichePratiqueFRIAPage: React.FC = () => {
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg mb-4">
               <p className="font-semibold text-gray-900 mb-2">L'enjeu Business & Conformité :</p>
               <p className="text-gray-700">
-                Pour les acteurs publics et régulés, la FRIA est le <strong>permis d'opérer</strong>. Elle transforme la documentation technique du fournisseur en une analyse d'impact sociétal concrète. Une FRIA absente ou bâclée expose à une interdiction d'utilisation immédiate par l'autorité de contrôle et à un risque réputationnel majeur (accusation de discrimination algorithmique).
+                Le contrôle humain est le "filet de sécurité" opérationnel. Il permet de rattraper les erreurs de l'IA avant qu'elles ne causent des dommages (discrimination, accident). Pour l'entreprise, c'est une condition <em>sine qua non</em> de conformité : sans protocole de supervision humaine documenté et effectif, l'utilisation d'un SIA à Haut Risque est illégale.
               </p>
             </div>
           </section>
@@ -128,24 +119,31 @@ const FichePratiqueFRIAPage: React.FC = () => {
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold text-lg mb-3 text-gray-900">
-                  Le défi : Passer du "Labo" à la "Vraie Vie"
+                  Le défi du "Biais d'Automatisation"
                 </h3>
                 <p className="text-gray-700 mb-4">
-                  Le fournisseur a validé que son modèle fonctionne techniquement (via son RMS - Art. 9). Le déployeur doit valider que l'utilisation de ce modèle <em>dans son contexte précis</em> ne va pas nuire aux droits.
+                  C'est le risque majeur identifié par le régulateur : l'opérateur humain, par fatigue ou excès de confiance, valide systématiquement les propositions de l'IA ("Rubber-stamping"). L'Art. 14 exige des mesures concrètes pour contrer cet effet psychologique.
                 </p>
-                <div className="bg-gray-50 border-l-4 border-gray-400 p-4 rounded-r-lg italic text-gray-700">
-                  <strong>Exemple :</strong> Un algorithme de détection de fraude aux prestations sociales peut être techniquement robuste (Fournisseur), mais son déploiement peut créer une discrimination massive envers certaines populations précaires (Déployeur).
-                </div>
               </div>
               <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
-                <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  La convergence FRIA / AIPD (Vue EDPS)
+                <h3 className="font-semibold text-lg mb-3 text-gray-900">
+                  Les niveaux d'intervention (Art. 14 §3)
                 </h3>
-                <p className="text-gray-700 mb-2">
-                  L'AI Act (Art. 27 §4) et l'EDPS recommandent de ne pas multiplier les documents. Si une <strong>Analyse d'Impact relative à la Protection des Données (AIPD)</strong> est déjà requise par le RGPD (Art. 35), la FRIA doit venir la compléter.
+                <p className="text-gray-700 mb-3">
+                  Le contrôle humain peut prendre plusieurs formes selon le risque :
                 </p>
+                <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-2">
+                  <li><strong>Human-in-the-loop :</strong> L'IA propose, l'humain décide (ex: recrutement).</li>
+                  <li><strong>Human-on-the-loop :</strong> L'IA agit, l'humain surveille et peut intervenir (ex: supervision industrielle).</li>
+                  <li><strong>Human-in-command :</strong> L'humain peut décider d'ignorer l'IA ou d'utiliser le "Kill Switch" (bouton d'arrêt) à tout moment.</li>
+                </ol>
+              </div>
+              <div className="border-l-4 border-indigo-500 pl-6 py-2">
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                  Lien avec la Transparence
+                </h3>
                 <p className="text-gray-700">
-                  <strong>Best Practice :</strong> Créer un "Master Impact Assessment" unique traitant la Data Privacy (RGPD) + les autres Droits Fondamentaux (AI Act).
+                  Le contrôle humain est impossible sans <strong>explicabilité</strong>. Si l'opérateur ne comprend pas <em>pourquoi</em> l'IA prend une décision (Art. 13), il ne peut pas exercer un contrôle effectif.
                 </p>
               </div>
             </div>
@@ -157,13 +155,13 @@ const FichePratiqueFRIAPage: React.FC = () => {
               4. LE PLAN D'ACTIONS (FORMAT MATRICIEL)
             </h2>
             <p className="text-gray-700 mb-6">
-              Ce tableau détaille la méthodologie pour réaliser une FRIA conforme, en s'appuyant sur le Chapitre 11 du Guide Académique.
+              Ce tableau structure la mise en place du contrôle humain en distinguant la conception (Fournisseur) de l'application (Déployeur).
             </p>
             <div className="mb-4 bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-700 mb-2"><strong>Légende :</strong></p>
               <div className="flex flex-wrap gap-4 text-sm">
-                <span>🔵 <strong>DÉPLOYEUR</strong> (Entité publique, Banque, Assurance...)</span>
-                <span>🟢 <strong>FOURNISSEUR</strong> (Éditeur du SIA, en support)</span>
+                <span>🟢 <strong>FOURNISSEUR</strong> (Éditeur du SIA-HR)</span>
+                <span>🔵 <strong>DÉPLOYEUR</strong> (Utilisateur du SIA-HR)</span>
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -178,80 +176,64 @@ const FichePratiqueFRIAPage: React.FC = () => {
                 </thead>
                 <tbody>
                   <tr className="bg-white hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>1. CADRAGE</td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>1. CONCEPTION (Design)</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Vérifier l'éligibilité</strong><br />
-                      Confirmer que l'entité et le cas d'usage relèvent bien de l'Art. 27 (Secteur public ou Banque/Assurance sur cas spécifiques).
+                      <strong>Intégrer les outils de supervision</strong><br />
+                      Développer une interface permettant à l'humain de comprendre les outputs et d'intervenir (ex: bouton "Stop", modification des paramètres).
                     </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (1)</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 (3)</td>
                   </tr>
                   <tr className="bg-gray-50 hover:bg-gray-100">
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Fournir les intrants</strong><br />
-                      Transmettre la notice d'utilisation (Art. 13) et les résultats pertinents du RMS (risques résiduels).
+                      <strong>Définir les mesures de contrôle</strong><br />
+                      Identifier dans la documentation technique les mesures de surveillance appropriées au risque (ex: double validation requise).
                     </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 13</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 (2)</td>
                   </tr>
                   <tr className="bg-white hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={3}>2. ANALYSE</td>
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>2. ORGANISATION (Setup)</td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Décrire le contexte d'usage</strong><br />
-                      Définir la finalité, les catégories de personnes affectées (ex: mineurs, personnes vulnérables) et la fréquence d'utilisation.
+                      <strong>Nommer les superviseurs</strong><br />
+                      Affecter des personnes physiques spécifiques à la tâche de surveillance. S'assurer qu'elles ont l'autorité pour contredire l'IA.
                     </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (1)(a-b)</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 26 (2)</td>
                   </tr>
                   <tr className="bg-gray-50 hover:bg-gray-100">
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Identifier les Droits Fondamentaux touchés</strong><br />
-                      Au-delà de la vie privée : Dignité, Non-discrimination, Liberté de réunion, Accès aux services publics, etc.
+                      <strong>Former les équipes (AI Literacy)</strong><br />
+                      Former les superviseurs à comprendre le système et surtout à reconnaître le <strong>biais d'automatisation</strong> (ne pas faire confiance par défaut).
                     </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (1)(c)</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 4 & Art. 26 (2)</td>
                   </tr>
                   <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>3. OPÉRATION (Run)</td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Évaluer les risques spécifiques</strong><br />
-                      Croiser les risques techniques du fournisseur avec le contexte local (ex: biais de données vs démographie locale).
+                      <strong>Interpréter et valider</strong><br />
+                      Analyser les résultats de l'IA. En cas de doute ou d'anomalie, ignorer la suggestion de l'IA ("Override").
                     </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (1)(d)</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 (4)(d)</td>
                   </tr>
                   <tr className="bg-gray-50 hover:bg-gray-100">
-                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>3. ATTÉNUATION</td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Définir la Surveillance Humaine</strong><br />
-                      Qui valide la décision ? A-t-il la compétence et l'autorité pour contredire l'IA ? (Lutte contre le biais d'automatisation).
+                      <strong>Activer le "Kill Switch"</strong><br />
+                      Interrompre ou arrêter le système immédiatement en cas de dysfonctionnement ou de risque grave identifié.
                     </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 & 27 (1)(e)</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 (4)(e)</td>
                   </tr>
                   <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">4. CAS SPÉCIFIQUE</td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Intégrer à l'AIPD (RGPD)</strong><br />
-                      Si des données personnelles sont traitées, fusionner l'analyse FRIA avec l'AIPD existante pour éviter les doublons.
+                      <strong>Identification Biométrique à distance</strong><br />
+                      Pour ce cas d'usage très sensible, imposer une validation par <strong>deux personnes</strong> distinctes avant toute action (principe des "4 yeux").
                     </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (4)</td>
-                  </tr>
-                  <tr className="bg-gray-50 hover:bg-gray-100">
-                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>4. GOUVERNANCE</td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Notifier l'Autorité</strong><br />
-                      Transmettre le résumé des résultats à l'autorité de surveillance du marché via le formulaire dédié (template AI Office).
-                    </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (3)</td>
-                  </tr>
-                  <tr className="bg-white hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Révision périodique</strong><br />
-                      Mettre à jour la FRIA si le contexte d'utilisation change ou si le fournisseur modifie substantiellement le système.
-                    </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (2)</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 (5)</td>
                   </tr>
                 </tbody>
               </table>
@@ -261,15 +243,9 @@ const FichePratiqueFRIAPage: React.FC = () => {
                 <span>💡</span>
                 <span style={{ color: '#774792' }}>Conseil de l'expert</span>
               </h3>
-              <p className="text-gray-700 mb-3">
-                Ne commencez pas une FRIA "page blanche".
+              <p className="text-gray-700">
+                Ne vous contentez pas de nommer un superviseur sur le papier. Vous devez prouver sa <strong>compétence</strong>. Lors d'un audit, si le superviseur ne sait pas expliquer comment fonctionne l'outil ou n'a jamais contredit l'IA en 6 mois, l'autorité considérera que le contrôle humain est inefficace et donc non-conforme.
               </p>
-              <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-2">
-                <li>Partez de votre <strong>AIPD (RGPD)</strong> existante.</li>
-                <li>Ajoutez une section "Autres Droits Fondamentaux" (Non-discrimination, Droit à un recours effectif).</li>
-                <li>Utilisez la notice d'utilisation du fournisseur pour remplir les sections techniques.</li>
-                <li>Consultez les représentants des personnes affectées (syndicats, associations d'usagers) comme suggéré par l'EDPS pour valider votre analyse.</li>
-              </ol>
             </div>
           </section>
 
@@ -300,9 +276,8 @@ const FichePratiqueFRIAPage: React.FC = () => {
                     Règlement (UE) 2024/1689 (AI Act)
                   </h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
-                    <li>• <em>Art. 27 :</em> Obligation de réaliser une analyse d'impact sur les droits fondamentaux</li>
-                    <li>• <em>Art. 26 :</em> Obligations des déployeurs de systèmes à haut risque</li>
-                    <li>• <em>Art. 13 :</em> Notice d'utilisation</li>
+                    <li>• <em>Art. 14 :</em> Contrôle humain</li>
+                    <li>• <em>Art. 26 :</em> Obligations des déployeurs</li>
                   </ul>
                   <a 
                     href="/consulter" 
@@ -321,7 +296,7 @@ const FichePratiqueFRIAPage: React.FC = () => {
                     Règlement (UE) 2016/679 (RGPD)
                   </h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
-                    <li>• <em>Art. 35 :</em> Analyse d'impact relative à la protection des données</li>
+                    <li>• <em>Art. 22 :</em> Décision individuelle automatisée</li>
                   </ul>
                   <a 
                     href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32016R0679" 
@@ -337,29 +312,11 @@ const FichePratiqueFRIAPage: React.FC = () => {
                 </div>
                 <div className="border-l-4 border-purple-500 pl-6 py-3">
                   <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                    EDPS Guidance
-                  </h3>
-                  <p className="text-gray-700 mb-2">
-                    <em>AI Risks Management Guidance (Nov 2025)</em> - Recommandations sur l'intégration des droits fondamentaux dans l'analyse de risque.
-                  </p>
-                  <a 
-                    href="https://www.edps.europa.eu/system/files/2025-11/2025-11-11_ai_risks_management_guidance_en.pdf" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
-                  >
-                    Lien vers le document
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                </div>
-                <div className="border-l-4 border-indigo-500 pl-6 py-3">
-                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
                     The Academic Guide to AI Act Compliance (2025)
                   </h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
-                    <li>• <em>Chapitre 11 :</em> Fundamental Rights Impact Assessment (FRIA) under the AI Act (M. Ho-Dac & L. Xenou)</li>
+                    <li>• <em>Chapitre 7 :</em> Transparency Under the AI Act (Florence Guillaume) - <em>Voir section "2.5 Human Oversight" page 92</em></li>
+                    <li>• <em>Chapitre 11 :</em> Fundamental Rights Impact Assessment (M. Ho-Dac & L. Xenou) - <em>Voir section "3.3 Phase 3" sur les mesures d'atténuation</em></li>
                   </ul>
                 </div>
               </div>
@@ -404,5 +361,5 @@ const FichePratiqueFRIAPage: React.FC = () => {
   )
 }
 
-export default FichePratiqueFRIAPage
+export default FichePratiqueControleHumainPage
 

@@ -10,7 +10,6 @@ interface FichePratique {
   categorie?: string
   duree?: string
   articlesRIA: string[] // Articles du RIA associés (ex: ["10", "15", "26"])
-  dateCreation: string // Date de création au format "YYYY-MM-DD"
 }
 
 interface FilterOption {
@@ -25,8 +24,7 @@ const fichesPratiques: FichePratique[] = [
     description: "Guide pratique pour la mise en conformité opérationnelle du principe d'exactitude. Croisement RGPD et AI Act.",
     categorie: 'Conformité',
     duree: '15 min de lecture',
-    articlesRIA: ['10', '15'],
-    dateCreation: '2025-01-15'
+    articlesRIA: ['10', '15']
   },
   {
     id: 'explicabilite',
@@ -34,8 +32,7 @@ const fichesPratiques: FichePratique[] = [
     description: "Guide pratique pour la mise en conformité opérationnelle de l'explicabilité et l'interprétabilité. Croisement RGPD et AI Act.",
     categorie: 'Conformité',
     duree: '15 min de lecture',
-    articlesRIA: ['13', '14', '86'],
-    dateCreation: '2025-01-20'
+    articlesRIA: ['13', '14', '86']
   },
   {
     id: 'droits-rgpd',
@@ -43,8 +40,7 @@ const fichesPratiques: FichePratique[] = [
     description: "Guide pratique pour organiser l'exercice des droits RGPD (accès, rectification, effacement, opposition) dans les systèmes d'IA, en articulation avec le Règlement IA.",
     categorie: 'Conformité',
     duree: '15 min de lecture',
-    articlesRIA: ['10', '13', '86'],
-    dateCreation: '2025-02-01'
+    articlesRIA: ['10', '13', '86']
   },
   {
     id: 'rms',
@@ -52,8 +48,7 @@ const fichesPratiques: FichePratique[] = [
     description: "Guide pratique pour la mise en place et la gestion du système de gestion des risques (RMS) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
     categorie: 'Conformité',
     duree: '15 min de lecture',
-    articlesRIA: ['9', '16', '26', '27'],
-    dateCreation: '2025-02-05'
+    articlesRIA: ['9', '16', '26', '27']
   },
   {
     id: 'fria',
@@ -61,20 +56,28 @@ const fichesPratiques: FichePratique[] = [
     description: "Guide pratique pour réaliser une analyse d'impact sur les droits fondamentaux (FRIA) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
     categorie: 'Conformité',
     duree: '15 min de lecture',
-    articlesRIA: ['13', '26', '27'],
-    dateCreation: '2025-02-10'
+    articlesRIA: ['13', '26', '27']
+  },
+  {
+    id: 'transparence',
+    titre: "Transparence et information des utilisateurs",
+    description: "Guide pratique pour la transparence et l'information des utilisateurs dans les systèmes d'IA. Croisement RGPD et AI Act.",
+    categorie: 'Conformité',
+    duree: '15 min de lecture',
+    articlesRIA: ['13', '26', '50', '53']
+  },
+  {
+    id: 'controle-humain',
+    titre: "Le contrôle humain",
+    description: "Guide pratique pour la mise en place du contrôle humain dans les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
+    categorie: 'Conformité',
+    duree: '15 min de lecture',
+    articlesRIA: ['14', '26']
   }
 ]
 
 const FichesPratiquesPage: React.FC = () => {
   const [selectedArticles, setSelectedArticles] = useState<FilterOption[]>([])
-
-  // Fonction pour formater la date en français
-  const formaterDate = (dateString: string): string => {
-    const date = new Date(dateString)
-    const mois = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
-    return `${date.getDate()} ${mois[date.getMonth()]} ${date.getFullYear()}`
-  }
 
   // Extraire tous les articles uniques des fiches
   const articlesDisponibles = useMemo(() => {
@@ -189,11 +192,6 @@ const FichesPratiquesPage: React.FC = () => {
                     <p className="text-gray-600 mb-4 line-clamp-3">
                       {fiche.description}
                     </p>
-                    {fiche.dateCreation && (
-                      <p className="text-xs text-gray-500 mb-4">
-                        Créée le {formaterDate(fiche.dateCreation)}
-                      </p>
-                    )}
                   </div>
                   <div className="px-6 pb-6">
                     <div className="flex items-center text-purple-600 font-medium text-sm group-hover:gap-2 transition-all">
