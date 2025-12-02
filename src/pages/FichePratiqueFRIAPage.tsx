@@ -1,0 +1,388 @@
+import React, { useState } from 'react'
+import { Helmet } from 'react-helmet-async'
+import { Link } from 'react-router-dom'
+
+const FichePratiqueFRIAPage: React.FC = () => {
+  const [sourcesOuvertes, setSourcesOuvertes] = useState(false)
+
+  return (
+    <div className="min-h-screen">
+      <Helmet>
+        <title>Analyse d'impact sur les droits fondamentaux (FRIA) — Fiche pratique | RIA Facile</title>
+        <meta name="description" content="Guide pratique pour réaliser une analyse d'impact sur les droits fondamentaux (FRIA) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act." />
+      </Helmet>
+
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        {/* Bouton retour */}
+        <Link 
+          to="/fiches-pratiques" 
+          className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 mb-6 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span>Retour aux fiches pratiques</span>
+        </Link>
+
+        {/* En-tête */}
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl shadow-lg p-4 md:p-8 mb-8 border-2" style={{ borderColor: '#774792' }}>
+          <div className="flex items-start gap-2 md:gap-3 mb-4">
+            <span className="text-2xl md:text-4xl shrink-0">📄</span>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-3xl lg:text-4xl font-bold mb-4 break-words overflow-wrap-anywhere" style={{ color: '#774792' }}>
+                FICHE PRATIQUE : ANALYSE D'IMPACT SUR LES DROITS FONDAMENTAUX (FRIA)
+              </h1>
+              <div className="mt-4">
+                <p className="text-sm text-gray-600 mb-2">Articles RIA associés :</p>
+                <div className="flex flex-wrap gap-2">
+                  {['13', '26', '27'].map((article) => (
+                    <span
+                      key={article}
+                      className="inline-block text-sm font-medium text-indigo-700 bg-indigo-100 px-3 py-1 rounded-lg border border-indigo-200"
+                    >
+                      Article {article}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Contenu principal */}
+        <div className="prose prose-lg max-w-none">
+          {/* Section 1 */}
+          <section className="bg-white rounded-2xl shadow-md p-8 mb-8">
+            <h2 className="text-2xl font-bold mb-6" style={{ color: '#774792' }}>
+              1. RAPPEL DES PRINCIPES FONDAMENTAUX
+            </h2>
+            <p className="text-gray-700 mb-4">
+              La <strong>Fundamental Rights Impact Assessment (FRIA)</strong> est un exercice de conformité <em>ex ante</em> (avant utilisation) qui vise à contextualiser les risques techniques d'une IA dans un environnement social réel.
+            </p>
+            <div className="space-y-6">
+              <div className="border-l-4 border-purple-500 pl-6 py-2">
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                  Obligation du Déployeur (Art. 27 §1) :
+                </h3>
+                <p className="text-gray-700">
+                  C'est l'utilisateur professionnel (et non le fournisseur) qui doit évaluer l'impact spécifique de l'IA sur les personnes affectées (employés, citoyens, clients).
+                </p>
+              </div>
+              <div className="border-l-4 border-indigo-500 pl-6 py-2">
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                  Périmètre étendu :
+                </h3>
+                <p className="text-gray-700">
+                  Contrairement à l'AIPD (RGPD) focalisée sur la vie privée, la FRIA couvre <strong>tous les droits fondamentaux</strong> (non-discrimination, liberté d'expression, droit à un procès équitable, droits de l'enfant, etc.).
+                </p>
+              </div>
+              <div className="border-l-4 border-blue-500 pl-6 py-2">
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                  Transparence (Art. 27 §3) :
+                </h3>
+                <p className="text-gray-700">
+                  Les résultats de la FRIA doivent être notifiés à l'autorité de surveillance du marché.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
+              <p className="font-semibold text-gray-900 mb-2">Périmètre d'application (Critique) :</p>
+              <div className="space-y-4 text-gray-700">
+                <div>
+                  <p className="mb-2">
+                    <strong>✅ Concerne uniquement certains Déployeurs de SIA à Haut Risque :</strong>
+                  </p>
+                  <ol className="list-decimal list-inside space-y-2 ml-4">
+                    <li><strong>Organismes de droit public</strong> (Administrations, Hôpitaux, Éducation, Police).</li>
+                    <li><strong>Entités privées assurant une mission de service public</strong> (ex: Transports, Énergie).</li>
+                    <li><strong>Banques et Assurances</strong>, spécifiquement pour les SIA d'évaluation du crédit (scoring) et de tarification (vie/santé).</li>
+                  </ol>
+                </div>
+                <div>
+                  <p>
+                    <strong>❌ Ne concerne pas :</strong> Les entreprises privées "classiques" (Retail, Industrie, Tech) utilisant des SIA à Haut Risque pour leurs besoins internes (ex: RH), sauf disposition nationale contraire.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 2 */}
+          <section className="bg-white rounded-2xl shadow-md p-8 mb-8">
+            <h2 className="text-2xl font-bold mb-6" style={{ color: '#774792' }}>
+              2. LE CADRE EN BREF
+            </h2>
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg mb-4">
+              <p className="font-semibold text-gray-900 mb-2">L'enjeu Business & Conformité :</p>
+              <p className="text-gray-700">
+                Pour les acteurs publics et régulés, la FRIA est le <strong>permis d'opérer</strong>. Elle transforme la documentation technique du fournisseur en une analyse d'impact sociétal concrète. Une FRIA absente ou bâclée expose à une interdiction d'utilisation immédiate par l'autorité de contrôle et à un risque réputationnel majeur (accusation de discrimination algorithmique).
+              </p>
+            </div>
+          </section>
+
+          {/* Section 3 */}
+          <section className="bg-white rounded-2xl shadow-md p-8 mb-8">
+            <h2 className="text-2xl font-bold mb-6" style={{ color: '#774792' }}>
+              3. LE DÉCRYPTAGE
+            </h2>
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-lg mb-3 text-gray-900">
+                  Le défi : Passer du "Labo" à la "Vraie Vie"
+                </h3>
+                <p className="text-gray-700 mb-4">
+                  Le fournisseur a validé que son modèle fonctionne techniquement (via son RMS - Art. 9). Le déployeur doit valider que l'utilisation de ce modèle <em>dans son contexte précis</em> ne va pas nuire aux droits.
+                </p>
+                <div className="bg-gray-50 border-l-4 border-gray-400 p-4 rounded-r-lg italic text-gray-700">
+                  <strong>Exemple :</strong> Un algorithme de détection de fraude aux prestations sociales peut être techniquement robuste (Fournisseur), mais son déploiement peut créer une discrimination massive envers certaines populations précaires (Déployeur).
+                </div>
+              </div>
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                  La convergence FRIA / AIPD (Vue EDPS)
+                </h3>
+                <p className="text-gray-700 mb-2">
+                  L'AI Act (Art. 27 §4) et l'EDPS recommandent de ne pas multiplier les documents. Si une <strong>Analyse d'Impact relative à la Protection des Données (AIPD)</strong> est déjà requise par le RGPD (Art. 35), la FRIA doit venir la compléter.
+                </p>
+                <p className="text-gray-700">
+                  <strong>Best Practice :</strong> Créer un "Master Impact Assessment" unique traitant la Data Privacy (RGPD) + les autres Droits Fondamentaux (AI Act).
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 4 */}
+          <section className="bg-white rounded-2xl shadow-md p-8 mb-8">
+            <h2 className="text-2xl font-bold mb-6" style={{ color: '#774792' }}>
+              4. LE PLAN D'ACTIONS (FORMAT MATRICIEL)
+            </h2>
+            <p className="text-gray-700 mb-6">
+              Ce tableau détaille la méthodologie pour réaliser une FRIA conforme, en s'appuyant sur le Chapitre 11 du Guide Académique.
+            </p>
+            <div className="mb-4 bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-700 mb-2"><strong>Légende :</strong></p>
+              <div className="flex flex-wrap gap-4 text-sm">
+                <span>🔵 <strong>DÉPLOYEUR</strong> (Entité publique, Banque, Assurance...)</span>
+                <span>🟢 <strong>FOURNISSEUR</strong> (Éditeur du SIA, en support)</span>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full border-collapse border border-gray-300 text-sm">
+                <thead>
+                  <tr className="bg-purple-100">
+                    <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Phase</th>
+                    <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Acteur Responsable</th>
+                    <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Actions Concrètes à mener</th>
+                    <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Référence</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>1. CADRAGE</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Vérifier l'éligibilité</strong><br />
+                      Confirmer que l'entité et le cas d'usage relèvent bien de l'Art. 27 (Secteur public ou Banque/Assurance sur cas spécifiques).
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (1)</td>
+                  </tr>
+                  <tr className="bg-gray-50 hover:bg-gray-100">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Fournir les intrants</strong><br />
+                      Transmettre la notice d'utilisation (Art. 13) et les résultats pertinents du RMS (risques résiduels).
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 13</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={3}>2. ANALYSE</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Décrire le contexte d'usage</strong><br />
+                      Définir la finalité, les catégories de personnes affectées (ex: mineurs, personnes vulnérables) et la fréquence d'utilisation.
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (1)(a-b)</td>
+                  </tr>
+                  <tr className="bg-gray-50 hover:bg-gray-100">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Identifier les Droits Fondamentaux touchés</strong><br />
+                      Au-delà de la vie privée : Dignité, Non-discrimination, Liberté de réunion, Accès aux services publics, etc.
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (1)(c)</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Évaluer les risques spécifiques</strong><br />
+                      Croiser les risques techniques du fournisseur avec le contexte local (ex: biais de données vs démographie locale).
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (1)(d)</td>
+                  </tr>
+                  <tr className="bg-gray-50 hover:bg-gray-100">
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>3. ATTÉNUATION</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Définir la Surveillance Humaine</strong><br />
+                      Qui valide la décision ? A-t-il la compétence et l'autorité pour contredire l'IA ? (Lutte contre le biais d'automatisation).
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 & 27 (1)(e)</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Intégrer à l'AIPD (RGPD)</strong><br />
+                      Si des données personnelles sont traitées, fusionner l'analyse FRIA avec l'AIPD existante pour éviter les doublons.
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (4)</td>
+                  </tr>
+                  <tr className="bg-gray-50 hover:bg-gray-100">
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>4. GOUVERNANCE</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Notifier l'Autorité</strong><br />
+                      Transmettre le résumé des résultats à l'autorité de surveillance du marché via le formulaire dédié (template AI Office).
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (3)</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Révision périodique</strong><br />
+                      Mettre à jour la FRIA si le contexte d'utilisation change ou si le fournisseur modifie substantiellement le système.
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (2)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-6 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border-2 border-purple-200">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <span>💡</span>
+                <span style={{ color: '#774792' }}>Conseil de l'expert</span>
+              </h3>
+              <p className="text-gray-700 mb-3">
+                Ne commencez pas une FRIA "page blanche".
+              </p>
+              <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-2">
+                <li>Partez de votre <strong>AIPD (RGPD)</strong> existante.</li>
+                <li>Ajoutez une section "Autres Droits Fondamentaux" (Non-discrimination, Droit à un recours effectif).</li>
+                <li>Utilisez la notice d'utilisation du fournisseur pour remplir les sections techniques.</li>
+                <li>Consultez les représentants des personnes affectées (syndicats, associations d'usagers) comme suggéré par l'EDPS pour valider votre analyse.</li>
+              </ol>
+            </div>
+          </section>
+
+          {/* Section 5 */}
+          <section className="bg-white rounded-2xl shadow-md p-8 mb-8">
+            <button
+              onClick={() => setSourcesOuvertes(!sourcesOuvertes)}
+              className="w-full flex items-center justify-between text-left mb-6 hover:opacity-80 transition-opacity"
+            >
+              <h2 className="text-2xl font-bold" style={{ color: '#774792' }}>
+                5. SOURCES ET RÉFÉRENCES
+              </h2>
+              <svg 
+                className={`w-6 h-6 text-purple-600 transition-transform ${sourcesOuvertes ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div 
+              className={`overflow-hidden transition-all duration-300 ${sourcesOuvertes ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
+            >
+              <div className="space-y-6">
+                <div className="border-l-4 border-indigo-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    Règlement (UE) 2024/1689 (AI Act)
+                  </h3>
+                  <ul className="text-gray-700 mb-2 space-y-1">
+                    <li>• <em>Art. 27 :</em> Obligation de réaliser une analyse d'impact sur les droits fondamentaux</li>
+                    <li>• <em>Art. 26 :</em> Obligations des déployeurs de systèmes à haut risque</li>
+                    <li>• <em>Art. 13 :</em> Notice d'utilisation</li>
+                  </ul>
+                  <a 
+                    href="/consulter" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Consulter le règlement
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+                <div className="border-l-4 border-blue-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    Règlement (UE) 2016/679 (RGPD)
+                  </h3>
+                  <ul className="text-gray-700 mb-2 space-y-1">
+                    <li>• <em>Art. 35 :</em> Analyse d'impact relative à la protection des données</li>
+                  </ul>
+                  <a 
+                    href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32016R0679" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien EUR-Lex
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+                <div className="border-l-4 border-purple-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    EDPS Guidance
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    <em>AI Risks Management Guidance (Nov 2025)</em> - Recommandations sur l'intégration des droits fondamentaux dans l'analyse de risque.
+                  </p>
+                  <a 
+                    href="https://www.edps.europa.eu/system/files/2025-11/2025-11-11_ai_risks_management_guidance_en.pdf" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien vers le document
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+                <div className="border-l-4 border-indigo-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    The Academic Guide to AI Act Compliance (2025)
+                  </h3>
+                  <ul className="text-gray-700 mb-2 space-y-1">
+                    <li>• <em>Chapitre 11 :</em> Fundamental Rights Impact Assessment (FRIA) under the AI Act (M. Ho-Dac & L. Xenou)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Bouton retour en bas */}
+        <div className="mt-8 text-center">
+          <Link 
+            to="/fiches-pratiques" 
+            className="inline-flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>Retour aux fiches pratiques</span>
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default FichePratiqueFRIAPage
+

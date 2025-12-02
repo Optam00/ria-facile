@@ -45,6 +45,24 @@ const fichesPratiques: FichePratique[] = [
     duree: '15 min de lecture',
     articlesRIA: ['10', '13', '86'],
     dateCreation: '2025-02-01'
+  },
+  {
+    id: 'rms',
+    titre: "Le système de gestion des risques (RMS)",
+    description: "Guide pratique pour la mise en place et la gestion du système de gestion des risques (RMS) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
+    categorie: 'Conformité',
+    duree: '15 min de lecture',
+    articlesRIA: ['9', '16', '26', '27'],
+    dateCreation: '2025-02-05'
+  },
+  {
+    id: 'fria',
+    titre: "Analyse d'impact sur les droits fondamentaux (FRIA)",
+    description: "Guide pratique pour réaliser une analyse d'impact sur les droits fondamentaux (FRIA) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
+    categorie: 'Conformité',
+    duree: '15 min de lecture',
+    articlesRIA: ['13', '26', '27'],
+    dateCreation: '2025-02-10'
   }
 ]
 

@@ -67,6 +67,24 @@ const FICHES_PRATIQUES = [
     titre: "Explicabilité & Interprétabilité dans les systèmes IA",
     description: "Guide pratique pour la mise en conformité opérationnelle de l'explicabilité et l'interprétabilité. Croisement RGPD et AI Act.",
     articlesRIA: ['13', '14', '86']
+  },
+  {
+    id: 'droits-rgpd',
+    titre: "Gestion des droits RGPD dans les systèmes d'IA",
+    description: "Guide pratique pour organiser l'exercice des droits RGPD (accès, rectification, effacement, opposition) dans les systèmes d'IA, en articulation avec le Règlement IA.",
+    articlesRIA: ['10', '13', '86']
+  },
+  {
+    id: 'rms',
+    titre: "Le système de gestion des risques (RMS)",
+    description: "Guide pratique pour la mise en place et la gestion du système de gestion des risques (RMS) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
+    articlesRIA: ['9', '16', '26', '27']
+  },
+  {
+    id: 'fria',
+    titre: "Analyse d'impact sur les droits fondamentaux (FRIA)",
+    description: "Guide pratique pour réaliser une analyse d'impact sur les droits fondamentaux (FRIA) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
+    articlesRIA: ['13', '26', '27']
   }
 ]
 
