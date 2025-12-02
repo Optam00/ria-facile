@@ -179,9 +179,10 @@ const VerifierPage: React.FC = () => {
           {/* Carte centrale */}
           <div className="col-span-2 md:col-span-3">
             <Card
-              title="Déterminer si je suis dans le champ d’application du règlement"
+              title="Déterminer si je suis dans le champ d'application du règlement"
               color="gradient"
-              disabled
+              to="/verificateur/champ-application"
+              subtitle="Cliquer pour accéder au questionnaire"
             />
           </div>
 
