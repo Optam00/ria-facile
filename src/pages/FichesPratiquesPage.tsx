@@ -73,6 +73,14 @@ const fichesPratiques: FichePratique[] = [
     categorie: 'Conformité',
     duree: '15 min de lecture',
     articlesRIA: ['14', '26']
+  },
+  {
+    id: 'secteur-bancaire',
+    titre: "L'AI Act dans le secteur bancaire & financier",
+    description: "Guide pratique pour l'application de l'AI Act dans le secteur bancaire et financier (scoring crédit, assurance, biais, FRIA et intégration dans le cadre prudentiel).",
+    categorie: 'Secteur',
+    duree: '15 min de lecture',
+    articlesRIA: ['6', '17', '27']
   }
 ]
 

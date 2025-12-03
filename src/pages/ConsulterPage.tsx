@@ -122,7 +122,9 @@ export const ConsulterPage = () => {
     '/fiches-pratiques/transparence': "Transparence et information des utilisateurs",
     'transparence': "Transparence et information des utilisateurs",
     '/fiches-pratiques/controle-humain': "Le contrôle humain",
-    'controle-humain': "Le contrôle humain"
+    'controle-humain': "Le contrôle humain",
+    '/fiches-pratiques/secteur-bancaire': "L'AI Act dans le secteur bancaire & financier",
+    'secteur-bancaire': "L'AI Act dans le secteur bancaire & financier"
   }
 
   // Fonction pour obtenir les fiches pratiques avec titre et lien depuis le champ "fiches"

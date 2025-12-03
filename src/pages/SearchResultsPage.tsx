@@ -97,6 +97,12 @@ const FICHES_PRATIQUES = [
     titre: "Le contrôle humain",
     description: "Guide pratique pour la mise en place du contrôle humain dans les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
     articlesRIA: ['14', '26']
+  },
+  {
+    id: 'secteur-bancaire',
+    titre: "L'AI Act dans le secteur bancaire & financier",
+    description: "Guide pratique pour l'application de l'AI Act dans le secteur bancaire et financier (scoring crédit, assurance, biais, FRIA et intégration dans le cadre prudentiel).",
+    articlesRIA: ['6', '17', '27']
   }
 ]
 

@@ -184,4 +184,4 @@ export const SchemaPreviewHome: React.FC = () => {
       </div>
     </div>
   )
-}
+} 
