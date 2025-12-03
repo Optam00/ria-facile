@@ -57,23 +57,27 @@ const FichePratiqueExplicabilitePage: React.FC = () => {
               1. RAPPEL DES PRINCIPES FONDAMENTAUX
             </h2>
             <p className="text-gray-700 mb-4">
-              Selon le CEPD (EDPS), l'explicabilité et l'interprétabilité sont des conditions <strong>"sine qua non"</strong> pour opérer un système d'IA traitant des données personnelles.
+              Selon le CEPD (EDPS), l'explicabilité et l'interprétabilité sont des conditions <strong>sine qua non</strong> pour qu'un système d'IA soit conforme et utilisable
+              en pratique : on ne peut pas contrôler ce que l'on ne comprend pas.
             </p>
             <div className="space-y-6">
               <div className="border-l-4 border-purple-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  RGPD (Focus Droits) :
+                  RGPD (Focus Droits – Art. 13-15 & 22) :
                 </h3>
                 <p className="text-gray-700">
-                  Le responsable de traitement doit pouvoir expliquer la "logique sous-jacente" d'une décision automatisée. L'opacité totale ("Black Box") empêche l'exercice des droits de contestation et de rectification.
+                  Le responsable de traitement doit pouvoir expliquer la <strong>logique sous-jacente</strong> d'un traitement ou d'une décision automatisée pour permettre
+                  l'exercice effectif des droits d'accès, de rectification et de contestation. Une opacité totale ("Black Box") rend ces droits inopérants.
                 </p>
               </div>
               <div className="border-l-4 border-indigo-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  AI Act (Focus Sécurité) :
+                  AI Act (Transparence, Contrôle humain & Droit à l'explication) :
                 </h3>
                 <p className="text-gray-700">
-                  Pour les systèmes à haut risque, la transparence doit permettre aux déployeurs de comprendre les résultats pour exercer un contrôle humain effectif (Art. 14) et détecter les biais.
+                  • <strong>Art. 13</strong> : le <strong>fournisseur</strong> doit fournir au <strong>déployeur</strong> une documentation suffisante pour qu'il comprenne le système et l'utilise correctement.<br />
+                  • <strong>Art. 14</strong> : la supervision humaine suppose une compréhension minimale des signaux de sortie.<br />
+                  • <strong>Art. 86</strong> : consacre un <strong>droit à l'explication</strong> pour les personnes concernées par des décisions de SIA à haut risque, même lorsque la décision n'est pas entièrement automatisée (plus large que l'Art. 22 RGPD).
                 </p>
               </div>
             </div>
@@ -140,7 +144,7 @@ const FichePratiqueExplicabilitePage: React.FC = () => {
                 PHASE 1 : BUILD (Conception & Développement)
               </h3>
               <p className="text-gray-600 mb-4 italic">
-                <em>Pour les modèles développés en interne.</em>
+                <em>Pour les modèles développés en interne (ou adaptés fortement).</em>
               </p>
               <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse border border-gray-300 text-sm">
@@ -174,13 +178,13 @@ const FichePratiqueExplicabilitePage: React.FC = () => {
                       </td>
                     </tr>
                     <tr className="bg-white hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Documentation de l'architecture</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Documentation (System Card)</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Fournisseur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>AI Act</strong> (Art. 11)
+                        <strong>AI Act</strong> (Art. 11, Annexe IV)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        Documenter non seulement comment le modèle fonctionne, mais aussi ses <strong>limitations</strong> connues et les cas où il ne doit pas être utilisé (Risk 1, mesure 1).
+                        Rédiger une <strong>System Card / Model Card</strong> décrivant : cas d'usage couverts, jeux de données d'entraînement, métriques, limitations connues et contextes d'usage déconseillés. Cette carte sert de base à la transparence envers le déployeur.
                       </td>
                     </tr>
                   </tbody>
@@ -203,18 +207,18 @@ const FichePratiqueExplicabilitePage: React.FC = () => {
                       <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Action Concrète</th>
                       <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Rôle</th>
                       <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Réf. Juridique</th>
-                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Détails Opérationnels (Source EDPS)</th>
+                      <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Détails Opérationnels (Chaîne Fournisseur ↔ Déployeur)</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="bg-white hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Critère "No Black Box"</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Critère « pas de boîte noire totale »</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>AI Act</strong> (Art. 26)
+                        <strong>AI Act</strong> (Art. 13 & 26)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        Exiger du fournisseur une documentation sur la logique du modèle et la provenance des données d'entraînement. <strong>Refuser les solutions qui invoquent le "secret des affaires" pour masquer une opacité totale.</strong>
+                        Exiger du fournisseur des <strong>outils d'explicabilité</strong> (rapports, exemples d'explications, documentation Annexe IV) permettant de justifier les résultats, sans demander l'accès aux poids du modèle ou aux secrets industriels. Le « secret des affaires » ne peut pas justifier une <strong>opacité totale</strong> vis-à-vis des droits fondamentaux.
                       </td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
@@ -262,13 +266,13 @@ const FichePratiqueExplicabilitePage: React.FC = () => {
                       </td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Procédure de réponse aux droits</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Procédure « Droit à l'explication »</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>Art. 86 AI Act</strong> / <strong>RGPD</strong>
+                        <strong>AI Act</strong> (Art. 86) / <strong>RGPD</strong> (Art. 15 & 22)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        Mettre en place un processus pour extraire une explication "lisible" en cas de demande d'un individu impacté par une décision.
+                        Mettre en place un processus pour fournir, sur demande d'une personne impactée, une explication <strong>claire et significative</strong> de la décision prise à l'aide de l'IA. Préciser que ce droit s'applique même lorsque la décision n'est pas entièrement automatisée (spécificité de l'Art. 86 par rapport à l'Art. 22 RGPD).
                       </td>
                     </tr>
                     <tr className="bg-white hover:bg-gray-50">
@@ -314,10 +318,10 @@ const FichePratiqueExplicabilitePage: React.FC = () => {
               <div className="space-y-6">
                 <div className="border-l-4 border-purple-500 pl-6 py-3">
                   <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                    1. EDPS (CEPD) Guidelines
+                    1. EDPS (CEPD) – Guidance for Risk Management of AI Systems (11 nov. 2025)
                   </h3>
                   <p className="text-gray-700 mb-2">
-                    <em>Guidance for Risk Management of Artificial Intelligence systems</em> (11/11/2025). Document de référence pour l'analyse des risques techniques (Section 4 sur l'explicabilité).
+                    Section 4 dédiée à l'interprétabilité et l'explicabilité comme conditions <strong>sine qua non</strong>. Identification du <strong>biais d'interprétation</strong> (Risk 5).
                   </p>
                   <a 
                     href="https://www.edps.europa.eu/system/files/2025-11/2025-11-11_ai_risks_management_guidance_en.pdf" 
@@ -333,12 +337,31 @@ const FichePratiqueExplicabilitePage: React.FC = () => {
                 </div>
                 <div className="border-l-4 border-indigo-500 pl-6 py-3">
                   <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                    2. Règlement (UE) 2024/1689 (AI Act)
+                    2. EDPB Support Pool – AI Privacy Risks & Mitigations (2025)
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Détaille les méthodes d'évaluation des modèles (LIME, SHAP, etc.) et les risques liés aux modèles « Black Box ».
+                  </p>
+                  <a 
+                    href="https://www.edpb.europa.eu/system/files/2025-04/ai-privacy-risks-and-mitigations-in-llms.pdf" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien Document
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+                <div className="border-l-4 border-indigo-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    3. Règlement (UE) 2024/1689 (AI Act)
                   </h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
                     <li>• <em>Art. 13 :</em> Transparence et fourniture d'informations aux déployeurs.</li>
-                    <li>• <em>Art. 86 :</em> Droit à l'explication des décisions individuelles.</li>
                     <li>• <em>Art. 14 :</em> Contrôle humain.</li>
+                    <li>• <em>Art. 86 :</em> Droit à l'explication des décisions individuelles.</li>
                   </ul>
                   <a 
                     href="/consulter" 
@@ -354,7 +377,7 @@ const FichePratiqueExplicabilitePage: React.FC = () => {
                 </div>
                 <div className="border-l-4 border-blue-500 pl-6 py-3">
                   <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                    3. Règlement (UE) 2016/679 (RGPD)
+                    4. Règlement (UE) 2016/679 (RGPD)
                   </h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
                     <li>• <em>Art. 13-15 :</em> Informations à fournir et droit d'accès (logique du traitement).</li>
