@@ -67,23 +67,26 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
             </h2>
             <p className="text-gray-700 mb-4">
               La complexité technique d'une IA (Deep Learning, LLM) ne constitue <strong>pas une exemption</strong> au
-              respect des droits des personnes.
+              respect des droits des personnes. Le CEPD (EDPS) rappelle que la structure en <em>boîte noire</em> des réseaux de neurones
+              n'exonère pas le responsable de traitement de ses obligations.
             </p>
             <div className="space-y-6">
               <div className="border-l-4 border-purple-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">Le défi de l'absorption :</h3>
                 <p className="text-gray-700">
-                  Une fois entraîné, un modèle d'IA ne stocke plus des &quot;données&quot; au sens classique
-                  (lignes/colonnes), mais des paramètres (poids mathématiques). Pourtant, si le modèle a{' '}
-                  <strong>mémorisé des données personnelles</strong>, les droits RGPD s'appliquent toujours.
+                  Une fois entraîné, un modèle d'IA ne stocke plus des &quot;fiches clients&quot; mais des paramètres
+                  probabilistes. Pourtant, si le modèle est capable de <strong>restituer une donnée personnelle</strong> (mémorisation),
+                  les droits RGPD (accès, effacement, opposition) continuent de s'appliquer.
                 </p>
               </div>
               <div className="border-l-4 border-indigo-500 pl-6 py-2">
-                <h3 className="font-semibold text-lg mb-2 text-gray-900">L'obligation de résultat :</h3>
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">La distinction Entraînement / Inférence :</h3>
                 <p className="text-gray-700">
-                  Le responsable de traitement doit mettre en place les mesures techniques pour{' '}
-                  <strong>identifier, extraire ou supprimer</strong> la donnée d'un individu, que ce soit dans le jeu de
-                  données d'entraînement ou dans le modèle lui-même.
+                  Les droits doivent être gérés à deux niveaux :<br />
+                  • Dans le <strong>dataset d'entraînement</strong> (avant ou pendant l'entraînement du modèle).<br />
+                  • Dans les <strong>sorties générées</strong> (prompts et réponses en production).<br />
+                  L'<strong>Article 10 de l'AI Act</strong> (gouvernance des données) est le levier technique qui permet d'assurer cette
+                  maîtrise : sans bonne gouvernance, pas de respect effectif des droits RGPD.
                 </p>
               </div>
             </div>
@@ -97,14 +100,14 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg mb-4">
               <p className="font-semibold text-gray-900 mb-2">L'enjeu Business & Conformité :</p>
               <p className="text-gray-700 mb-4">
-                L'incapacité à honorer une <strong>demande de droit à l'oubli</strong> (Art. 17 RGPD) sur un modèle
-                d'IA est un risque de non-conformité structurel. Si vous ne pouvez pas retirer une donnée d'un modèle
-                sans le détruire, votre <strong>dette technique</strong> devient une <strong>dette juridique</strong>.
+                Selon l'Avis 28/2024 de l'EDPB, si les données d'entraînement ont été collectées sans permettre l'exercice effectif
+                des droits (ex : droit d'opposition non respecté lors du scraping), le <strong>modèle résultant peut être considéré
+                comme illégal</strong>.
               </p>
               <p className="text-gray-700">
-                Sur le plan business, cela pose la question de la <strong>pérennité des modèles</strong> : un modèle
-                entraîné sur des données illégales ou non-maîtrisées peut devoir être intégralement supprimé (cf.
-                jurisprudence <em>FTC</em> aux USA ou décisions du <em>Garante</em> en Italie).
+                Conséquence : l'autorité peut ordonner la <strong>suppression du modèle complet</strong>, pas seulement de la donnée
+                brute. Enjeu business majeur : la <strong>traçabilité</strong> et la gouvernance des données conditionnent la
+                pérennité de vos modèles.
               </p>
             </div>
           </section>
@@ -125,8 +128,9 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                   structurés (images, texte brut, logs) ou de savoir si le modèle l'a &quot;apprise par cœur&quot;.
                 </p>
                 <p className="text-gray-700 text-sm italic">
-                  <strong>Solution :</strong> indexation stricte et ajout de métadonnées (identifiants, timestamps,
-                  origine) lors de la constitution des datasets.
+                  <strong>Solution :</strong> mettre en place des <strong>Data Retrieval Tools</strong> : indexation stricte, métadonnées
+                  riches (identifiants, timestamps, sources) et outils de recherche permettant de retrouver instantanément toutes les
+                  occurrences d'une personne.
                 </p>
               </div>
               <div className="border-l-4 border-indigo-500 pl-6 py-2">
@@ -136,8 +140,9 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                 </p>
                 <ul className="list-disc pl-6 text-gray-700 space-y-1">
                   <li>
-                    <strong>Machine Unlearning :</strong> techniques (encore émergentes) pour faire &quot;oublier&quot;
-                    une donnée au modèle sans tout réentraîner.
+                    <strong>Machine Unlearning :</strong> techniques (encore émergentes) pour faire &quot;oublier&quot; une donnée au
+                    modèle sans tout réentraîner. L'<em>unlearning exact</em> (réentraînement complet) est coûteux ; les approches
+                    <em> approximatives</em> sont plus réalistes mais laissent un risque résiduel qu'il faut documenter.
                   </li>
                   <li>
                     <strong>Output Filtering :</strong> si l'effacement dans le modèle est impossible, bloquer la sortie
@@ -160,7 +165,7 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                 PHASE 1 : BUILD (Conception &amp; Entraînement)
               </h3>
               <p className="text-gray-600 mb-4 italic">
-                <em>Applicable si vous entraînez vos propres modèles.</em>
+                <em>Applicable si vous entraînez ou fine-tunez vos propres modèles.</em>
               </p>
               <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse border border-gray-300 text-sm">
@@ -181,16 +186,17 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                   <tbody>
                     <tr className="bg-white hover:bg-gray-50">
                       <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">
-                        Traçabilité &amp; Métadonnées
+                        Indexation &amp; Métadonnées
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Fournisseur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        <strong>AI Act</strong> (Art. 10)<br />
                         <strong>RGPD</strong> (Art. 15)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        Créer des index permettant de retrouver instantanément les fichiers sources contenant les
-                        données d'une personne (Risk 1, mesure 1). Sans cela, le <strong>droit d'accès</strong> est
-                        pratiquement impossible à exercer.
+                        Créer des index et métadonnées permettant de retrouver instantanément les fichiers sources contenant les
+                        données d'une personne (Risk 1, mesure 1). Sans cela, le <strong>droit d'accès</strong> et la traçabilité
+                        nécessaires à l'AI Act sont pratiquement impossibles à exercer.
                       </td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
@@ -202,9 +208,9 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                         <strong>RGPD</strong> (Art. 17)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        Évaluer la faisabilité technique du désapprentissage (exact ou approximatif). Si impossible,
-                        prévoir des <strong>cycles de réentraînement</strong> fréquents pour purger les données
-                        supprimées.
+                        Évaluer la faisabilité technique du désapprentissage (exact vs approximatif). Si l'unlearning exact n'est
+                        pas réaliste, prévoir des <strong>cycles de réentraînement réguliers</strong> pour purger les données
+                        supprimées et documenter les limites de l'unlearning approximatif.
                       </td>
                     </tr>
                     <tr className="bg-white hover:bg-gray-50">
@@ -213,11 +219,27 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Fournisseur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>RGPD</strong> (Art. 20)
+                        <strong>RGPD</strong> (Art. 15 &amp; 20)<br />
+                        <strong>EDPS</strong> – GenAI &amp; Risk Management
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        Développer des scripts permettant d'extraire les données d'entraînement dans un format lisible
-                        et structuré pour répondre aux demandes de <strong>portabilité</strong>.
+                        Développer des outils dédiés (scripts, consoles d'admin) permettant d'<strong>extraire</strong> rapidement
+                        les données d'entraînement et, le cas échéant, les segments de fine-tuning d'un individu dans un format lisible
+                        et structuré (droit d'accès &amp; portabilité).
+                      </td>
+                    </tr>
+                    <tr className="bg-gray-50 hover:bg-gray-100">
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">
+                        Gestion du droit d'opposition en amont
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">Fournisseur / RT</td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        <strong>RGPD</strong> (Art. 21)
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        Lorsque l'entraînement repose sur l'<strong>intérêt légitime</strong>, purger les données des personnes
+                        ayant exercé leur opt-out <strong>avant</strong> de fixer les poids du modèle. À défaut, vous vous exposez
+                        au risque de devoir « désapprendre » ou détruire le modèle (modèle « empoisonné »).
                       </td>
                     </tr>
                   </tbody>
@@ -250,20 +272,21 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                   <tbody>
                     <tr className="bg-white hover:bg-gray-50">
                       <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">
-                        Clause de garantie des droits
+                        Clause de &quot;Droit à l'Oubli&quot; &amp; Réversibilité
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <strong>RGPD</strong> (Art. 28)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        Le contrat doit obliger le fournisseur à <strong>aider le déployeur</strong> à répondre aux
-                        demandes (ex. : supprimer une donnée du modèle SaaS sous 30 jours).
+                        Le contrat doit garantir que le fournisseur supprimera les données transmises (fine-tuning, RAG) sur
+                        demande, y compris dans ses sauvegardes, et prévoir des <strong>clauses de réversibilité</strong> :
+                        possibilité de récupérer les données d'apprentissage si vous changez de prestataire.
                       </td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
                       <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">
-                        Test de &quot;Mémorisation&quot;
+                        Test de &quot;Mémorisation&quot; du modèle
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
@@ -271,22 +294,24 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         Vérifier si le modèle a tendance à <strong>régurgiter des données d'entraînement</strong>{' '}
-                        (overfitting). Utiliser des outils comme <strong>MemHunter</strong> (cité par le CEPD) pour
-                        auditer le risque de fuite de données.
+                        (overfitting). Utiliser des outils d'audit (ex : <em>membership inference</em>, MemHunter) pour
+                        évaluer le risque de fuite de données personnelles.
                       </td>
                     </tr>
                     <tr className="bg-white hover:bg-gray-50">
                       <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">
-                        Vérification des filtres
+                        Cloisonnement des données &amp; filtres
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>RGPD</strong> (Art. 5)
+                        <strong>RGPD</strong> (Art. 5 &amp; 6)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        S'assurer que le fournisseur dispose de mécanismes de{' '}
-                        <strong>filtrage en sortie (output filtering)</strong> pour empêcher l'IA de générer des données
-                        personnelles qu'elle aurait dû oublier.
+                        • Vérifier que les <strong>prompts</strong> (questions des utilisateurs) ne sont pas réutilisés pour
+                        réentraîner le modèle sans base légale distincte.<br />
+                        • S'assurer que le fournisseur dispose de mécanismes de <strong>filtrage en sortie</strong> (output
+                        filtering) pour empêcher l'IA de divulguer des données d'autres clients ou des données qui auraient dû
+                        être effacées.
                       </td>
                     </tr>
                   </tbody>
@@ -298,7 +323,7 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
             <div className="mb-8">
               <h3 className="text-xl font-bold mb-4 text-gray-900">PHASE 3 : RUN (Opérations courantes)</h3>
               <p className="text-gray-600 mb-4 italic">
-                <em>Applicable lors de la gestion des demandes utilisateurs.</em>
+                <em>Applicable lors de la gestion des demandes utilisateurs et de l'exploitation au quotidien.</em>
               </p>
               <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse border border-gray-300 text-sm">
@@ -319,7 +344,7 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                   <tbody>
                     <tr className="bg-white hover:bg-gray-50">
                       <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">
-                        Procédure Droit d'Opposition
+                        Procédure Droit d'Opposition (RUN)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
@@ -327,36 +352,51 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         Si un utilisateur s'oppose au traitement, s'assurer que ses données ne sont{' '}
-                        <strong>plus réinjectées</strong> dans les futurs cycles d'entraînement (continuous learning).
+                        <strong>plus réutilisées</strong> pour de futurs entraînements ou fine-tuning (continuous learning)
+                        et qu'elles sont retirées des jeux de données opérationnels.
                       </td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
                       <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">
-                        Rectification des sorties (Output)
+                        Filtrage en sortie &amp; System Prompts
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        <strong>EDPS</strong> – GenAI (Sec. 14)
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        Mettre en place des <strong>filtres techniques</strong> et des <strong>system prompts</strong> pour empêcher la
+                        génération de données personnelles sensibles (ex : emails internes, numéros de sécurité sociale) ou
+                        d'informations issues d'autres jeux de données. Tester régulièrement ces garde-fous.
+                      </td>
+                    </tr>
+                    <tr className="bg-white hover:bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">
+                        Rectification via sources externes (RAG)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <strong>RGPD</strong> (Art. 16)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        Si le modèle génère une information{' '}
-                        <strong>fausse ou diffamatoire sur une personne</strong> et qu'on ne peut pas modifier le
-                        modèle rapidement : mettre en place une <strong>règle de post-traitement</strong> pour corriger
-                        ou bloquer cette réponse spécifique.
+                        Si le modèle génère une information fausse sur une personne, ne pas forcément toucher au modèle : mettre
+                        à jour la <strong>base de connaissances</strong> utilisée en RAG ou les règles métier, afin que la prochaine
+                        réponse soit correcte.
                       </td>
                     </tr>
-                    <tr className="bg-white hover:bg-gray-50">
+                    <tr className="bg-gray-50 hover:bg-gray-100">
                       <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">
-                        Documentation de la réponse
+                        Documentation de l'impossibilité technique
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <strong>RGPD</strong> (Art. 12)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        Si l'effacement est <strong>techniquement impossible</strong>, documenter les raisons (efforts
-                        disproportionnés) et proposer des <strong>mesures compensatoires</strong> (suppression des
-                        données sources, filtrage strict, limitation d'usage).
+                        Si l'effacement dans le modèle est <strong>techniquement impossible</strong> ou exigerait des efforts
+                        disproportionnés, documenter les raisons de manière transparente et mettre en place des
+                        <strong> mesures compensatoires</strong> (suppression des entrées, filtrage renforcé, limitation forte
+                        des usages).
                       </td>
                     </tr>
                   </tbody>
@@ -393,11 +433,10 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
               </p>
               <div className="space-y-6">
                 <div className="border-l-4 border-purple-500 pl-6 py-3">
-                  <h3 className="font-semibold text-lg mb-2 text-gray-900">1. EDPS (CEPD) Guidelines</h3>
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">1. EDPS (CEPD) – Guidance for Risk Management of AI Systems (11 nov. 2025)</h3>
                   <p className="text-gray-700 mb-2">
-                    <em>Guidance for Risk Management of Artificial Intelligence systems</em> (11/11/2025). Voir
-                    spécifiquement la <strong>Section 5.5 &quot;Data subject’s rights&quot;</strong> qui détaille les
-                    risques d'identification incomplète et d'effacement impossible.
+                    Voir spécifiquement la <strong>Section 5.5 &quot;Data subject’s rights&quot;</strong> qui détaille les
+                    risques d'identification incomplète et d'effacement impossible, ainsi que l'importance des outils de récupération.
                   </p>
                   <a
                     href="https://www.edps.europa.eu/system/files/2025-11/2025-11-11_ai_risks_management_guidance_en.pdf"
@@ -416,11 +455,57 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                     </svg>
                   </a>
                 </div>
+                <div className="border-l-4 border-indigo-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">2. EDPS (CEPD) – Generative AI and the EUDPR (oct. 2025)</h3>
+                  <p className="text-gray-700 mb-2">
+                    Clarifie la gestion des droits sur les <strong>données d'entraînement</strong> vs les <strong>données générées</strong>
+                    (Section 14) et insiste sur les risques de fuite via les prompts.
+                  </p>
+                  <a
+                    href="https://www.edps.europa.eu/data-protection/our-work/publications/guidelines/2025-10-28-guidance-generative-ai-strengthening-data-protection-rapidly-changing-digital-era_en"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien Document
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </a>
+                </div>
+                <div className="border-l-4 border-purple-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">3. EDPB Support Pool – AI Privacy Risks &amp; Mitigations (2025)</h3>
+                  <p className="text-gray-700 mb-2">
+                    Apporte des précisions techniques sur le <strong>Machine Unlearning</strong> (exact vs approximatif) et les
+                    attaques par <em>membership inference</em> pour tester la mémorisation des modèles.
+                  </p>
+                  <a
+                    href="https://www.edpb.europa.eu/system/files/2025-04/ai-privacy-risks-and-mitigations-in-llms.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien Document
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </a>
+                </div>
                 <div className="border-l-4 border-blue-500 pl-6 py-3">
-                  <h3 className="font-semibold text-lg mb-2 text-gray-900">2. Règlement (UE) 2016/679 (RGPD)</h3>
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">4. Règlement (UE) 2016/679 (RGPD)</h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
-                    <li>• <em>Art. 15 à 22 :</em> Droits des personnes concernées.</li>
-                    <li>• <em>Art. 12 :</em> Transparence et modalités de l'exercice des droits.</li>
+                    <li>• <em>Art. 12-22 :</em> Droits des personnes concernées (information, accès, rectification, effacement, opposition, limitation, portabilité).</li>
+                    <li>• <em>Art. 12 :</em> Transparence et modalités d'exercice de ces droits.</li>
                   </ul>
                   <a
                     href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32016R0679"
@@ -440,11 +525,11 @@ const FichePratiqueDroitsRGPDPage: React.FC = () => {
                   </a>
                 </div>
                 <div className="border-l-4 border-indigo-500 pl-6 py-3">
-                  <h3 className="font-semibold text-lg mb-2 text-gray-900">3. Règlement (UE) 2024/1689 (AI Act)</h3>
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">5. Règlement (UE) 2024/1689 (AI Act)</h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
-                    <li>• <em>Art. 86 :</em> Droit à l'explication d'une décision individuelle.</li>
                     <li>• <em>Art. 10 :</em> Gouvernance des données.</li>
                     <li>• <em>Art. 13 :</em> Transparence et fourniture d'informations.</li>
+                    <li>• <em>Art. 86 :</em> Droit à l'explication d'une décision individuelle.</li>
                   </ul>
                   <a
                     href="/consulter"
