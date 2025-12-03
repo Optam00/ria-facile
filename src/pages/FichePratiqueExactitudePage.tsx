@@ -57,23 +57,25 @@ const FichePratiqueExactitudePage: React.FC = () => {
               1. RAPPEL DES PRINCIPES FONDAMENTAUX
             </h2>
             <p className="text-gray-700 mb-4">
-              L'exactitude se joue sur deux tableaux juridiques distincts mais complémentaires :
+              L'exactitude se joue sur deux tableaux juridiques distincts qu'il est essentiel de ne pas confondre :
             </p>
             <div className="space-y-6">
               <div className="border-l-4 border-purple-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  L'approche "Droits des personnes" (RGPD, art. 5(1)(d)) :
+                  1) Exactitude des données (RGPD – Art. 5(1)(d) & 16) :
                 </h3>
                 <p className="text-gray-700">
-                  Toute donnée personnelle traitée doit être exacte. Le Responsable de Traitement (RT) doit garantir que les données sont correctes et, si nécessaire, rectifiées ou effacées.
+                  Une donnée personnelle (ex : adresse, âge, montant de salaire) doit être factuellement correcte. C'est une obligation binaire : la donnée est
+                  <strong> vraie ou fausse</strong>. Le responsable de traitement doit corriger ou effacer sans délai les données inexactes.
                 </p>
               </div>
               <div className="border-l-4 border-indigo-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  L'approche "Sécurité du produit" (AI Act, art. 10 & 15) :
+                  2) Précision statistique du modèle (AI Act – Art. 10 & 15) :
                 </h3>
                 <p className="text-gray-700">
-                  Pour les systèmes à haut risque, l'exactitude est une exigence technique. Le système doit être entraîné sur des données de qualité et maintenir un niveau de performance (métriques) constant pour éviter les risques de sécurité ou de biais.
+                  Le modèle doit produire des résultats fiables avec un <strong>taux d'erreur maîtrisé</strong>. L'exactitude est ici probabiliste (métriques de
+                  performance, niveau de confiance), et se gère via la qualité des données, la robustesse et la surveillance continue.
                 </p>
               </div>
             </div>
@@ -85,16 +87,20 @@ const FichePratiqueExactitudePage: React.FC = () => {
               2. LE CADRE EN BREF
             </h2>
             <p className="text-gray-700 mb-4">
-              L'exactitude n'est plus binaire ("vrai ou faux"). Le CEPD souligne que dans l'IA, l'exactitude est statistique.
+              Le Contrôleur Européen de la Protection des Données (EDPS/CEPD) souligne que le risque principal réside dans le
+              <strong> décalage entre la performance globale du modèle et la réalité individuelle</strong>.
             </p>
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg mb-4">
               <p className="font-semibold text-gray-900 mb-2">Le constat :</p>
               <p className="text-gray-700 mb-4">
-                Un modèle peut être globalement "performant" (98% de réussite) mais juridiquement "inexact" s'il échoue systématiquement sur une population spécifique ou s'il produit des résultats faux (hallucinations) sans recours possible.
+                Un modèle peut afficher 98&nbsp;% de réussite et être jugé non conforme s'il
+                <strong> hallucine</strong> des faits sur une personne, ou s'il se trompe systématiquement sur une population (ex : minorités,
+                profils atypiques) faute de représentativité des données.
               </p>
               <p className="font-semibold text-gray-900 mb-2">L'enjeu :</p>
               <p className="text-gray-700">
-                Passer d'une obligation de résultat (la donnée est vraie) à une obligation de moyens renforcée (gouvernance des données, tests de robustesse et supervision humaine).
+                Passer d'une simple vérification ponctuelle de la donnée à une <strong>gouvernance continue de l'exactitude</strong> :
+                qualité des données en entrée, robustesse technique du modèle, supervision humaine et procédures de rectification en sortie.
               </p>
             </div>
           </section>
@@ -105,28 +111,32 @@ const FichePratiqueExactitudePage: React.FC = () => {
               3. DÉCRYPTAGE OPÉRATIONNEL : LES 3 DIMENSIONS
             </h2>
             <p className="text-gray-700 mb-6">
-              Le CEPD recommande de traiter l'exactitude à trois niveaux distincts :
+              Selon les guidelines 2025 du CEPD, l'exactitude se gère à trois niveaux complémentaires :
             </p>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border-2 border-purple-200">
                 <div className="text-3xl mb-3">1️⃣</div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900">Input (Données d'entraînement)</h3>
                 <p className="text-gray-700 text-sm">
-                  La "matière première" est-elle fiable, représentative et sans biais ? <em>(AI Act Art. 10)</em>.
+                  Les données sont-elles <strong>complètes, pertinentes et représentatives</strong> ? Ont-elles été mises à jour récemment ?
+                  Cette étape conditionne la performance statistique du modèle. <em>(AI Act Art. 10)</em>.
                 </p>
               </div>
               <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-6 border-2 border-indigo-200">
                 <div className="text-3xl mb-3">2️⃣</div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900">Processing (Le Modèle)</h3>
                 <p className="text-gray-700 text-sm">
-                  Le moteur statistique est-il robuste ? Résiste-t-il aux erreurs ? <em>(AI Act Art. 15)</em>.
+                  Le modèle est-il <strong>robuste</strong> face aux erreurs, aux données bruitées et aux attaques (ex : data poisoning) ?
+                  Ses métriques (accuracy, recall, F1) sont-elles suivies dans le temps ? <em>(AI Act Art. 15)</em>.
                 </p>
               </div>
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-2 border-blue-200">
                 <div className="text-3xl mb-3">3️⃣</div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900">Output (La Décision/Inférence)</h3>
                 <p className="text-gray-700 text-sm">
-                  Le résultat affiché est-il présenté comme une vérité ou une probabilité ? Peut-on le corriger ? <em>(RGPD Art. 16 & 22)</em>.
+                  Le système permet-il de <strong>corriger une erreur</strong> sans réentraîner tout le modèle (ex : filtres, RAG,
+                  base de connaissances de référence) ? Comment sont gérés les droits des personnes (rectification, contestation) ?
+                  <em>(RGPD Art. 16 & 22)</em>.
                 </p>
               </div>
             </div>
@@ -138,7 +148,8 @@ const FichePratiqueExactitudePage: React.FC = () => {
               4. PLAN D'ACTIONS MATRICIEL
             </h2>
             <p className="text-gray-700 mb-6">
-              Cette section distingue les actions selon que vous <strong>construisez</strong> l'IA (Fournisseur) ou que vous l'<strong>utilisez</strong> (Déployeur/RT), en précisant le cadre légal applicable.
+              Ce plan distingue les actions selon que vous <strong>construisez</strong> l'IA (Fournisseur) ou que vous
+              l'<strong>utilisez</strong> (Déployeur/RT), en précisant le cadre légal applicable.
             </p>
 
             {/* Phase A */}
@@ -147,7 +158,7 @@ const FichePratiqueExactitudePage: React.FC = () => {
                 A. Phase de Conception & Développement (BUILD)
               </h3>
               <p className="text-gray-600 mb-4 italic">
-                Cette phase concerne principalement le <strong>Fournisseur</strong> (celui qui entraîne le modèle) ou le <strong>RT</strong> qui développe une IA en interne.
+                Concerne le <strong>Fournisseur</strong> (ou le RT qui entraîne un modèle en interne).
               </p>
               <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse border border-gray-300 text-sm">
@@ -161,15 +172,15 @@ const FichePratiqueExactitudePage: React.FC = () => {
                   </thead>
                   <tbody>
                     <tr className="bg-white hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Curation des Données (Data Governance)</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Gouvernance des Données</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Fournisseur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <strong>AI Act</strong> (Art. 10)<br />
                         <strong>RGPD</strong> (Art. 5)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        • Vérifier la source et la fraîcheur des datasets.<br />
-                        • Identifier et mitiger les biais (ex: sous-représentation de genre/ethnie).<br />
+                        • S'assurer que les jeux de données sont <strong>pertinents, représentatifs et sans erreurs dans la mesure du possible</strong> (clause clé de l'Art. 10).<br />
+                        • Documenter la <strong>source</strong>, la <strong>période de collecte</strong> et les principales limites.<br />
                         • <strong>Livrable :</strong> Fiche de traçabilité des données (Datasheet).
                       </td>
                     </tr>
@@ -180,21 +191,22 @@ const FichePratiqueExactitudePage: React.FC = () => {
                         <strong>AI Act</strong> (Art. 15)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        • Ne pas viser seulement l'<em>Accuracy</em> globale.<br />
-                        • Tester la <em>Précision</em> et le <em>Rappel</em> par sous-groupes.<br />
-                        • <strong>Livrable :</strong> Rapport de validation technique.
+                        • Aller au-delà du seul taux d'<em>accuracy</em> global.<br />
+                        • Mesurer les performances par <strong>sous-groupes</strong> (genre, âge, zone géographique).<br />
+                        • <strong>Livrable :</strong> Rapport de validation technique incluant les métriques désagrégées.
                       </td>
                     </tr>
                     <tr className="bg-white hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Design for Rectification</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Design for Rectification (RAG & filtres)</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Fournisseur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>RGPD</strong> (Art. 25)<br />
-                        Privacy by Design
+                        <strong>EDPS</strong> – Generative AI Guidance<br />
+                        <strong>RGPD</strong> (Art. 25)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        • Prévoir techniquement la possibilité d'exclure une donnée (Machine Unlearning) ou de forcer une correction en sortie.<br />
-                        • Si impossible, documenter pourquoi (limite technique).
+                        • Pour l'IA générative, privilégier le <strong>RAG (Retrieval-Augmented Generation)</strong> : connecter le modèle à une base de connaissances fiable pour corriger les faits sans réentraînement complet.<br />
+                        • Prévoir des <strong>filtres</strong> ou règles métier pour bloquer certaines réponses (listes noires, topics interdits).<br />
+                        • Si une correction technique est impossible, documenter clairement cette limite.
                       </td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
@@ -205,7 +217,8 @@ const FichePratiqueExactitudePage: React.FC = () => {
                         <strong>RGPD</strong> (Art. 30)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        • Documenter les choix de nettoyage des données (pourquoi telle donnée a été exclue ?).
+                        • Créer une <strong>Model Card</strong> : cas d'usage couverts, métriques, limites connues, contextes déconseillés.<br />
+                        • Documenter les arbitrages sur la qualité des données (quelles données ont été exclues, pourquoi).
                       </td>
                     </tr>
                   </tbody>
@@ -219,7 +232,7 @@ const FichePratiqueExactitudePage: React.FC = () => {
                 B. Phase d'Acquisition & Déploiement (BUY & SETUP)
               </h3>
               <p className="text-gray-600 mb-4 italic">
-                Cette phase concerne le <strong>Déployeur</strong> (l'entreprise qui achète/utilise l'IA) qui agit souvent comme <strong>Responsable de Traitement (RT)</strong>.
+                Concerne le <strong>Déployeur</strong> (l'organisation qui utilise l'IA), souvent <strong>Responsable de Traitement (RT)</strong>.
               </p>
               <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse border border-gray-300 text-sm">
@@ -233,37 +246,38 @@ const FichePratiqueExactitudePage: React.FC = () => {
                   </thead>
                   <tbody>
                     <tr className="bg-white hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Due Diligence Fournisseur</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Due Diligence & Biais</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur (RT)</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <strong>RGPD</strong> (Art. 28)<br />
                         <strong>AI Act</strong> (Art. 26)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        • Demander les métriques de performance au fournisseur.<br />
-                        • L'IA a-t-elle été entraînée sur des données pertinentes pour <em>mon</em> contexte (ex: données FR vs US) ?
+                        • Demander les métriques de performance et la description des jeux de données d'entraînement.<br />
+                        • Vérifier la pertinence des données par rapport à <em>votre</em> population (ex : éviter un modèle RH entraîné aux USA pour recruter en France).
                       </td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Analyse d'Impact (AIPD/DPIA)</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Double Analyse d'Impact</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur (RT)</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <strong>RGPD</strong> (Art. 35)<br />
                         <strong>AI Act</strong> (Art. 27)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        • Évaluer le risque d'inexactitude pour les personnes (ex: refus de crédit à tort).<br />
-                        • Définir les mesures d'atténuation.
+                        • <strong>DPIA (RGPD)</strong> : obligatoire en cas de risque élevé pour la vie privée (profilage, décisions automatisées).<br />
+                        • <strong>FRIA (AI Act)</strong> : obligatoire uniquement pour certains déployeurs (organismes publics, banques, assurances) utilisant des SIA à haut risque, pour évaluer l'impact sur <strong>tous les droits fondamentaux</strong>.
                       </td>
                     </tr>
                     <tr className="bg-white hover:bg-gray-50">
                       <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Configuration des Seuils</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>AI Act</strong> (Art. 26)
+                        <strong>AI Act</strong> (Art. 15)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        • Ne pas accepter les réglages par défaut. Définir le seuil de confiance (ex: "Si confiance &lt; 80%, ne pas afficher de résultat").
+                        • Ne pas accepter les réglages par défaut. Définir un <strong>seuil de confiance</strong> adapté (ex : en dessous de 85&nbsp;% de confiance, escalade humaine obligatoire).<br />
+                        • Désactiver les fonctionnalités non nécessaires (réduction de surface de risque).
                       </td>
                     </tr>
                   </tbody>
@@ -277,7 +291,7 @@ const FichePratiqueExactitudePage: React.FC = () => {
                 C. Phase d'Utilisation & Maintenance (RUN)
               </h3>
               <p className="text-gray-600 mb-4 italic">
-                Concerne le <strong>Déployeur</strong> au quotidien.
+                Concerne le <strong>Déployeur</strong> au quotidien (exploitation, supervision, mises à jour).
               </p>
               <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse border border-gray-300 text-sm">
@@ -298,19 +312,19 @@ const FichePratiqueExactitudePage: React.FC = () => {
                         <strong>RGPD</strong> (Art. 22)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        • Former les opérateurs à ne pas faire une confiance aveugle à l'IA (Automation Bias).<br />
-                        • L'humain doit avoir le dernier mot pour les décisions critiques.
+                        • Former les opérateurs au <strong>biais d'automatisation</strong> (tendance à suivre aveuglément la machine).<br />
+                        • L'humain doit pouvoir <strong>bloquer ou corriger</strong> toute décision critique (recrutement, crédit, santé).
                       </td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Transparence & Output</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Transparence & Présentation des Résultats</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>AI Act</strong> (Art. 13)
+                        <strong>AI Act</strong> (Art. 13, 50)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        • Indiquer clairement "Généré par IA".<br />
-                        • Afficher le score de confiance si pertinent pour l'utilisateur.
+                        • Indiquer clairement « <strong>Généré par IA</strong> » ou « Décision assistée par IA ».<br />
+                        • Afficher le <strong>score de confiance</strong> ou une échelle qualitative (faible / moyen / élevé) lorsque c'est pertinent.
                       </td>
                     </tr>
                     <tr className="bg-white hover:bg-gray-50">
@@ -320,21 +334,22 @@ const FichePratiqueExactitudePage: React.FC = () => {
                         <strong>RGPD</strong> (Art. 16)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>Procédure critique :</strong> Si une personne conteste une décision/donnée IA :<br />
-                        1. Vérifier manuellement.<br />
-                        2. Corriger la décision (effet juridique).<br />
-                        3. Mettre en place un filtre (patch) pour que l'IA ne répète pas l'erreur.
+                        <strong>Procédure critique :</strong> Si une personne conteste une décision ou signale une erreur :<br />
+                        1. Vérifier manuellement la donnée ou la décision.<br />
+                        2. Corriger la décision et consigner la modification.<br />
+                        3. Mettre à jour la base de connaissances (RAG) ou ajouter un filtre pour empêcher la récidive.
                       </td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Monitoring de la Dérive (Drift)</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Monitoring du « Data Drift »</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Déployeur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>AI Act</strong> (Art. Post-Market)
+                        <strong>EDPS</strong> – Risk Management Guidance<br />
+                        <strong>AI Act</strong> (Chap. IX – Suivi post-commercialisation)
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        • Vérifier tous les X mois que le modèle est toujours exact sur les nouvelles données réelles.<br />
-                        • Si dérive &gt; Seuil alerte : Arrêt ou demande de réentraînement au fournisseur.
+                        • Mettre en place des <strong>revues périodiques</strong> (ex : trimestrielles) pour vérifier que les performances restent stables sur des échantillons récents.<br />
+                        • Définir un seuil d'alerte : si la performance chute au-delà d'un certain niveau, enclencher une <strong>réévaluation complète</strong> (réentraînement, recalibrage des seuils, suspension).
                       </td>
                     </tr>
                   </tbody>
@@ -346,21 +361,20 @@ const FichePratiqueExactitudePage: React.FC = () => {
             <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border-2 border-purple-200">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <span>💡</span>
-                <span style={{ color: '#774792' }}>Focus : Gestion des Risques (Niveaux)</span>
+                <span style={{ color: '#774792' }}>Focus : Types de systèmes et niveau d'effort</span>
               </h3>
               <ul className="space-y-4 text-gray-700">
                 <li>
-                  <strong className="text-gray-900">IA à Haut Risque</strong> (AI Act Annexe III - ex: RH, Scoring, Biométrie) : 
-                  Toutes les actions ci-dessus sont <strong>obligatoires</strong>. Le non-respect de l'art. 10 (Données) ou 15 (Exactitude) est passible de lourdes sanctions.
+                  <strong className="text-gray-900">Systèmes d'IA à Haut Risque</strong> (Annexe III AI Act – ex : RH, scoring, biométrie) :<br />
+                  Toutes les actions du plan ci-dessus deviennent <strong>obligatoires</strong>, avec un niveau d'exigence maximal sur la qualité des données, la robustesse et la supervision.
                 </li>
                 <li>
-                  <strong className="text-gray-900">IA à Risque Limité</strong> (ex: Chatbot service client) : 
-                  Focus prioritaire sur la <strong>Transparence</strong> (Art. 50 AI Act) et le <strong>Droit à la rectification</strong> (RGPD). 
-                  L'exigence de robustesse technique est moindre, mais l'impact sur l'image de marque reste fort.
+                  <strong className="text-gray-900">Systèmes d'IA à Risque Limité</strong> (ex : chatbots, assistants IA internes) :<br />
+                  L'accent est mis sur la <strong>transparence</strong> et la <strong>capacité de rectification</strong> plutôt que sur des métriques de performance très fines.
                 </li>
                 <li>
-                  <strong className="text-gray-900">GPAI (IA à usage général)</strong> : 
-                  Le fournisseur a des obligations de documentation (Art. 53 AI Act), le déployeur doit gérer les risques d'hallucinations via l'humain.
+                  <strong className="text-gray-900">Modèles d'IA à usage général (GPAI)</strong> :<br />
+                  Le fournisseur doit documenter les limites et les risques (Art. 53 AI Act) ; le déployeur doit prévoir des <strong>garde-fous</strong> (RAG, filtres, supervision humaine) pour maîtriser les erreurs factuelles et les hallucinations.
                 </li>
               </ul>
             </div>
@@ -391,68 +405,85 @@ const FichePratiqueExactitudePage: React.FC = () => {
                 Pour approfondir ou justifier ces actions auprès de votre direction :
               </p>
               <div className="space-y-6">
-              <div className="border-l-4 border-purple-500 pl-6 py-3">
-                <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  1. EDPS (CEPD) Guidelines
-                </h3>
-                <p className="text-gray-700 mb-2">
-                  <em>Generative AI and other AI Risks management guidance</em> (11/11/2025). Focus sur la méthodologie de gestion des risques.
-                </p>
-                <a 
-                  href="https://www.edps.europa.eu/system/files/2025-11/2025-11-11_ai_risks_management_guidance_en.pdf" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
-                >
-                  Lien Document
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
+                <div className="border-l-4 border-purple-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    1. EDPS (CEPD) – Guidance for Risk Management of AI Systems (11 nov. 2025)
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Définit la méthodologie de gestion des risques, le concept de <strong>Data Drift</strong> et la distinction entre
+                    exactitude statistique et exactitude des données.
+                  </p>
+                  <a 
+                    href="https://www.edps.europa.eu/system/files/2025-11/2025-11-11_ai_risks_management_guidance_en.pdf" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien Document
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+                <div className="border-l-4 border-indigo-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    2. EDPS – Generative AI and the EUDPR (oct. 2025)
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Recommande l'usage du <strong>RAG</strong> et de filtres pour gérer l'exactitude et les hallucinations dans les modèles de type LLM.
+                  </p>
+                </div>
+                <div className="border-l-4 border-blue-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    3. EDPB – Opinion 28/2024 on AI Models
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Précise la base légale et la chaîne de responsabilité entre <strong>fournisseurs</strong> de modèles et <strong>déployeurs</strong> de systèmes.
+                  </p>
+                </div>
+                <div className="border-l-4 border-indigo-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    4. Règlement (UE) 2024/1689 (AI Act)
+                  </h3>
+                  <ul className="text-gray-700 mb-2 space-y-1">
+                    <li>• <em>Art. 10 :</em> Données et gouvernance des données.</li>
+                    <li>• <em>Art. 15 :</em> Exactitude, robustesse et cybersécurité.</li>
+                    <li>• <em>Art. 27 :</em> FRIA (analyse d'impact sur les droits fondamentaux).</li>
+                  </ul>
+                  <a 
+                    href="/consulter" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Consulter le règlement
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+                <div className="border-l-4 border-blue-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    5. Règlement (UE) 2016/679 (RGPD)
+                  </h3>
+                  <ul className="text-gray-700 mb-2 space-y-1">
+                    <li>• <em>Art. 5(1)(d) :</em> Principe d'exactitude.</li>
+                    <li>• <em>Art. 16 :</em> Droit de rectification.</li>
+                    <li>• <em>Art. 35 :</em> AIPD / DPIA.</li>
+                  </ul>
+                  <a 
+                    href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32016R0679" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien EUR-Lex
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
               </div>
-              <div className="border-l-4 border-indigo-500 pl-6 py-3">
-                <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  2. Règlement (UE) 2024/1689 (AI Act)
-                </h3>
-                <ul className="text-gray-700 mb-2 space-y-1">
-                  <li>• <em>Art. 10 :</em> Données et gouvernance des données.</li>
-                  <li>• <em>Art. 15 :</em> Exactitude, robustesse et cybersécurité.</li>
-                  <li>• <em>Art. 26 :</em> Obligations des déployeurs.</li>
-                </ul>
-                <a 
-                  href="/consulter" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
-                >
-                  Consulter le règlement
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-              <div className="border-l-4 border-blue-500 pl-6 py-3">
-                <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  3. Règlement (UE) 2016/679 (RGPD)
-                </h3>
-                <ul className="text-gray-700 mb-2 space-y-1">
-                  <li>• <em>Art. 5(1)(d) :</em> Principe d'exactitude.</li>
-                  <li>• <em>Art. 16 :</em> Droit de rectification.</li>
-                  <li>• <em>Art. 22 :</em> Décision individuelle automatisée.</li>
-                </ul>
-                <a 
-                  href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32016R0679" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
-                >
-                  Lien EUR-Lex
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-            </div>
             </div>
           </section>
         </div>
