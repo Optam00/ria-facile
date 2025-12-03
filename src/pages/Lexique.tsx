@@ -1,7 +1,7 @@
 import React from 'react';
 
 const lexiqueData = [
-  ["Ajustement (Réglage fin)", "Fine-tuning"],
+  ["Réglage fin", "Fine-tuning"],
   ["Analyse d'impact relative aux droits fondamentaux", "Fundamental rights impact assessment"],
   ["Autorité de surveillance du marché", "Market surveillance authority"],
   ["Autorité notifiante", "Notifying authority"],
@@ -13,7 +13,7 @@ const lexiqueData = [
   ["Consentement éclairé", "Informed consent"],
   ["Déclaration UE de conformité", "EU declaration of conformity"],
   ["Déployeur", "Deployer"],
-  ["Destinataire en aval", "Downstream provider"],
+  ["Fournisseur en aval", "Downstream provider"],
   ["Distributeur", "Distributor"],
   ["Données d'entraînement", "Training data"],
   ["Données d'entrée", "Input data"],
