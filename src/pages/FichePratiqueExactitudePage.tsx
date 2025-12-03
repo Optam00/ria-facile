@@ -432,6 +432,17 @@ const FichePratiqueExactitudePage: React.FC = () => {
                   <p className="text-gray-700 mb-2">
                     Recommande l'usage du <strong>RAG</strong> et de filtres pour gérer l'exactitude et les hallucinations dans les modèles de type LLM.
                   </p>
+                  <a 
+                    href="https://www.edps.europa.eu/data-protection/our-work/publications/guidelines/2025-10-28-guidance-generative-ai-strengthening-data-protection-rapidly-changing-digital-era_en" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien Document
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
                 </div>
                 <div className="border-l-4 border-blue-500 pl-6 py-3">
                   <h3 className="font-semibold text-lg mb-2 text-gray-900">
@@ -440,6 +451,17 @@ const FichePratiqueExactitudePage: React.FC = () => {
                   <p className="text-gray-700 mb-2">
                     Précise la base légale et la chaîne de responsabilité entre <strong>fournisseurs</strong> de modèles et <strong>déployeurs</strong> de systèmes.
                   </p>
+                  <a 
+                    href="https://www.edpb.europa.eu/system/files/2024-12/edpb_opinion_202428_ai-models_en.pdf" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien Document
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
                 </div>
                 <div className="border-l-4 border-indigo-500 pl-6 py-3">
                   <h3 className="font-semibold text-lg mb-2 text-gray-900">
