@@ -57,7 +57,8 @@ const FichePratiqueFRIAPage: React.FC = () => {
               1. RAPPEL DES PRINCIPES FONDAMENTAUX
             </h2>
             <p className="text-gray-700 mb-4">
-              La <strong>Fundamental Rights Impact Assessment (FRIA)</strong> est un exercice de conformité <em>ex ante</em> (avant utilisation) qui vise à contextualiser les risques techniques d'une IA dans un environnement social réel.
+              La <strong>Fundamental Rights Impact Assessment (FRIA)</strong> est l'exercice qui permet de passer de la{' '}
+              <strong>&quot;conformité produit&quot;</strong> (Fournisseur) à la <strong>&quot;conformité d'usage&quot;</strong> (Déployeur).
             </p>
             <div className="space-y-6">
               <div className="border-l-4 border-purple-500 pl-6 py-2">
@@ -65,7 +66,8 @@ const FichePratiqueFRIAPage: React.FC = () => {
                   Obligation du Déployeur (Art. 27 §1) :
                 </h3>
                 <p className="text-gray-700">
-                  C'est l'utilisateur professionnel (et non le fournisseur) qui doit évaluer l'impact spécifique de l'IA sur les personnes affectées (employés, citoyens, clients).
+                  C'est l'<strong>utilisateur professionnel</strong> (et non le fournisseur) qui doit évaluer l'impact de l'IA dans son
+                  <strong> contexte spécifique</strong> avant la mise en service.
                 </p>
               </div>
               <div className="border-l-4 border-indigo-500 pl-6 py-2">
@@ -73,7 +75,8 @@ const FichePratiqueFRIAPage: React.FC = () => {
                   Périmètre étendu :
                 </h3>
                 <p className="text-gray-700">
-                  Contrairement à l'AIPD (RGPD) focalisée sur la vie privée, la FRIA couvre <strong>tous les droits fondamentaux</strong> (non-discrimination, liberté d'expression, droit à un procès équitable, droits de l'enfant, etc.).
+                  Au-delà de la vie privée (RGPD), la FRIA couvre <strong>tous les droits fondamentaux</strong> : non-discrimination, liberté
+                  d'expression, droits de l'enfant, droit à un recours effectif, etc.
                 </p>
               </div>
               <div className="border-l-4 border-blue-500 pl-6 py-2">
@@ -115,7 +118,10 @@ const FichePratiqueFRIAPage: React.FC = () => {
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg mb-4">
               <p className="font-semibold text-gray-900 mb-2">L'enjeu Business & Conformité :</p>
               <p className="text-gray-700">
-                Pour les acteurs publics et régulés, la FRIA est le <strong>permis d'opérer</strong>. Elle transforme la documentation technique du fournisseur en une analyse d'impact sociétal concrète. Une FRIA absente ou bâclée expose à une interdiction d'utilisation immédiate par l'autorité de contrôle et à un risque réputationnel majeur (accusation de discrimination algorithmique).
+                Sans FRIA, l'utilisation d'un système à haut risque par un acteur public (ou assimilé) est <strong>illégale</strong>. La FRIA
+                agit comme un <strong>&quot;permis d'opérer&quot;</strong> : elle transforme la documentation technique du fournisseur en une
+                analyse d'impact sociétal concrète. Une FRIA absente ou bâclée expose à une interdiction d'utilisation et à un risque
+                réputationnel majeur (accusation de discrimination algorithmique).
               </p>
             </div>
           </section>
@@ -131,7 +137,10 @@ const FichePratiqueFRIAPage: React.FC = () => {
                   Le défi : Passer du "Labo" à la "Vraie Vie"
                 </h3>
                 <p className="text-gray-700 mb-4">
-                  Le fournisseur a validé que son modèle fonctionne techniquement (via son RMS - Art. 9). Le déployeur doit valider que l'utilisation de ce modèle <em>dans son contexte précis</em> ne va pas nuire aux droits.
+                  Le fournisseur a validé que son modèle fonctionne techniquement (via son RMS - Art. 9). Le déployeur ne peut pas
+                  réaliser une FRIA sérieuse sans disposer de la <strong>notice d'utilisation</strong> (Art. 13) et des informations sur les{' '}
+                  <strong>risques résiduels</strong>. Il doit ensuite valider que l'utilisation de ce modèle <em>dans son contexte précis</em>{' '}
+                  ne va pas nuire aux droits fondamentaux.
                 </p>
                 <div className="bg-gray-50 border-l-4 border-gray-400 p-4 rounded-r-lg italic text-gray-700">
                   <strong>Exemple :</strong> Un algorithme de détection de fraude aux prestations sociales peut être techniquement robuste (Fournisseur), mais son déploiement peut créer une discrimination massive envers certaines populations précaires (Déployeur).
@@ -142,10 +151,15 @@ const FichePratiqueFRIAPage: React.FC = () => {
                   La convergence FRIA / AIPD (Vue EDPS)
                 </h3>
                 <p className="text-gray-700 mb-2">
-                  L'AI Act (Art. 27 §4) et l'EDPS recommandent de ne pas multiplier les documents. Si une <strong>Analyse d'Impact relative à la Protection des Données (AIPD)</strong> est déjà requise par le RGPD (Art. 35), la FRIA doit venir la compléter.
+                  L'AI Act (Art. 27 §4) et l'EDPS recommandent de ne pas multiplier les documents. Si une{' '}
+                  <strong>Analyse d'Impact relative à la Protection des Données (AIPD)</strong> est déjà requise par le RGPD (Art. 35), la FRIA
+                  doit venir la compléter, pas la remplacer.
                 </p>
                 <p className="text-gray-700">
-                  <strong>Best Practice :</strong> Créer un "Master Impact Assessment" unique traitant la Data Privacy (RGPD) + les autres Droits Fondamentaux (AI Act).
+                  <strong>Best Practice :</strong> Créer un <strong>&quot;Master Impact Assessment&quot;</strong> unique traitant la Data Privacy (RGPD)
+                  + les autres droits fondamentaux (AI Act). Attention toutefois : l'<strong>AIPD</strong> est un document{' '}
+                  <strong>&quot;vivant&quot;</strong> mis à jour régulièrement, alors que la <strong>FRIA</strong> est une photographie à un instant T
+                  (avant déploiement), qui ne doit être révisée qu'en cas de changement substantiel.
                 </p>
               </div>
             </div>
@@ -157,7 +171,8 @@ const FichePratiqueFRIAPage: React.FC = () => {
               4. LE PLAN D'ACTIONS (FORMAT MATRICIEL)
             </h2>
             <p className="text-gray-700 mb-6">
-              Ce tableau détaille la méthodologie pour réaliser une FRIA conforme, en s'appuyant sur le Chapitre 11 du Guide Académique.
+              Ce tableau détaille la méthodologie pour réaliser une FRIA conforme, en s'appuyant sur le Chapitre 11 du Guide Académique et
+              les exigences de l'Art. 27 (AI Act).
             </p>
             <div className="mb-4 bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-700 mb-2"><strong>Légende :</strong></p>
@@ -190,12 +205,13 @@ const FichePratiqueFRIAPage: React.FC = () => {
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
                       <strong>Fournir les intrants</strong><br />
-                      Transmettre la notice d'utilisation (Art. 13) et les résultats pertinents du RMS (risques résiduels).
+                      Transmettre la notice d'utilisation (Art. 13) et les résultats pertinents du RMS (risques résiduels). Sans ces éléments,
+                      la FRIA ne peut pas être correctement réalisée.
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 13</td>
                   </tr>
                   <tr className="bg-white hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={3}>2. ANALYSE</td>
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={4}>2. ANALYSE &amp; CONSULTATION</td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
                       <strong>Décrire le contexte d'usage</strong><br />
@@ -220,6 +236,15 @@ const FichePratiqueFRIAPage: React.FC = () => {
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (1)(d)</td>
                   </tr>
                   <tr className="bg-gray-50 hover:bg-gray-100">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Consultation obligatoire</strong><br />
+                      Consulter les représentants des travailleurs ou les personnes concernées sur l'usage prévu du système, conformément
+                      à l'Art. 27 (1). Cette étape est une exigence procédurale, pas un simple conseil.
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (1)</td>
+                  </tr>
+                  <tr className="bg-gray-50 hover:bg-gray-100">
                     <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>3. ATTÉNUATION</td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
@@ -241,7 +266,8 @@ const FichePratiqueFRIAPage: React.FC = () => {
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
                       <strong>Notifier l'Autorité</strong><br />
-                      Transmettre le résumé des résultats à l'autorité de surveillance du marché via le formulaire dédié (template AI Office).
+                      Transmettre <strong>le résumé des résultats</strong> à l'autorité de surveillance du marché via le formulaire dédié (template AI
+                      Office). L'intégralité du document FRIA n'est transmise qu'en cas de demande spécifique de l'autorité.
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 (3)</td>
                   </tr>
@@ -262,13 +288,13 @@ const FichePratiqueFRIAPage: React.FC = () => {
                 <span style={{ color: '#774792' }}>Conseil de l'expert</span>
               </h3>
               <p className="text-gray-700 mb-3">
-                Ne commencez pas une FRIA "page blanche".
+                Ne commencez pas une FRIA &quot;page blanche&quot;.
               </p>
               <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-2">
                 <li>Partez de votre <strong>AIPD (RGPD)</strong> existante.</li>
                 <li>Ajoutez une section "Autres Droits Fondamentaux" (Non-discrimination, Droit à un recours effectif).</li>
-                <li>Utilisez la notice d'utilisation du fournisseur pour remplir les sections techniques.</li>
-                <li>Consultez les représentants des personnes affectées (syndicats, associations d'usagers) comme suggéré par l'EDPS pour valider votre analyse.</li>
+                <li>Utilisez la notice d'utilisation du fournisseur pour remplir les sections techniques (risques résiduels, limites connues).</li>
+                <li>Formalisez la consultation (représentants du personnel, associations d'usagers) et conservez une trace de leurs retours.</li>
               </ol>
             </div>
           </section>
@@ -300,9 +326,10 @@ const FichePratiqueFRIAPage: React.FC = () => {
                     Règlement (UE) 2024/1689 (AI Act)
                   </h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
-                    <li>• <em>Art. 27 :</em> Obligation de réaliser une analyse d'impact sur les droits fondamentaux</li>
+                    <li>• <em>Art. 27 :</em> Obligation de réaliser une analyse d'impact sur les droits fondamentaux (FRIA)</li>
                     <li>• <em>Art. 26 :</em> Obligations des déployeurs de systèmes à haut risque</li>
                     <li>• <em>Art. 13 :</em> Notice d'utilisation</li>
+                    <li>• <em>Annexe III :</em> Liste des cas de Systèmes d'IA à Haut Risque concernés (dont crédit et assurance vie/santé)</li>
                   </ul>
                   <a 
                     href="/consulter" 
@@ -361,6 +388,24 @@ const FichePratiqueFRIAPage: React.FC = () => {
                   <ul className="text-gray-700 mb-2 space-y-1">
                     <li>• <em>Chapitre 11 :</em> Fundamental Rights Impact Assessment (FRIA) under the AI Act (M. Ho-Dac & L. Xenou)</li>
                   </ul>
+                </div>
+                <div className="border-l-4 border-purple-400 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    AI Office – Modèle FRIA
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Modèle (template) standardisé que les déployeurs devront utiliser pour notifier les résultats de leur FRIA à
+                    l'autorité de surveillance, conformément à l'Art. 27 (3).
+                  </p>
+                </div>
+                <div className="border-l-4 border-blue-400 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    Charte des Droits Fondamentaux de l'Union européenne
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Référentiel pour identifier les droits touchés par le système (Dignité, Libertés, Égalité, Solidarité, Citoyenneté,
+                    Justice).
+                  </p>
                 </div>
               </div>
             </div>
