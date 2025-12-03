@@ -406,6 +406,17 @@ const FichePratiqueTransparencePage: React.FC = () => {
                     <li>• <em>Chapitre 7 :</em> Transparency Under the AI Act (Florence Guillaume)</li>
                     <li>• <em>Chapitre 14 :</em> Compliance with the AI Act from a Corporate Perspective (Axel Cypel) - <em>Voir section "2.2 Documentation"</em></li>
                   </ul>
+                  <a 
+                    href="https://www.ucly.fr/wp-content/uploads/2025/11/the-academic-guide-to-ai-act-compliance-2025-ed.-mhodac-cp.pdf" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien vers le guide académique
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
                 </div>
                 <div className="border-l-4 border-purple-400 pl-6 py-3">
                   <h3 className="font-semibold text-lg mb-2 text-gray-900">

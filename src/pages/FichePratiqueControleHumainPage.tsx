@@ -57,31 +57,38 @@ const FichePratiqueControleHumainPage: React.FC = () => {
               1. RAPPEL DES PRINCIPES FONDAMENTAUX
             </h2>
             <p className="text-gray-700 mb-4">
-              Le contrôle humain (ou <em>Human-in-the-loop</em>) est la garantie ultime de sécurité. L'AI Act impose que les SIA à Haut Risque ne soient pas des "boîtes noires" autonomes, mais des outils sous supervision.
+              Le <strong>contrôle humain</strong> est la garantie que l'IA reste un outil et ne devient pas un décideur autonome
+              incontrôlable. C'est une <strong>obligation de moyens renforcée</strong>.
             </p>
             <div className="space-y-6">
               <div className="border-l-4 border-purple-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Design (Art. 14) :
+                  Principe "Human-centric" :
                 </h3>
                 <p className="text-gray-700">
-                  Le système doit être conçu avec des interfaces homme-machine permettant une supervision efficace <em>pendant</em> son utilisation.
+                  Les Systèmes d'IA à Haut Risque (SIA-HR) doivent être conçus (Fournisseur) et utilisés (Déployeur) de manière à pouvoir
+                  être surveillés par des personnes physiques.
                 </p>
               </div>
               <div className="border-l-4 border-indigo-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Exécution (Art. 26) :
+                  Double exigence RGPD / AI Act (vue APD Belge) :
                 </h3>
                 <p className="text-gray-700">
-                  Le contrôle ne doit pas être théorique. Il doit être effectué par des personnes physiques disposant de la <strong>compétence</strong>, de la <strong>formation</strong> et de l'<strong>autorité</strong> nécessaires.
+                  • <strong>AI Act (Art. 14)</strong> : une <strong>surveillance continue</strong> et organisationnelle pour éviter les
+                  dérives (biais, erreurs techniques).<br />
+                  • <strong>RGPD (Art. 22)</strong> : un <strong>droit individuel</strong> pour chaque personne à faire réexaminer une
+                  décision automatisée qui l'affecte.
                 </p>
               </div>
               <div className="border-l-4 border-blue-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Lutte contre le biais d'automatisation (Art. 14 §4) :
+                  Compétence et autorité du superviseur (Art. 14 &amp; 26) :
                 </h3>
                 <p className="text-gray-700">
-                  Le superviseur doit être capable de ne pas se fier aveuglément aux résultats de l'IA.
+                  Le contrôle ne doit pas être théorique. Il doit être effectué par des personnes physiques disposant de la{' '}
+                  <strong>compétence</strong>, de la <strong>formation</strong> (AI literacy) et de l'<strong>autorité</strong> nécessaires
+                  pour <strong>contredire</strong> l'IA.
                 </p>
               </div>
             </div>
@@ -106,7 +113,11 @@ const FichePratiqueControleHumainPage: React.FC = () => {
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg mb-4">
               <p className="font-semibold text-gray-900 mb-2">L'enjeu Business & Conformité :</p>
               <p className="text-gray-700">
-                Le contrôle humain est le "filet de sécurité" opérationnel. Il permet de rattraper les erreurs de l'IA avant qu'elles ne causent des dommages (discrimination, accident). Pour l'entreprise, c'est une condition <em>sine qua non</em> de conformité : sans protocole de supervision humaine documenté et effectif, l'utilisation d'un SIA à Haut Risque est illégale.
+                Le régulateur chasse le <strong>&quot;Rubber-stamping&quot;</strong> : un contrôle de façade où l'humain se contente de
+                cliquer sur &quot;OK&quot; sans réfléchir. Le superviseur doit avoir la <strong>compétence</strong>, la{' '}
+                <strong>formation</strong> et l'<strong>autorité</strong> pour refuser une suggestion de l'IA. Si, dans les faits, 100% des
+                décisions de l'IA sont validées sans examen, l'autorité considérera que le système est de facto
+                <strong> entièrement automatisé</strong>, avec les conséquences du RGPD (Art. 22).
               </p>
             </div>
           </section>
@@ -119,31 +130,44 @@ const FichePratiqueControleHumainPage: React.FC = () => {
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold text-lg mb-3 text-gray-900">
-                  Le défi du "Biais d'Automatisation"
+                  Le défi du Biais d'Automatisation
                 </h3>
                 <p className="text-gray-700 mb-4">
-                  C'est le risque majeur identifié par le régulateur : l'opérateur humain, par fatigue ou excès de confiance, valide systématiquement les propositions de l'IA ("Rubber-stamping"). L'Art. 14 exige des mesures concrètes pour contrer cet effet psychologique.
+                  C'est le risque majeur identifié par le régulateur : l'opérateur humain, par fatigue ou excès de confiance, valide
+                  systématiquement les propositions de l'IA (&quot;Rubber-stamping&quot;). L'Art. 14 exige des mesures concrètes pour
+                  contrer ce <strong>biais psychologique documenté</strong> : formation, procédures, indicateurs.
                 </p>
               </div>
               <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
                 <h3 className="font-semibold text-lg mb-3 text-gray-900">
-                  Les niveaux d'intervention (Art. 14 §3)
+                  Les 3 niveaux de contrôle (vue EDPS)
                 </h3>
                 <p className="text-gray-700 mb-3">
-                  Le contrôle humain peut prendre plusieurs formes selon le risque :
+                  Selon l'EDPS, le contrôle humain se déploie à <strong>trois moments clés</strong> :
                 </p>
                 <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-2">
-                  <li><strong>Human-in-the-loop :</strong> L'IA propose, l'humain décide (ex: recrutement).</li>
-                  <li><strong>Human-on-the-loop :</strong> L'IA agit, l'humain surveille et peut intervenir (ex: supervision industrielle).</li>
-                  <li><strong>Human-in-command :</strong> L'humain peut décider d'ignorer l'IA ou d'utiliser le "Kill Switch" (bouton d'arrêt) à tout moment.</li>
+                  <li>
+                    <strong>Pre-deployment review :</strong> Validation avant mise en production (tests, revue de la notice, vérification
+                    des scénarios de risques).
+                  </li>
+                  <li>
+                    <strong>Human In The Loop (HITL) :</strong> Intervention en temps réel. L'IA prépare la décision, l'humain valide ou
+                    modifie (ex: diagnostic médical, recrutement).
+                  </li>
+                  <li>
+                    <strong>Post-decision review :</strong> Audit a posteriori. Révision périodique d'un échantillon de décisions pour
+                    détecter des dérives (biais, erreurs systématiques).
+                  </li>
                 </ol>
               </div>
               <div className="border-l-4 border-indigo-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Lien avec la Transparence
+                  Lien avec la Transparence et le RGPD
                 </h3>
                 <p className="text-gray-700">
-                  Le contrôle humain est impossible sans <strong>explicabilité</strong>. Si l'opérateur ne comprend pas <em>pourquoi</em> l'IA prend une décision (Art. 13), il ne peut pas exercer un contrôle effectif.
+                  Le contrôle humain est impossible sans <strong>explicabilité</strong> (Art. 13 AI Act). Et même si la surveillance
+                  continue est en place (AI Act), il faut conserver la capacité de <strong>réexaminer une décision individuelle</strong>{' '}
+                  contestée par une personne (Art. 22 RGPD). Les deux logiques sont <strong>complémentaires</strong>, pas substituables.
                 </p>
               </div>
             </div>
@@ -155,7 +179,9 @@ const FichePratiqueControleHumainPage: React.FC = () => {
               4. LE PLAN D'ACTIONS (FORMAT MATRICIEL)
             </h2>
             <p className="text-gray-700 mb-6">
-              Ce tableau structure la mise en place du contrôle humain en distinguant la conception (Fournisseur) de l'application (Déployeur).
+              Ce tableau structure la mise en place du contrôle humain en distinguant la <strong>conception</strong> (Fournisseur),{' '}
+              <strong>l'organisation</strong> et <strong>l'opération</strong> (Déployeur), en intégrant les trois niveaux de contrôle
+              identifiés par l'EDPS.
             </p>
             <div className="mb-4 bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-700 mb-2"><strong>Légende :</strong></p>
@@ -176,11 +202,12 @@ const FichePratiqueControleHumainPage: React.FC = () => {
                 </thead>
                 <tbody>
                   <tr className="bg-white hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>1. CONCEPTION (Design)</td>
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={3}>1. CONCEPTION (Design)</td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
                       <strong>Intégrer les outils de supervision</strong><br />
-                      Développer une interface permettant à l'humain de comprendre les outputs et d'intervenir (ex: bouton "Stop", modification des paramètres).
+                      Développer une interface permettant à l'humain de comprendre les outputs et d'intervenir (ex: bouton &quot;Stop&quot;,
+                      modification des paramètres).
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 (3)</td>
                   </tr>
@@ -191,6 +218,15 @@ const FichePratiqueControleHumainPage: React.FC = () => {
                       Identifier dans la documentation technique les mesures de surveillance appropriées au risque (ex: double validation requise).
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 (2)</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Mettre en place la journalisation (logging)</strong><br />
+                      Prévoir l'enregistrement des interactions clés : qui a validé, qui a rejeté, quels paramètres étaient actifs. Sans
+                      traces, aucun contrôle a posteriori n'est possible.
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 12 &amp; 14 AI Act</td>
                   </tr>
                   <tr className="bg-white hover:bg-gray-50">
                     <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>2. ORGANISATION (Setup)</td>
@@ -210,11 +246,12 @@ const FichePratiqueControleHumainPage: React.FC = () => {
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 4 & Art. 26 (2)</td>
                   </tr>
                   <tr className="bg-white hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>3. OPÉRATION (Run)</td>
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={3}>3. OPÉRATION (Run)</td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Interpréter et valider</strong><br />
-                      Analyser les résultats de l'IA. En cas de doute ou d'anomalie, ignorer la suggestion de l'IA ("Override").
+                      <strong>Contrôle en temps réel (HITL)</strong><br />
+                      Analyser les résultats de l'IA et décider au cas par cas : valider, modifier ou rejeter. En cas de doute ou
+                      d'anomalie, ignorer la suggestion de l'IA (&quot;Override&quot;).
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 (4)(d)</td>
                   </tr>
@@ -225,6 +262,15 @@ const FichePratiqueControleHumainPage: React.FC = () => {
                       Interrompre ou arrêter le système immédiatement en cas de dysfonctionnement ou de risque grave identifié.
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 (4)(e)</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Revue a posteriori &amp; droits individuels</strong><br />
+                      Mettre en place des revues périodiques d'échantillons de décisions (Post-decision review) et un processus permettant
+                      à une personne de faire réexaminer sa situation par un humain en cas de contestation (Art. 22 RGPD).
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 26 AI Act &amp; 22 RGPD</td>
                   </tr>
                   <tr className="bg-white hover:bg-gray-50">
                     <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">4. CAS SPÉCIFIQUE</td>
@@ -244,7 +290,10 @@ const FichePratiqueControleHumainPage: React.FC = () => {
                 <span style={{ color: '#774792' }}>Conseil de l'expert</span>
               </h3>
               <p className="text-gray-700">
-                Ne vous contentez pas de nommer un superviseur sur le papier. Vous devez prouver sa <strong>compétence</strong>. Lors d'un audit, si le superviseur ne sait pas expliquer comment fonctionne l'outil ou n'a jamais contredit l'IA en 6 mois, l'autorité considérera que le contrôle humain est inefficace et donc non-conforme.
+                Ne vous contentez pas de nommer un superviseur sur le papier. Vous devez prouver sa <strong>compétence</strong> et l'effectivité
+                du contrôle : formation, décisions effectivement corrigées, indicateurs de rejet des recommandations de l'IA. Lors d'un audit,
+                si le superviseur ne sait pas expliquer comment fonctionne l'outil ou n'a jamais contredit l'IA en 6 mois, l'autorité
+                considérera que le contrôle humain est inefficace et donc non conforme.
               </p>
             </div>
           </section>
@@ -315,9 +364,60 @@ const FichePratiqueControleHumainPage: React.FC = () => {
                     The Academic Guide to AI Act Compliance (2025)
                   </h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
-                    <li>• <em>Chapitre 7 :</em> Transparency Under the AI Act (Florence Guillaume) - <em>Voir section "2.5 Human Oversight" page 92</em></li>
-                    <li>• <em>Chapitre 11 :</em> Fundamental Rights Impact Assessment (M. Ho-Dac & L. Xenou) - <em>Voir section "3.3 Phase 3" sur les mesures d'atténuation</em></li>
+                    <li>• <em>Chapitre 7 :</em> Transparency Under the AI Act (Florence Guillaume) - <em>Section &quot;2.5 Human Oversight&quot;</em></li>
+                    <li>• <em>Chapitre 11 :</em> Fundamental Rights Impact Assessment (M. Ho-Dac &amp; L. Xenou) - <em>Section &quot;3.3 Phase 3&quot; sur les mesures d'atténuation</em></li>
                   </ul>
+                  <a 
+                    href="https://www.ucly.fr/wp-content/uploads/2025/11/the-academic-guide-to-ai-act-compliance-2025-ed.-mhodac-cp.pdf" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien vers le guide académique
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+                <div className="border-l-4 border-purple-400 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    EDPS – AI Risks Management Guidance (Nov. 2025)
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Note de bas de page 69 : typologie des contrôles (Pre-deployment review, Human In The Loop, Post-decision review) et
+                    articulation avec l'exactitude et la surveillance continue.
+                  </p>
+                  <a 
+                    href="https://www.edps.europa.eu/system/files/2025-11/2025-11-11_ai_risks_management_guidance_en.pdf" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien vers le document
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+                <div className="border-l-4 border-blue-400 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    APD Belge – Brochure &quot;IA et RGPD&quot; (2024)
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Clarifie la distinction entre le contrôle de <strong>gouvernance</strong> (AI Act, surveillance continue) et le{' '}
+                    <strong>droit individuel</strong> au réexamen d'une décision (Art. 22 RGPD), notamment page 11.
+                  </p>
+                  <a 
+                    href="https://www.autoriteprotectiondonnees.be/publications/brochure-d-information-sur-les-systemes-d-intelligence-artificielle-et-le-rgpd.pdf" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien vers la brochure
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
                 </div>
               </div>
             </div>
