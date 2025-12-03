@@ -57,23 +57,29 @@ const FichePratiqueTransparencePage: React.FC = () => {
               1. RAPPEL DES PRINCIPES FONDAMENTAUX
             </h2>
             <p className="text-gray-700 mb-4">
-              La transparence dans l'AI Act n'est pas une notion unique, mais un spectre d'obligations visant à lutter contre l'opacité ("Black Box") et la manipulation.
+              La transparence dans l'AI Act opère à <strong>deux niveaux distincts</strong> qu'il ne faut pas confondre : la transparence{' '}
+              <strong>technique (B2B)</strong> entre le fournisseur et le déployeur, et la transparence{' '}
+              <strong>informationnelle (B2C)</strong> envers les personnes concernées.
             </p>
             <div className="space-y-6">
               <div className="border-l-4 border-purple-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Pour les SIA Haut Risque (Art. 13) :
+                  Transparence technique pour les SIA Haut Risque (Art. 13) :
                 </h3>
                 <p className="text-gray-700">
-                  La transparence signifie <strong>"Explicabilité"</strong> et <strong>"Traçabilité"</strong>. Le fournisseur doit livrer un "mode d'emploi" complet permettant au déployeur de comprendre, surveiller et maîtriser le système.
+                  Le <strong>fournisseur</strong> doit livrer un mode d'emploi complet (&quot;Instructions for Use&quot;) au{' '}
+                  <strong>déployeur</strong>. C'est de la transparence <strong>technique</strong> (B2B) : explicabilité, traçabilité,
+                  limites, risques résiduels.
                 </p>
               </div>
               <div className="border-l-4 border-indigo-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Pour les IA conversationnelles et génératives (Art. 50) :
+                  Transparence informationnelle pour les IA conversationnelles et génératives (Art. 50) :
                 </h3>
                 <p className="text-gray-700">
-                  La transparence signifie <strong>"Divulgation"</strong>. L'utilisateur final (citoyen, consommateur) doit savoir qu'il interagit avec une machine ou que le contenu est artificiel.
+                  Le <strong>déployeur</strong> doit informer l'<strong>utilisateur final</strong> qu'il interagit avec une IA ou qu'un
+                  contenu est artificiel. C'est de la transparence <strong>B2C</strong>, orientée contre la manipulation et l'illusion
+                  d'humanité.
                 </p>
               </div>
               <div className="border-l-4 border-blue-500 pl-6 py-2">
@@ -81,7 +87,19 @@ const FichePratiqueTransparencePage: React.FC = () => {
                   Lien RGPD :
                 </h3>
                 <p className="text-gray-700">
-                  L'AI Act complète le RGPD. Si l'IA prend des décisions automatisées, le droit à l'explication (Art. 22 RGPD) s'applique en plus des notices techniques.
+                  Les informations techniques fournies par le fournisseur (AI Act, Art. 13 et 53) sont la matière première indispensable
+                  pour rédiger les <strong>notices d'information RGPD</strong> (Art. 12-14) et pour respecter le droit à l'explication
+                  (Art. 22 RGPD).
+                </p>
+              </div>
+              <div className="border-l-4 border-teal-500 pl-6 py-2">
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                  Transparence dans la chaîne de valeur (GPAI, Art. 53) :
+                </h3>
+                <p className="text-gray-700">
+                  Pour les <strong>modèles d'IA à usage général (GPAI)</strong>, la transparence vise à permettre aux{' '}
+                  <strong>fournisseurs en aval</strong> de respecter à leur tour leurs propres obligations (documentation, information des
+                  personnes, gestion des risques).
                 </p>
               </div>
             </div>
@@ -109,7 +127,10 @@ const FichePratiqueTransparencePage: React.FC = () => {
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg mb-4">
               <p className="font-semibold text-gray-900 mb-2">L'enjeu Business & Conformité :</p>
               <p className="text-gray-700">
-                La transparence est le vecteur de la <strong>confiance</strong>. Pour le fournisseur, une documentation claire limite la responsabilité en cas de mésusage par le client. Pour le déployeur, informer les utilisateurs finaux (employés, clients) est une obligation légale stricte (amendes jusqu'à 15M€ ou 3% du CA pour violation de l'Art. 50) et un impératif éthique pour éviter le rejet de la technologie.
+                La transparence est le vecteur de la <strong>confiance</strong>. Pour le fournisseur, une documentation claire limite la
+                responsabilité en cas de mésusage par le client. Pour le déployeur, informer les utilisateurs finaux (employés, clients)
+                est une obligation légale stricte (amendes jusqu'à 15M€ ou 3% du CA pour violation de l'Art. 50) et un impératif éthique
+                pour éviter le rejet de la technologie.
               </p>
             </div>
           </section>
@@ -122,10 +143,17 @@ const FichePratiqueTransparencePage: React.FC = () => {
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold text-lg mb-3 text-gray-900">
-                  Le défi de l'Explicabilité (SIA Haut Risque)
+                  Le défi de l'Explicabilité &amp; de l'Interprétabilité (SIA Haut Risque)
                 </h3>
                 <p className="text-gray-700 mb-4">
-                  Il ne suffit pas de livrer du code. L'Art. 13 exige que la notice d'utilisation soit "concise, complète, correcte et claire". Elle doit vulgariser le fonctionnement de l'algorithme pour que le déployeur puisse exercer sa surveillance humaine. Si le déployeur ne comprend pas comment l'IA décide, le fournisseur est en défaut.
+                  Il ne suffit pas de livrer du code. L'Art. 13 exige que la notice d'utilisation soit &quot;concise, complète, correcte et
+                  claire&quot;. Les lignes directrices de l'EDPS insistent : la transparence n'a de sens que si le système est
+                  <strong> interprétable</strong>. Une <strong>boîte noire totale</strong> n'est pas seulement un problème d'opacité, c'est un
+                  <strong> risque de sécurité</strong> (impossibilité de détecter les erreurs et dérives).
+                </p>
+                <p className="text-gray-700 mb-4">
+                  La bonne pratique est de documenter le système via une <strong>&quot;System Card&quot; / &quot;Model Card&quot;</strong> : finalité,
+                  données d'entraînement, métriques de performance, limites connues, risques résiduels et conditions d'usage.
                 </p>
               </div>
               <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
@@ -137,7 +165,11 @@ const FichePratiqueTransparencePage: React.FC = () => {
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-gray-700 ml-2">
                   <li><strong>Chatbots :</strong> L'utilisateur doit savoir <em>dès le début</em> qu'il parle à une IA.</li>
-                  <li><strong>Deepfakes :</strong> Tout contenu généré ou manipulé (image, son, vidéo) doit être marqué comme tel (watermarking, label visible).</li>
+                  <li>
+                    <strong>Contenus synthétiques / Deepfakes :</strong> Tout contenu généré ou manipulé (image, son, vidéo) doit être
+                    <strong> détectable par machine</strong> (watermarking technique) et <strong>identifiable par l'humain</strong> (label
+                    visible).
+                  </li>
                   <li><strong>Émotion :</strong> Les systèmes de reconnaissance des émotions (interdits au travail/école, autorisés ailleurs) doivent faire l'objet d'une information préalable.</li>
                 </ul>
               </div>
@@ -150,7 +182,8 @@ const FichePratiqueTransparencePage: React.FC = () => {
               4. LE PLAN D'ACTIONS (FORMAT MATRICIEL)
             </h2>
             <p className="text-gray-700 mb-6">
-              Ce tableau distingue les actions selon le type de système et le rôle.
+              Ce tableau distingue les actions selon le type de système et le rôle, en séparant clairement ce qui relève de la{' '}
+              <strong>transparence technique (B2B)</strong> et de la <strong>transparence informationnelle (B2C)</strong>.
             </p>
             <div className="mb-4 bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-700 mb-2"><strong>Légende :</strong></p>
@@ -175,24 +208,26 @@ const FichePratiqueTransparencePage: React.FC = () => {
                   </thead>
                   <tbody>
                     <tr className="bg-white hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>CONCEPTION</td>
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>CONCEPTION</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>Concevoir pour la transparence</strong><br />
-                        Développer le système pour permettre l'interprétation des sorties (outputs) par l'utilisateur.
+                      <strong>Concevoir pour l'interprétabilité</strong><br />
+                      Développer le système pour permettre l'interprétation des sorties (outputs) par l'utilisateur (éviter les &quot;black
+                      box&quot; totales).
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 13 (1)</td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>Rédiger la Notice d'Utilisation</strong><br />
-                        Inclure : identité, caractéristiques, limites de performance, risques résiduels, mesures de maintenance et procédure de surveillance humaine.
+                      <strong>Rédiger la Notice d'Utilisation / System Card</strong><br />
+                      Inclure : finalité, données d'entraînement (catégories), métriques de performance, limites de performance, risques
+                      résiduels, mesures de maintenance et procédure de surveillance humaine.
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 13 (2-3)</td>
                     </tr>
                     <tr className="bg-white hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>DÉPLOIEMENT</td>
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={3}>DÉPLOIEMENT</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <strong>Informer les travailleurs</strong><br />
@@ -203,10 +238,21 @@ const FichePratiqueTransparencePage: React.FC = () => {
                     <tr className="bg-gray-50 hover:bg-gray-100">
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>Informer les personnes affectées</strong><br />
-                        Si le SIA prend des décisions (ex: crédit, justice), notifier les personnes et fournir les explications requises.
+                      <strong>Construire la Notice RGPD</strong><br />
+                      Utiliser les informations techniques fournies par le fournisseur (logique, paramètres pertinents, limites) pour
+                      rédiger la politique de confidentialité (Art. 12-14 RGPD) et préparer les explications en cas de décision
+                      automatisée (Art. 22 RGPD).
                       </td>
-                      <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 26 & RGPD</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 13 AI Act &amp; 12-14, 22 RGPD</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Informer les personnes affectées</strong><br />
+                      Si le SIA prend des décisions (ex: crédit, justice), notifier les personnes concernées, expliquer les critères
+                      principaux et les droits de recours / contestation.
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 26 AI Act &amp; 22 RGPD</td>
                     </tr>
                   </tbody>
                 </table>
@@ -240,16 +286,18 @@ const FichePratiqueTransparencePage: React.FC = () => {
                       <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>Deepfakes & Contenu Synthétique</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>Marquage technique (Watermarking)</strong><br />
-                        Intégrer des marqueurs lisibles par machine dans les métadonnées des fichiers générés.
+                        <strong>Marquage technique (machine-readable)</strong><br />
+                        Intégrer des marqueurs lisibles par machine dans les métadonnées des fichiers générés (ex: C2PA, filigranes
+                        robustes) pour permettre leur détection automatique.
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 50 (2)</td>
                     </tr>
                     <tr className="bg-white hover:bg-gray-50">
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                        <strong>Étiquetage visible</strong><br />
-                        Indiquer visiblement à l'audience que le contenu est artificiel (ex: bandeau "Image générée par IA").
+                        <strong>Étiquetage visible (human-readable)</strong><br />
+                        Indiquer visiblement à l'audience que le contenu est artificiel (ex: bandeau &quot;Image générée par IA&quot;,
+                        mention &quot;Contenu synthétique&quot; dans la légende).
                       </td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 50 (4)</td>
                     </tr>
@@ -274,10 +322,14 @@ const FichePratiqueTransparencePage: React.FC = () => {
               </h3>
               <div className="space-y-3 text-gray-700">
                 <p>
-                  Pour les <strong>Deepfakes</strong> : L'obligation de transparence ne s'applique pas si le contenu est manifestement artistique, satirique ou créatif, MAIS des garanties doivent être prises pour ne pas tromper le public sur l'origine de l'œuvre (Art. 50 §4).
+                  Pour les <strong>Deepfakes</strong> : L'obligation de transparence ne s'applique pas si le contenu est manifestement
+                  artistique, satirique ou créatif, MAIS des garanties doivent être prises pour ne pas tromper le public sur l'origine de
+                  l'œuvre (Art. 50 §4).
                 </p>
                 <p>
-                  Pour les <strong>GPAI</strong> (Modèles type GPT) : Le fournisseur du modèle doit fournir une documentation technique aux fournisseurs de systèmes en aval pour leur permettre de respecter leurs propres obligations de transparence (Art. 53).
+                  Pour les <strong>GPAI</strong> (Modèles type GPT) : Le fournisseur du modèle doit fournir une documentation technique
+                  structurée (souvent sous forme de <em>Model Card</em>) aux fournisseurs de systèmes en aval pour leur permettre de
+                  respecter leurs propres obligations de transparence et d'information (Art. 53).
                 </p>
               </div>
             </div>
@@ -310,9 +362,9 @@ const FichePratiqueTransparencePage: React.FC = () => {
                     Règlement (UE) 2024/1689 (AI Act)
                   </h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
-                    <li>• <em>Art. 13 :</em> Obligations de transparence pour les fournisseurs de SIA-HR</li>
-                    <li>• <em>Art. 50 :</em> Obligations de transparence pour les fournisseurs et déployeurs de certains systèmes d'IA</li>
-                    <li>• <em>Art. 53 :</em> Obligations pour les fournisseurs de modèles d'IA à usage général</li>
+                    <li>• <em>Art. 13 :</em> Notice d'utilisation pour les Systèmes d'IA à Haut Risque</li>
+                    <li>• <em>Art. 50 :</em> Obligations de transparence pour les systèmes génératifs, chatbots et contenus synthétiques</li>
+                    <li>• <em>Art. 53 :</em> Obligations de transparence pour les fournisseurs de modèles d'IA à usage général (GPAI)</li>
                   </ul>
                   <a 
                     href="/consulter" 
@@ -354,6 +406,46 @@ const FichePratiqueTransparencePage: React.FC = () => {
                     <li>• <em>Chapitre 7 :</em> Transparency Under the AI Act (Florence Guillaume)</li>
                     <li>• <em>Chapitre 14 :</em> Compliance with the AI Act from a Corporate Perspective (Axel Cypel) - <em>Voir section "2.2 Documentation"</em></li>
                   </ul>
+                </div>
+                <div className="border-l-4 border-purple-400 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    EDPS – Guidance on Generative AI and the EUDPR (2025)
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Précisions sur l'information aux individus, la transparence sur les données d'entraînement et le marquage (watermarking)
+                    des contenus générés.
+                  </p>
+                  <a 
+                    href="https://www.edps.europa.eu/data-protection/our-work/publications/guidelines/2025-10-28-guidance-generative-ai-strengthening-data-protection-rapidly-changing-digital-era_en" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien vers le document
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+                <div className="border-l-4 border-blue-400 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    EDPS – AI Risks Management Guidance (Nov. 2025)
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Section 4 : interprétabilité comme condition de la transparence ; Section 5.2.5 : risque d&apos;information insuffisante
+                    ou peu claire fournie par le fournisseur.
+                  </p>
+                  <a 
+                    href="https://www.edps.europa.eu/system/files/2025-11/2025-11-11_ai_risks_management_guidance_en.pdf" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien vers le document
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
                 </div>
               </div>
             </div>
