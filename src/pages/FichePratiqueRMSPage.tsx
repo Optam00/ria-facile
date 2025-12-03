@@ -57,31 +57,36 @@ const FichePratiqueRMSPage: React.FC = () => {
               1. RAPPEL DES PRINCIPES FONDAMENTAUX
             </h2>
             <p className="text-gray-700 mb-4">
-              Le <strong>Risk Management System (RMS)</strong> est un processus continu et itératif. Selon l'EDPS, il ne doit pas se limiter à la sécurité technique (safety) mais placer les <strong>droits fondamentaux</strong> au cœur de l'analyse.
+              Le <strong>Risk Management System (RMS)</strong> est la colonne vertébrale de la conformité IA. Selon les guidelines 2025 du CEPD (EDPS), il doit
+              s'aligner sur la norme <strong>ISO 31000:2018</strong>.
             </p>
             <div className="space-y-6">
               <div className="border-l-4 border-purple-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Approche Holistique (Art. 9) :
+                  Approche Holistique :
                 </h3>
                 <p className="text-gray-700">
-                  Le fournisseur doit traiter les risques pour la santé, la sécurité, mais aussi la non-discrimination, la protection des données et la démocratie.
+                  Le RMS ne traite pas que les bugs techniques. Il doit couvrir les risques pour la <strong>santé</strong>, la
+                  <strong> sécurité</strong> et les <strong>droits fondamentaux</strong> (non-discrimination, vie privée, liberté d'expression, etc.).
                 </p>
               </div>
               <div className="border-l-4 border-indigo-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Cycle de vie complet :
+                  Cycle de vie continu :
                 </h3>
                 <p className="text-gray-700">
-                  Le RMS démarre à la conception et ne s'arrête qu'au retrait du système du marché. Il doit être mis à jour en continu (Art. 9 §2).
+                  Le RMS démarre à la <strong>conception</strong> et ne s'arrête qu'au <strong>retrait</strong> du système du marché. Il doit être mis à jour en
+                  continu tout au long du cycle de vie (Art. 9 §2 AI Act).
                 </p>
               </div>
               <div className="border-l-4 border-blue-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                  Double Conformité (EDPS Guidance) :
+                  Double périmètre :
                 </h3>
                 <p className="text-gray-700">
-                  La conformité à l'AI Act ne garantit pas automatiquement la conformité au RGPD. Les deux analyses (RMS/FRIA et AIPD) doivent être menées de front.
+                  • <strong>AI Act (Art. 9)</strong> : RMS obligatoire et formalisé pour les <strong>Systèmes d'IA à Haut Risque (SIA-HR)</strong>.<br />
+                  • <strong>RGPD (Art. 24 &amp; 32)</strong> : une gestion des risques est requise pour <strong>toute</strong> IA traitant des données personnelles,
+                  même si elle n'est pas &quot;Haut Risque&quot; au sens de l'AI Act.
                 </p>
               </div>
             </div>
@@ -89,10 +94,12 @@ const FichePratiqueRMSPage: React.FC = () => {
               <p className="font-semibold text-gray-900 mb-2">Périmètre d'application :</p>
               <div className="space-y-2 text-gray-700">
                 <p>
-                  <strong>✅ Concerne :</strong> Les <strong>Systèmes d'IA à Haut Risque (SIA-HR)</strong> visés par l'Art. 6 et l'Annexe III (ex: Recrutement, Santé, Justice, Biométrie, Services publics essentiels).
+                  <strong>✅ Concerne (AI Act – RMS formalisé) :</strong> Les <strong>Systèmes d'IA à Haut Risque (SIA-HR)</strong> visés par l'Art. 6 et l'Annexe III (ex:
+                  Recrutement, Santé, Justice, Biométrie, Services publics essentiels).
                 </p>
                 <p>
-                  <strong>❌ Ne concerne pas :</strong> Les IA à risque limité (Chatbots, Deepfakes), les IA à risque minimal, ni les Modèles d'IA (GPAI) seuls (sauf s'ils sont intégrés dans un SIA-HR).
+                  <strong>ℹ️ RGPD :</strong> Une <strong>gestion des risques</strong> (Art. 24 &amp; 32) reste attendue pour toute IA traitant des données
+                  personnelles, y compris les IA à risque limité.
                 </p>
               </div>
             </div>
@@ -106,7 +113,9 @@ const FichePratiqueRMSPage: React.FC = () => {
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg mb-4">
               <p className="font-semibold text-gray-900 mb-2">L'enjeu Business & Conformité :</p>
               <p className="text-gray-700">
-                Le RMS est le "moteur" de la conformité : sans lui, pas de marquage CE. Pour le secteur public et les entreprises régulées, c'est la preuve de la maîtrise de l'outil. Une gestion des risques défaillante expose à des sanctions massives (jusqu'à 35M€) et, selon l'EDPS, à une interdiction d'exploitation par les autorités de contrôle.
+                Le RMS est le &quot;moteur&quot; de la conformité : sans lui, pas de marquage CE pour les SIA-HR. Pour le secteur public et les
+                entreprises régulées, c'est la preuve de la maîtrise de l'outil. Une gestion des risques défaillante expose à des sanctions
+                massives (jusqu'à 35M€) et, selon l'EDPS, à une interdiction d'exploitation par les autorités de contrôle.
               </p>
             </div>
           </section>
@@ -119,10 +128,14 @@ const FichePratiqueRMSPage: React.FC = () => {
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold text-lg mb-3 text-gray-900">
-                  Le concept clé : Le Risque Résiduel & la Transparence
+                  Le concept clé : Risque inhérent vs Risque résiduel
                 </h3>
                 <p className="text-gray-700 mb-4">
-                  L'AI Act tolère un risque résiduel s'il est jugé acceptable. Le fournisseur doit le documenter et le communiquer au déployeur. L'EDPS insiste : cette communication doit être intelligible pour permettre au déployeur de mettre en place des mesures organisationnelles (formation, double validation).
+                  La méthodologie ISO 31000 (reprise par l'EDPS) distingue :<br />
+                  • Le <strong>risque inhérent</strong> : niveau de risque avant contrôle (lié à la nature même du système).<br />
+                  • Le <strong>risque résiduel</strong> : risque restant après mise en place des mesures de maîtrise.<br />
+                  Le <strong>fournisseur</strong> gère le risque inhérent et livre un système avec un risque résiduel documenté ; le
+                  <strong> déployeur</strong> doit ensuite gérer ce risque résiduel dans son propre contexte (organisation, processus, supervision).
                 </p>
               </div>
               <div className="bg-red-50 border-l-4 border-red-400 p-6 rounded-r-lg">
@@ -142,7 +155,8 @@ const FichePratiqueRMSPage: React.FC = () => {
               4. LE PLAN D'ACTIONS (FORMAT MATRICIEL)
             </h2>
             <p className="text-gray-700 mb-6">
-              Ce tableau intègre les recommandations de l'EDPS pour une gestion des risques "Fundamental Rights-centric".
+              Ce plan d'actions suit la structure <strong>BUILD (Fournisseur)</strong> → <strong>BUY (Acquisition par le déployeur)</strong> →
+              <strong> RUN (Utilisation &amp; suivi)</strong>, en intégrant la méthode ISO 31000 (Source → Événement → Conséquence → Contrôle).
             </p>
             <div className="mb-4 bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-700 mb-2"><strong>Légende :</strong></p>
@@ -155,91 +169,102 @@ const FichePratiqueRMSPage: React.FC = () => {
               <table className="min-w-full border-collapse border border-gray-300 text-sm">
                 <thead>
                   <tr className="bg-purple-100">
-                    <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Phase du Cycle de Vie</th>
+                    <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Phase</th>
                     <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Acteur Responsable</th>
                     <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Actions Concrètes à mener</th>
                     <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">Référence</th>
                   </tr>
                 </thead>
                 <tbody>
+                  {/* BUILD – Fournisseur */}
                   <tr className="bg-white hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>1. INITIALISATION</td>
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={3}>A. BUILD (Conception)</td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Cartographie des Risques "Droits Fondamentaux"</strong><br />
-                      Identifier les impacts potentiels sur la discrimination, la vie privée et les groupes vulnérables (enfants, handicap), au-delà de la simple sécurité physique.
+                      <strong>Cartographie des Risques (ISO 31000)</strong><br />
+                      Identifier les risques en suivant la chaîne <strong>Source → Événement → Conséquence → Contrôle</strong>
+                      (ex : Dataset biaisé → Score de crédit défavorable pour les femmes → Discrimination → Rééquilibrage + supervision humaine).
                     </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 9 (2)</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 9 (2) AI Act</td>
                   </tr>
                   <tr className="bg-gray-50 hover:bg-gray-100">
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
                       <strong>Gouvernance des Données (Data Quality)</strong><br />
-                      Auditer les jeux de données pour la représentativité et les biais. Documenter la provenance des données (EDPS focus).
+                      Auditer les jeux de données pour la représentativité, les biais et la qualité. Documenter la provenance et les
+                      limites (EDPS focus).
                     </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 10</td>
-                  </tr>
-                  <tr className="bg-white hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>2. DÉVELOPPEMENT</td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Implémenter la hiérarchie des mesures</strong><br />
-                      1. Design (Safe by design).<br />
-                      2. Protection technique (ex: filtres).<br />
-                      3. Information (Notice).
-                    </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 9 (4)</td>
-                  </tr>
-                  <tr className="bg-gray-50 hover:bg-gray-100">
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Tests de Robustesse & Cybersécurité</strong><br />
-                      Valider la résistance aux attaques adverses et aux tentatives de manipulation du modèle.
-                    </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 15</td>
-                  </tr>
-                  <tr className="bg-white hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={2}>3. DÉPLOIEMENT</td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Vérifier l'obligation de FRIA</strong><br />
-                      • <strong>Secteur Public / Banque / Assurance :</strong> Réaliser la FRIA (Art. 27).<br />
-                      • <strong>Autres :</strong> Réaliser une AIPD (RGPD) si données personnelles, en utilisant les infos du RMS fournisseur.
-                    </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 & Art. 35 RGPD</td>
-                  </tr>
-                  <tr className="bg-gray-50 hover:bg-gray-100">
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Définir la Surveillance Humaine (Human-in-the-loop)</strong><br />
-                      Définir qui valide la décision de l'IA. Former les opérateurs à détecter le "biais d'automatisation" (tendance à trop faire confiance à la machine).
-                    </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14 & 26</td>
-                  </tr>
-                  <tr className="bg-white hover:bg-gray-50">
-                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={3}>4. RUN & SUIVI</td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Monitoring en conditions réelles</strong><br />
-                      Surveiller les logs pour détecter les dérives (ex: biais apparaissant sur une nouvelle population).
-                    </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 26 (5)</td>
-                  </tr>
-                  <tr className="bg-gray-50 hover:bg-gray-100">
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Feedback Loop (Rétroaction)</strong><br />
-                      Remonter systématiquement les incidents et anomalies au fournisseur pour qu'il corrige le modèle.
-                    </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 26 (5)</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 10 AI Act</td>
                   </tr>
                   <tr className="bg-white hover:bg-gray-50">
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 <strong>FOURNISSEUR</strong></td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                      <strong>Mise à jour du RMS (Post-Market)</strong><br />
-                      Réévaluer la matrice des risques en fonction des retours terrain. Si le risque n'est plus acceptable → Correctif ou retrait.
+                      <strong>Tests de Robustesse &amp; Cybersécurité</strong><br />
+                      Réaliser des tests de type <em>red teaming</em> : data poisoning, model inversion, attaques adverses. Documenter
+                      les risques résiduels acceptés.
                     </td>
-                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 61</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 15 AI Act</td>
+                  </tr>
+
+                  {/* BUY – Acquisition */}
+                  <tr className="bg-gray-50 hover:bg-gray-100">
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={3}>B. BUY (Acquisition / Procurement)</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Audit du RMS Fournisseur</strong><br />
+                      Demander la documentation du RMS (métriques de performance, scénarios de risque, risques résiduels). Refuser
+                      les solutions &quot;boîte noire&quot; sans information sur les risques.
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 26 AI Act</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Vérification des Métriques</strong><br />
+                      Examiner les métriques clés (Accuracy, F1, taux d'erreur par sous-groupes) et demander des tests spécifiques
+                      dans votre contexte (données de test internes).
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">EDPS – Annexes tests RMS</td>
+                  </tr>
+                  <tr className="bg-gray-50 hover:bg-gray-100">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Intégration contractuelle</strong><br />
+                      Inclure des clauses obligeant le fournisseur à signaler toute nouvelle faille ou biais, à corriger le système et à
+                      mettre à jour la documentation du RMS (post-market).
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 28 RGPD &amp; 26 AI Act</td>
+                  </tr>
+
+                  {/* RUN – Utilisation */}
+                  <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900" rowSpan={3}>C. RUN (Utilisation &amp; Suivi)</td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Analyses d'Impact (FRIA / AIPD)</strong><br />
+                      Utiliser les éléments du RMS fournisseur comme intrants pour :<br />
+                      • une <strong>AIPD RGPD</strong> (Art. 35) ;<br />
+                      • une <strong>FRIA AI Act</strong> (Art. 27) pour les déployeurs concernés (secteur public, banque, assurance...).
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 27 AI Act &amp; 35 RGPD</td>
+                  </tr>
+                  <tr className="bg-gray-50 hover:bg-gray-100">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🔵 <strong>DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Mesures organisationnelles</strong><br />
+                      Mettre en place les contrôles humains nécessaires (principe des 4 yeux, procédures de revue, formation au biais
+                      d'automatisation) pour gérer le risque résiduel.
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 14, 26 &amp; 29 AI Act</td>
+                  </tr>
+                  <tr className="bg-white hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">🟢 / 🔵 <strong>FOURNISSEUR &amp; DÉPLOYEUR</strong></td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                      <strong>Boucle de rétroaction (Feedback Loop)</strong><br />
+                      • Déployeur : surveiller les incidents (biais, Data Drift) et les remonter.<br />
+                      • Fournisseur : mettre à jour le RMS et, si nécessaire, le système (correctifs, retrait partiel ou complet).
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-gray-700">Art. 26 (5) &amp; 61 AI Act</td>
                   </tr>
                 </tbody>
               </table>
@@ -345,6 +370,15 @@ const FichePratiqueRMSPage: React.FC = () => {
                     <li>• <em>Chapitre 5 :</em> Risk Management System Under The AI Act (Amélie Favreau)</li>
                     <li>• <em>Chapitre 11 :</em> Fundamental Rights Impact Assessment (M. Ho-Dac & L. Xenou)</li>
                   </ul>
+                </div>
+                <div className="border-l-4 border-purple-400 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    Norme ISO 31000:2018
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Standard international de référence pour la gestion des risques, explicitement mobilisé par l'EDPS pour structurer
+                    le RMS : <em>Source du risque → Événement → Conséquence → Contrôle</em>.
+                  </p>
                 </div>
               </div>
             </div>
