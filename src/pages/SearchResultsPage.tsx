@@ -103,6 +103,12 @@ const FICHES_PRATIQUES = [
     titre: "L'AI Act dans le secteur bancaire & financier",
     description: "Guide pratique pour l'application de l'AI Act dans le secteur bancaire et financier (scoring crédit, assurance, biais, FRIA et intégration dans le cadre prudentiel).",
     articlesRIA: ['6', '17', '27']
+  },
+  {
+    id: 'exception-haut-risque',
+    titre: "L'exception de qualification \"Haut Risque\" (Article 6.3)",
+    description: "Guide pratique sur l'exception de qualification Haut Risque (Art. 6.3 AI Act) : conditions, documentation, enregistrement et articulation avec le RGPD.",
+    articlesRIA: ['6', '49']
   }
 ]
 

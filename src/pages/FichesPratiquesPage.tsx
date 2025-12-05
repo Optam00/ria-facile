@@ -81,6 +81,14 @@ const fichesPratiques: FichePratique[] = [
     categorie: 'Secteur',
     duree: '15 min de lecture',
     articlesRIA: ['6', '17', '27']
+  },
+  {
+    id: 'exception-haut-risque',
+    titre: "L'exception de qualification \"Haut Risque\" (Article 6.3)",
+    description: "Guide pratique sur l'exception de qualification Haut Risque (Art. 6.3 AI Act) : conditions, documentation, enregistrement et articulation avec le RGPD.",
+    categorie: 'Conformité',
+    duree: '15 min de lecture',
+    articlesRIA: ['6', '49']
   }
 ]
 
