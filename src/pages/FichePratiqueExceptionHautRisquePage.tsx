@@ -44,7 +44,7 @@ const FichePratiqueExceptionHautRisquePage: React.FC = () => {
               <div className="mt-4">
                 <p className="text-sm text-gray-600 mb-2">Articles RIA associés :</p>
                 <div className="flex flex-wrap gap-2">
-                  {['6', '49'].map((article) => (
+                  {['6', '51'].map((article) => (
                     <span
                       key={article}
                       className="inline-block text-sm font-medium text-indigo-700 bg-indigo-100 px-3 py-1 rounded-lg border border-indigo-200"
@@ -66,44 +66,39 @@ const FichePratiqueExceptionHautRisquePage: React.FC = () => {
               1. RAPPEL DES PRINCIPES FONDAMENTAUX
             </h2>
             <p className="text-gray-700 mb-4">
-              L&apos;<strong>Annexe III</strong> de l&apos;AI Act liste des cas d&apos;usage présumés &quot;Haut Risque&quot; (ex: Recrutement,
-              Scoring bancaire). Cependant, l&apos;<strong>Article 6(3)</strong> introduit un mécanisme de{' '}
-              <strong>&quot;renversement de la présomption&quot;</strong>.
+              L&apos;<strong>Article 6(3)</strong> est un mécanisme de filtre. Il permet de sortir un système de la catégorie &quot;Haut Risque&quot;
+              même s&apos;il figure dans l&apos;<strong>Annexe III</strong> (ex: RH, Banque), à condition qu&apos;il ne pose pas de risque significatif.
             </p>
             <div className="space-y-6">
               <div className="border-l-4 border-purple-500 pl-6 py-2">
                 <h3 className="font-semibold text-lg mb-2 text-gray-900">Le principe :</h3>
                 <p className="text-gray-700">
-                  Un système listé en Annexe III n&apos;est <strong>pas considéré comme &quot;Haut Risque&quot;</strong> s&apos;il ne pose pas de
-                  risque significatif de préjudice pour la santé, la sécurité ou les droits fondamentaux.
+                  La présomption de &quot;Haut Risque&quot; est <strong>réfragable</strong> (contestable).
                 </p>
               </div>
               <div className="border-l-4 border-indigo-500 pl-6 py-2">
-                <h3 className="font-semibold text-lg mb-2 text-gray-900">Les 4 conditions cumulatives (Le &quot;Filtre&quot;) :</h3>
-                <p className="text-gray-700 mb-2">
-                  Pour bénéficier de l&apos;exception, l&apos;IA doit remplir <strong>l&apos;une</strong> des conditions suivantes :
-                </p>
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">Les 4 conditions ALTERNATIVES (Il en suffit d&apos;une) :</h3>
                 <ul className="list-disc list-inside space-y-1 text-gray-700">
                   <li>
-                    <strong>(a)</strong> Effectuer une tâche procédurale étroite (ex: détection de spam).
+                    <strong>(a) Tâche procédurale :</strong> L&apos;IA exécute une tâche étroite et définie (ex: détection de doublons).
                   </li>
                   <li>
-                    <strong>(b)</strong> Améliorer le résultat d&apos;une activité humaine préalable (ex: correction orthographique).
+                    <strong>(b) Amélioration :</strong> L&apos;IA améliore le résultat d&apos;une activité humaine préalable (ex: lissage de son).
                   </li>
                   <li>
-                    <strong>(c)</strong> Détecter des motifs décisionnels sans remplacer l&apos;humain (ex: détection de tendances).
+                    <strong>(c) Détection de motifs :</strong> L&apos;IA détecte des patterns sans décider (ex: détection d&apos;anomalies réseau).
                   </li>
                   <li>
-                    <strong>(d)</strong> Effectuer une tâche préparatoire à une évaluation (ex: numérisation de CV).
+                    <strong>(d) Tâche préparatoire :</strong> L&apos;IA prépare une donnée pour une évaluation future (ex: traduction de CV).
                   </li>
                 </ul>
               </div>
               <div className="border-l-4 border-red-500 pl-6 py-2 bg-red-50 rounded-r-lg">
-                <h3 className="font-semibold text-lg mb-2 text-gray-900">Le verrou &quot;Profilage&quot; :</h3>
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">Le &quot;Kill Switch&quot; (Verrou Profilage) :</h3>
                 <p className="text-gray-700">
-                  <strong>L&apos;exception saute automatiquement</strong> si le système effectue du profilage de personnes physiques (Art. 6
-                  §3 dernier alinéa). Dès lors qu&apos;un système fait du profilage, il est <strong>toujours considéré comme Haut Risque</strong>,
-                  même s&apos;il remplit l&apos;une des 4 conditions.
+                  L&apos;exception est <strong>annulée</strong> si le système effectue du profilage de personnes physiques (Art. 4 RGPD), c&apos;est-à-dire
+                  une évaluation automatisée des caractéristiques personnelles. Dès lors qu&apos;un système fait du profilage, il est{' '}
+                  <strong>toujours considéré comme Haut Risque</strong>, même s&apos;il remplit l&apos;une des 4 conditions.
                 </p>
               </div>
             </div>
@@ -112,23 +107,20 @@ const FichePratiqueExceptionHautRisquePage: React.FC = () => {
           {/* Section 2 */}
           <section className="bg-white rounded-2xl shadow-md p-8 mb-8">
             <h2 className="text-2xl font-bold mb-6" style={{ color: '#774792' }}>
-              2. LE CADRE EN BREF : UNE OPPORTUNITÉ À RISQUE
+              2. LE CADRE EN BREF : LA FAUSSE TRANQUILLITÉ
             </h2>
             <div className="space-y-4">
               <div className="bg-green-50 border-l-4 border-green-400 p-6 rounded-r-lg">
-                <h3 className="font-semibold text-lg mb-2 text-gray-900">L&apos;opportunité Business :</h3>
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">L&apos;avantage :</h3>
                 <p className="text-gray-700">
-                  Si l&apos;exception s&apos;applique, le système bascule dans la catégorie &quot;Transparence spécifique&quot; (Art. 50) ou
-                  &quot;Risque minimal&quot;. Cela évite <strong>90% des coûts de conformité</strong> : pas de Système de Gestion de la Qualité,
-                  pas d&apos;audit tiers, pas de documentation technique lourde (Annexe IV).
+                  Échapper aux obligations lourdes (Marquage CE, Système de Qualité, Logs complexes).
                 </p>
               </div>
               <div className="bg-red-50 border-l-4 border-red-400 p-6 rounded-r-lg">
-                <h3 className="font-semibold text-lg mb-2 text-gray-900">Le piège :</h3>
+                <h3 className="font-semibold text-lg mb-2 text-gray-900">Le risque :</h3>
                 <p className="text-gray-700">
-                  C&apos;est une <strong>auto-évaluation du Fournisseur</strong>. Si l&apos;autorité de surveillance estime a posteriori que
-                  l&apos;exception a été invoquée à tort, le système est <strong>illégal</strong> (absence de marquage CE) et les sanctions
-                  s&apos;appliquent (jusqu&apos;à 15M€ ou 3% du CA pour les entreprises).
+                  C&apos;est une <strong>auto-évaluation</strong>. Si l&apos;autorité de contrôle juge que vous avez tort, votre système devient{' '}
+                  <strong>illégal du jour au lendemain</strong> (mise sur le marché sans conformité).
                 </p>
               </div>
             </div>
@@ -137,37 +129,34 @@ const FichePratiqueExceptionHautRisquePage: React.FC = () => {
           {/* Section 3 */}
           <section className="bg-white rounded-2xl shadow-md p-8 mb-8">
             <h2 className="text-2xl font-bold mb-6" style={{ color: '#774792' }}>
-              3. DÉCRYPTAGE : L&apos;ANALYSE DU &quot;MAPPING REPORT&quot; (EDPS 2025)
+              3. DÉCRYPTAGE : LA POSITION DU CEPD (EDPS)
             </h2>
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold text-lg mb-3 text-gray-900">
-                  La fausse sécurité : AI Act vs RGPD (Vue EDPS Mapping Report)
+                  L&apos;autonomie des régimes : AI Act vs RGPD (Vue EDPS Guidance)
                 </h3>
                 <p className="text-gray-700 mb-4">
-                  Le document du <strong>CEPD Mapping Report AI Act/GDPR</strong> apporte un éclairage crucial sur l&apos;articulation avec le
-                  RGPD :
+                  Dans ses <strong>Guidelines for Risk Management (2025)</strong>, le CEPD met en garde contre une confusion des risques :
                 </p>
                 <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
                   <p className="text-gray-700 font-semibold mb-2">⚠️ Point critique :</p>
                   <p className="text-gray-700">
-                    Ce n&apos;est <strong>pas parce qu&apos;une IA bénéficie de l&apos;exception Art. 6(3)</strong> (donc pas &quot;Haut Risque&quot;
-                    AI Act) qu&apos;elle est &quot;Faible Risque&quot; pour le RGPD.
+                    Une IA peut bénéficier de l&apos;exception Art. 6(3) (car elle est techniquement simple) mais nécessiter tout de même une{' '}
+                    <strong>AIPD (RGPD Art. 35)</strong> car elle traite des données sensibles à grande échelle.
                   </p>
                   <p className="text-gray-700 mt-2">
-                    <strong>Exemple :</strong> Un outil de tri de CV qui fait juste une &quot;tâche préparatoire&quot; (Condition d) peut échapper à
-                    la qualification &quot;Haut Risque AI Act&quot;, mais reste un <strong>traitement massif de données personnelles</strong>{' '}
-                    nécessitant une <strong>AIPD (RGPD Art. 35)</strong>.
+                    <strong>Exemple :</strong> Un outil de tri de CV par mots-clés.
                   </p>
+                  <ul className="list-disc list-inside space-y-1 text-gray-700 mt-2">
+                    <li>
+                      <strong>AI Act :</strong> Exception possible (Tâche procédurale).
+                    </li>
+                    <li>
+                      <strong>RGPD :</strong> Risque élevé (Discrimination, accès à l&apos;emploi). L&apos;AIPD reste obligatoire.
+                    </li>
+                  </ul>
                 </div>
-              </div>
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-r-lg">
-                <h3 className="font-semibold text-lg mb-2 text-gray-900">L&apos;exigence de documentation :</h3>
-                <p className="text-gray-700">
-                  Le CEPD insiste : l&apos;exception doit être <strong>documentée avant la mise sur le marché</strong>. Le fournisseur doit
-                  prouver pourquoi le risque n&apos;est pas significatif et quelle condition (a, b, c ou d) est remplie. Cette documentation doit
-                  être tenue à disposition des autorités de surveillance.
-                </p>
               </div>
             </div>
           </section>
@@ -197,40 +186,39 @@ const FichePratiqueExceptionHautRisquePage: React.FC = () => {
                   </thead>
                   <tbody>
                     <tr className="bg-white hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Test des 4 conditions</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Test du profilage</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">AI Act (Art. 6 §3)</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <ul className="list-disc list-inside space-y-1">
-                          <li>L&apos;IA prend-elle une décision ou prépare-t-elle juste le travail ?</li>
                           <li>
-                            Si l&apos;IA influence directement le sort d&apos;une personne (ex: rejet automatique), l&apos;exception est
-                            impossible.
+                            <strong>Question bloquante :</strong> L&apos;IA évalue-t-elle la fiabilité, le comportement ou les attributs
+                            d&apos;une personne ?
                           </li>
+                          <li>Si OUI ➔ Exception interdite.</li>
                         </ul>
                       </td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Check &quot;Profilage&quot;</td>
-                      <td className="border border-gray-300 px-4 py-3 text-gray-700">AI Act (Art. 6 §3)</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Justification technique</td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">AI Act (Art. 6)</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <ul className="list-disc list-inside space-y-1">
                           <li>
-                            <strong>Point bloquant :</strong> L&apos;IA évalue-t-elle des caractéristiques personnelles (rendement au travail,
-                            fiabilité, comportement) ?
+                            Rédiger une note prouvant que l&apos;IA ne fait qu&apos;une tâche accessoire (a, b, c ou d) et n&apos;influence pas
+                            significativement la décision finale.
                           </li>
-                          <li>Si OUI = Haut Risque obligatoire (pas d&apos;exception possible).</li>
                         </ul>
                       </td>
                     </tr>
                     <tr className="bg-white hover:bg-gray-50">
                       <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Mapping RGPD</td>
-                      <td className="border border-gray-300 px-4 py-3 text-gray-700">EDPS Mapping Report</td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">EDPS Guidance</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <ul className="list-disc list-inside space-y-1">
                           <li>
-                            Même si l&apos;exception s&apos;applique, vérifier si une <strong>AIPD est requise</strong> (RGPD Art. 35).
+                            Vérifier si une <strong>AIPD est requise</strong> malgré l&apos;exception AI Act.
                           </li>
-                          <li>L&apos;exemption AI Act ne dispense pas des obligations RGPD.</li>
+                          <li>Ne pas baisser la garde sur la protection des données.</li>
                         </ul>
                       </td>
                     </tr>
@@ -266,16 +254,27 @@ const FichePratiqueExceptionHautRisquePage: React.FC = () => {
                         </ul>
                       </td>
                     </tr>
-                    <tr className="bg-gray-50 hover:bg-gray-100">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Enregistrement Base UE</td>
-                      <td className="border border-gray-300 px-4 py-3 text-gray-700">AI Act (Art. 49 &amp; 60)</td>
+                    <tr className="bg-white hover:bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Enregistrement UE</td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">AI Act (Art. 51 &amp; 60)</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <ul className="list-disc list-inside space-y-1">
                           <li>
-                            <strong>Obligation souvent oubliée :</strong> Même si vous utilisez l&apos;exception, vous devez vous enregistrer dans
-                            la base de données de l&apos;UE.
+                            <strong>Obligatoire :</strong> S&apos;inscrire dans la base de données de l&apos;UE.
                           </li>
-                          <li>Cocher la case &quot;Exception Art. 6(3)&quot; lors de l&apos;enregistrement.</li>
+                          <li>Cocher la déclaration de dérogation Art. 6(3) et uploader la justification sommaire.</li>
+                        </ul>
+                      </td>
+                    </tr>
+                    <tr className="bg-gray-50 hover:bg-gray-100">
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Documentation</td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">AI Act (Annexe IV)</td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>
+                            Garder la documentation technique à disposition des autorités pendant <strong>10 ans</strong>, prouvant la validité de
+                            l&apos;exception.
+                          </li>
                         </ul>
                       </td>
                     </tr>
@@ -299,29 +298,25 @@ const FichePratiqueExceptionHautRisquePage: React.FC = () => {
                   </thead>
                   <tbody>
                     <tr className="bg-white hover:bg-gray-50">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Challenge de la qualification</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Challenge fournisseur</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">AI Act (Art. 26)</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <ul className="list-disc list-inside space-y-1">
                           <li>
-                            Si un fournisseur vous vend un outil RH ou Bancaire en disant &quot;Ce n&apos;est pas Haut Risque grâce à l&apos;Art.
-                            6(3)&quot;, soyez méfiant.
+                            Si un vendeur prétend &quot;Pas de Haut Risque&quot;, demandez la preuve de l&apos;enregistrement Art. 6(3).
                           </li>
-                          <li>
-                            <strong>Demandez la justification écrite.</strong> Si l&apos;autorité requalifie le système, vous devrez arrêter de
-                            l&apos;utiliser.
-                          </li>
+                          <li>Vérifiez que l&apos;outil ne fait pas de profilage caché (ex: scoring de candidats).</li>
                         </ul>
                       </td>
                     </tr>
                     <tr className="bg-gray-50 hover:bg-gray-100">
-                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Vérification du profilage</td>
-                      <td className="border border-gray-300 px-4 py-3 text-gray-700">RGPD (Art. 22)</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium text-gray-900">Clause de garantie</td>
+                      <td className="border border-gray-300 px-4 py-3 text-gray-700">Contrat</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-700">
                         <ul className="list-disc list-inside space-y-1">
-                          <li>Vérifier si l&apos;outil fait du profilage caché.</li>
                           <li>
-                            Si oui, la qualification &quot;Non-Haut Risque&quot; du fournisseur est <strong>frauduleuse</strong>.
+                            Insérer une clause : &quot;Le fournisseur garantit la qualification juridique. En cas de requalification par
+                            l&apos;autorité, il assume les frais de mise en conformité.&quot;
                           </li>
                         </ul>
                       </td>
@@ -356,37 +351,12 @@ const FichePratiqueExceptionHautRisquePage: React.FC = () => {
               }`}
             >
               <div className="space-y-6">
-                <div className="border-l-4 border-purple-500 pl-6 py-3">
-                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                    EDPS (CEPD) – Mapping Report AI Act / GDPR (04 Dec 2025)
-                  </h3>
-                  <p className="text-gray-700 mb-2">
-                    Apport : Analyse les écarts entre la classification des risques de l&apos;AI Act (basée sur l&apos;usage) et celle du RGPD
-                    (basée sur la donnée). Souligne que l&apos;exception Art. 6(3) ne supprime pas l&apos;obligation d&apos;AIPD.
-                  </p>
-                  <a
-                    href="https://www.edps.europa.eu/system/files/2025-12/2025-12-04-mapping-report-aiact_en.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
-                  >
-                    Lien vers le document
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                      />
-                    </svg>
-                  </a>
-                </div>
                 <div className="border-l-4 border-indigo-500 pl-6 py-3">
                   <h3 className="font-semibold text-lg mb-2 text-gray-900">Règlement (UE) 2024/1689 (AI Act)</h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
-                    <li>• <em>Art. 6 :</em> Règles de classification des systèmes d&apos;IA (dont l&apos;exception §3)</li>
-                    <li>• <em>Art. 49 :</em> Enregistrement des exceptions dans la base de données de l&apos;UE</li>
-                    <li>• <em>Annexe III :</em> Liste des cas d&apos;usage présumés Haut Risque</li>
+                    <li>• <em>Art. 6 :</em> Classification &amp; Exception</li>
+                    <li>• <em>Art. 51 :</em> Enregistrement</li>
+                    <li>• <em>Annexe III :</em> Cas d&apos;usage</li>
                   </ul>
                   <a
                     href="/consulter"
@@ -405,10 +375,45 @@ const FichePratiqueExceptionHautRisquePage: React.FC = () => {
                     </svg>
                   </a>
                 </div>
+                <div className="border-l-4 border-purple-500 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    EDPS (CEPD) – Guidance for Risk Management of AI Systems (11 Nov 2025)
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    Apport : Clarifie que la baisse du niveau de risque &quot;AI Act&quot; n&apos;entraîne pas automatiquement une baisse du niveau
+                    de risque &quot;RGPD&quot;.
+                  </p>
+                  <a
+                    href="https://www.edps.europa.eu/system/files/2025-11/2025-11-11_ai_risks_management_guidance_en.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-700 underline inline-flex items-center gap-1"
+                  >
+                    Lien vers le document
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </a>
+                </div>
+                <div className="border-l-4 border-purple-400 pl-6 py-3">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                    Commission Européenne – Guidelines on Article 6(3)
+                  </h3>
+                  <p className="text-gray-700 mb-2">
+                    <strong>Note :</strong> La Commission doit publier des exemples concrets pour les conditions a, b, c, d. (Document attendu, à
+                    surveiller).
+                  </p>
+                </div>
                 <div className="border-l-4 border-blue-500 pl-6 py-3">
                   <h3 className="font-semibold text-lg mb-2 text-gray-900">Règlement (UE) 2016/679 (RGPD)</h3>
                   <ul className="text-gray-700 mb-2 space-y-1">
-                    <li>• <em>Art. 35 :</em> Analyse d&apos;impact relative à la protection des données (AIPD)</li>
+                    <li>• <em>Art. 4 :</em> Définition du profilage</li>
+                    <li>• <em>Art. 35 :</em> AIPD</li>
                   </ul>
                   <a
                     href="https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:32016R0679"

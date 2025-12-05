@@ -88,7 +88,7 @@ const fichesPratiques: FichePratique[] = [
     description: "Guide pratique sur l'exception de qualification Haut Risque (Art. 6.3 AI Act) : conditions, documentation, enregistrement et articulation avec le RGPD.",
     categorie: 'Conformité',
     duree: '15 min de lecture',
-    articlesRIA: ['6', '49']
+    articlesRIA: ['6', '51']
   }
 ]
 

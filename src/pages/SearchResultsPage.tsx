@@ -108,7 +108,7 @@ const FICHES_PRATIQUES = [
     id: 'exception-haut-risque',
     titre: "L'exception de qualification \"Haut Risque\" (Article 6.3)",
     description: "Guide pratique sur l'exception de qualification Haut Risque (Art. 6.3 AI Act) : conditions, documentation, enregistrement et articulation avec le RGPD.",
-    articlesRIA: ['6', '49']
+    articlesRIA: ['6', '51']
   }
 ]
 
