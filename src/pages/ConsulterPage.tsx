@@ -249,24 +249,39 @@ export const ConsulterPage = () => {
       const params = new URLSearchParams(window.location.search)
       const type = params.get('type')
       const id = params.get('id')
+      const numero = params.get('numero')
 
-      if (!type || !id) return
+      if (!type || (!id && !numero)) return
 
       setLoadingContent(true)
       try {
         switch (type) {
           case 'considerant':
-            await handleConsiderantClick(parseInt(id))
+            await handleConsiderantClick(parseInt(id!))
             break
           case 'chapitre':
-            await handleChapitreClick(parseInt(id))
+            await handleChapitreClick(parseInt(id!))
             break
           case 'article':
-            const { data: article } = await supabase
-              .from('article')
-              .select('id_article, titre, numero, contenu, resume, recitals, fiches')
-              .eq('id_article', parseInt(id))
-              .single()
+            let article
+            if (numero) {
+              // Recherche par numéro d'article
+              const { data: articleData } = await supabase
+                .from('article')
+                .select('id_article, titre, numero, contenu, resume, recitals, fiches')
+                .eq('numero', numero)
+                .single()
+              article = articleData
+            } else if (id) {
+              // Recherche par id_article (comportement existant)
+              const { data: articleData } = await supabase
+                .from('article')
+                .select('id_article, titre, numero, contenu, resume, recitals, fiches')
+                .eq('id_article', parseInt(id))
+                .single()
+              article = articleData
+            }
+            
             if (article) {
               await handleArticleClick({
                 id_article: article.id_article,
@@ -1147,7 +1162,7 @@ export const ConsulterPage = () => {
                               ? selectedArticle.resume
                               : 'Aucun résumé disponible pour cet article.'}
                           </div>
-                        )}
+                      )}
                       </div>
                       <div className="break-words whitespace-pre-wrap">
                         {selectedArticle.contenu}
@@ -1242,7 +1257,7 @@ export const ConsulterPage = () => {
                                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                             </svg>
                                           </a>
-                                        )}
+                      )}
                                       </li>
                                     )
                                   })}

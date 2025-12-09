@@ -119,10 +119,10 @@ export const Navigation = () => {
           </form>
         )}
 
-         {/* Menu horizontal centré (xl+) */}
-         {!showSearchInline && (
+        {/* Menu horizontal centré (xl+) */}
+        {!showSearchInline && (
            <div className="hidden lg:flex flex-1 justify-center">
-             <div className="flex gap-8 items-center whitespace-nowrap">
+            <div className="flex gap-8 items-center whitespace-nowrap">
                <Link to="/" className={`text-base font-semibold transition-colors hover:text-purple-700 ${isActive('/') ? 'text-purple-700' : 'text-gray-900'}`}>Accueil</Link>
                <Link to="/consulter" className={`text-base font-semibold transition-colors hover:text-purple-700 ${isActive('/consulter') ? 'text-purple-700' : 'text-gray-900'}`}>Consulter le RIA</Link>
               {/* Maîtriser le RIA dropdown */}
@@ -219,9 +219,9 @@ export const Navigation = () => {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <line x1="18" y1="6" x2="6" y2="18" strokeWidth="2" />
                     <line x1="6" y1="6" x2="18" y2="18" strokeWidth="2" />
-                  </svg>
-                </button>
-              )}
+              </svg>
+            </button>
+          )}
             </form>
           )}
           {/* Bouton contact */}
