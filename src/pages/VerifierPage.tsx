@@ -196,9 +196,10 @@ const VerifierPage: React.FC = () => {
           {/* Ligne niveau de risque */}
           <div className="col-start-1">
             <Card
-              title="Déterminer le niveau de risque d’un système d’IA"
+              title="Déterminer le niveau de risque d'un système d'IA"
               color="violet"
-              disabled
+              to="/verificateur/niveau-risque"
+              subtitle="Cliquer pour accéder au questionnaire"
             />
           </div>
           <div className="col-start-2 md:hidden">

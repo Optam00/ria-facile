@@ -26,6 +26,7 @@ import FichesPratiquesPage from './pages/FichesPratiquesPage'
 import VerifierSystemePage from './pages/VerifierSystemePage'
 import VerifierModelePage from './pages/VerifierModelePage'
 import VerifierChampApplicationPage from './pages/VerifierChampApplicationPage'
+import VerifierNiveauRisquePage from './pages/VerifierNiveauRisquePage'
 import MatriceDesObligationsPage from './pages/MatriceDesObligationsPage'
 import FichePratiqueExactitudePage from './pages/FichePratiqueExactitudePage'
 import FichePratiqueExplicabilitePage from './pages/FichePratiqueExplicabilitePage'
@@ -78,6 +79,7 @@ function App() {
               <Route path="/verificateur/systeme-ia" element={<VerifierSystemePage />} />
               <Route path="/verificateur/modele-ia" element={<VerifierModelePage />} />
               <Route path="/verificateur/champ-application" element={<VerifierChampApplicationPage />} />
+              <Route path="/verificateur/niveau-risque" element={<VerifierNiveauRisquePage />} />
               <Route path="/matrice-des-obligations" element={<MatriceDesObligationsPage />} />
               <Route path="/fiches-pratiques" element={<FichesPratiquesPage />} />
               <Route path="/fiches-pratiques/exactitude" element={<FichePratiqueExactitudePage />} />
