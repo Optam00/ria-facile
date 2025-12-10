@@ -477,11 +477,11 @@ const MatriceDesObligationsPage: React.FC = () => {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Bandeau */}
-        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl shadow-md p-6 md:p-8 mb-8 border-2" style={{ borderColor: '#774792' }}>
+        <div className="bg-white rounded-3xl shadow-md p-6 mb-6 text-center">
           <h1 className="text-2xl md:text-3xl font-bold mb-2" style={{ color: '#774792' }}>
             Matrice des obligations
           </h1>
-          <p className="text-gray-700">
+          <p className="text-gray-600">
             Renseignez le niveau de risque de votre IA et votre rôle pour obtenir la liste des obligations applicables selon l&apos;AI Act.
           </p>
         </div>
