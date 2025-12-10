@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
@@ -126,6 +126,24 @@ const Arrow: React.FC = () => (
 )
 
 const VerifierPage: React.FC = () => {
+  const [showInfo, setShowInfo] = useState(false)
+
+  useEffect(() => {
+    const visitCountKey = 'verifier-visit-count'
+    const currentCount = parseInt(localStorage.getItem(visitCountKey) || '0', 10)
+    const newCount = currentCount + 1
+    localStorage.setItem(visitCountKey, newCount.toString())
+    
+    // Afficher l'encadré toutes les 5 visites (visites 1, 6, 11, 16, etc.)
+    if (newCount % 5 === 1) {
+      setShowInfo(true)
+    }
+  }, [])
+
+  const handleClose = () => {
+    setShowInfo(false)
+  }
+
   return (
     <div className="min-h-[60vh]">
       <Helmet>
@@ -137,6 +155,30 @@ const VerifierPage: React.FC = () => {
           <h1 className="text-3xl font-bold mb-2" style={{ color: '#774792' }}>Vérificateurs de conformité au Règlement IA</h1>
           <p className="text-gray-600">Qualifier votre solution d'IA, votre rôle et votre niveau de risque grâce aux questionnaires ci-dessous.</p>
         </div>
+        {/* Encadré informatif */}
+        {showInfo && (
+          <div className="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4 mb-6 relative">
+            <button
+              onClick={handleClose}
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Fermer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="flex items-start gap-3 pr-6">
+              <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="flex-1">
+                <p className="text-sm text-gray-700">
+                  <strong>Astuce :</strong> Une fois que vous avez déterminé le niveau de risque et le rôle de votre organisation grâce aux vérificateurs ci-dessous, vous pouvez utiliser la <Link to="/matrice-des-obligations" className="text-blue-600 font-semibold hover:underline">Matrice des obligations</Link> pour obtenir la liste complète des obligations applicables.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Grille inspirée du schéma fourni */}
         <div className="flex justify-center">
           <div className="grid grid-cols-2 md:[grid-template-columns:1fr_1.5rem_1fr] gap-3 items-center md:max-w-[700px]">

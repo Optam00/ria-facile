@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { Link } from 'react-router-dom'
 
 // Types
 type TypeSysteme = 'haut-risque' | 'gpai' | 'transparence' | 'interdictions' | null
@@ -356,11 +357,28 @@ const obligationsBAN: Obligation[] = [
 ]
 
 const MatriceDesObligationsPage: React.FC = () => {
+  const [showInfo, setShowInfo] = useState(false)
   const [typeSysteme, setTypeSysteme] = useState<TypeSysteme>(null)
   const [role, setRole] = useState<Role>(null)
   const [typeGPAI, setTypeGPAI] = useState<TypeGPAI>(null)
   const [typeAnnexe, setTypeAnnexe] = useState<TypeAnnexe>(null)
   const [isGenerative, setIsGenerative] = useState<boolean>(false)
+
+  useEffect(() => {
+    const visitCountKey = 'matrice-visit-count'
+    const currentCount = parseInt(localStorage.getItem(visitCountKey) || '0', 10)
+    const newCount = currentCount + 1
+    localStorage.setItem(visitCountKey, newCount.toString())
+    
+    // Afficher l'encadré toutes les 5 visites (visites 1, 6, 11, 16, etc.)
+    if (newCount % 5 === 1) {
+      setShowInfo(true)
+    }
+  }, [])
+
+  const handleClose = () => {
+    setShowInfo(false)
+  }
   const [isOrganismePublic, setIsOrganismePublic] = useState<boolean>(false)
   const [isBanqueAssurance, setIsBanqueAssurance] = useState<boolean>(false)
   const [isDeepfake, setIsDeepfake] = useState<boolean>(false)
@@ -485,6 +503,30 @@ const MatriceDesObligationsPage: React.FC = () => {
             Renseignez le niveau de risque de votre IA et votre rôle pour obtenir la liste des obligations applicables selon l&apos;AI Act.
           </p>
         </div>
+        {/* Encadré informatif */}
+        {showInfo && (
+          <div className="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4 mb-6 relative">
+            <button
+              onClick={handleClose}
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Fermer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="flex items-start gap-3 pr-6">
+              <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="flex-1">
+                <p className="text-sm text-gray-700">
+                  <strong>Astuce :</strong> Si vous ne connaissez pas encore le niveau de risque de votre système d&apos;IA ou le rôle de votre organisation, utilisez d&apos;abord les <Link to="/verificateur" className="text-blue-600 font-semibold hover:underline">Vérificateurs de conformité</Link> pour obtenir ces informations.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Formulaire */}
         <div className="bg-white rounded-2xl shadow-md p-6 md:p-8 mb-8">
