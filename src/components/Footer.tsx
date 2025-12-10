@@ -12,10 +12,6 @@ export const Footer: React.FC = () => {
             <Link to="/mentions-legales" className="text-gray-600 hover:text-[#774792] text-sm">
               Mentions légales
             </Link>
-            <br />
-            <Link to="/matrice-des-obligations" className="text-gray-600 hover:text-[#774792] text-sm">
-              Matrice des obligations
-            </Link>
           </div>
           <div>
             <h3 className="text-base font-semibold mb-2">Liens utiles</h3>

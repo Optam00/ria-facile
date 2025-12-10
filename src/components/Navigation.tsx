@@ -180,6 +180,7 @@ export const Navigation = () => {
                   >
                     <Link to="/assistant-ria" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Assistant RIA</Link>
                     <Link to="/verificateur" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Vérificateur de conformité</Link>
+                    <Link to="/matrice-des-obligations" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Matrice des obligations</Link>
                     <Link to="/fiches-pratiques" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Fiches pratiques</Link>
                   </div>
                 )}
