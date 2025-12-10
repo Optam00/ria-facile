@@ -232,7 +232,8 @@ const VerifierPage: React.FC = () => {
             <Card
               title="Déterminer le rôle de mon organisation concernant un système d’IA"
               color="violet"
-              disabled
+              to="/verificateur/role-organisation-systeme"
+              subtitle="Cliquer pour accéder au questionnaire"
             />
           </div>
           <div className="col-start-2 md:hidden">

@@ -28,6 +28,7 @@ import VerifierModelePage from './pages/VerifierModelePage'
 import VerifierChampApplicationPage from './pages/VerifierChampApplicationPage'
 import VerifierNiveauRisquePage from './pages/VerifierNiveauRisquePage'
 import VerifierNiveauRisqueModelePage from './pages/VerifierNiveauRisqueModelePage'
+import VerifierRoleOrganisationPage from './pages/VerifierRoleOrganisationPage'
 import MatriceDesObligationsPage from './pages/MatriceDesObligationsPage'
 import FichePratiqueExactitudePage from './pages/FichePratiqueExactitudePage'
 import FichePratiqueExplicabilitePage from './pages/FichePratiqueExplicabilitePage'
@@ -82,6 +83,7 @@ function App() {
               <Route path="/verificateur/champ-application" element={<VerifierChampApplicationPage />} />
               <Route path="/verificateur/niveau-risque" element={<VerifierNiveauRisquePage />} />
               <Route path="/verificateur/niveau-risque-modele" element={<VerifierNiveauRisqueModelePage />} />
+              <Route path="/verificateur/role-organisation-systeme" element={<VerifierRoleOrganisationPage />} />
               <Route path="/matrice-des-obligations" element={<MatriceDesObligationsPage />} />
               <Route path="/fiches-pratiques" element={<FichesPratiquesPage />} />
               <Route path="/fiches-pratiques/exactitude" element={<FichePratiqueExactitudePage />} />
