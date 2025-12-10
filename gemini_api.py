@@ -1,20 +1,13 @@
 import os
-import logging
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from google import genai
 from google.genai import types
 from typing import List, Optional
 
-# Configuration du logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 app = FastAPI()
 
-# Configuration CORS - DOIT être avant les routes
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -28,24 +21,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Gestionnaire d'exceptions global pour s'assurer que CORS est toujours appliqué
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Exception globale: {type(exc).__name__} - {str(exc)}")
-    return JSONResponse(
-        status_code=500,
-        content={"detail": f"Erreur serveur: {str(exc)}"},
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*",
-        }
-    )
-
-@app.get("/health")
-async def health_check():
-    return {"status": "ok", "message": "Service opérationnel"}
-
 class HistoryItem(BaseModel):
     question: str
     answer: str
@@ -56,53 +31,46 @@ class Question(BaseModel):
 
 @app.post("/ask")
 async def ask_gemini(data: Question):
-    try:
-        api_key = os.environ.get("GEMINI_API_KEY")
-        if not api_key:
-            logger.error("GEMINI_API_KEY n'est pas définie dans les variables d'environnement")
-            raise HTTPException(status_code=500, detail="Configuration API manquante")
-        
-        logger.info(f"Tentative d'appel à Gemini API avec le modèle gemini-2.5-pro")
-        client = genai.Client(api_key=api_key)
-        model = "gemini-2.5-pro"
+    client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+    model = "gemini-2.5-pro"
 
-        # Construction du prompt avec l'historique
-        contents = []
-        if data.history:
-            for item in data.history:
-                contents.append(
-                    types.Content(
-                        role="user",
-                        parts=[types.Part.from_text(text=item.question)],
-                    )
+    # Construction du prompt avec l'historique
+    contents = []
+    if data.history:
+        for item in data.history:
+            contents.append(
+                types.Content(
+                    role="user",
+                    parts=[types.Part.from_text(text=item.question)],
                 )
-                contents.append(
-                    types.Content(
-                        role="model",
-                        parts=[types.Part.from_text(text=item.answer)],
-                    )
-                )
-        # Ajout de la nouvelle question
-        user_question = data.question + "\nMerci de fonder ta réponse uniquement sur le règlement IA dont le plan est donné dans l'instruction."
-        contents.append(
-            types.Content(
-                role="user",
-                parts=[types.Part.from_text(text=user_question)],
             )
+            contents.append(
+                types.Content(
+                    role="model",
+                    parts=[types.Part.from_text(text=item.answer)],
+                )
+            )
+    # Ajout de la nouvelle question
+    user_question = data.question + "\nMerci de fonder ta réponse uniquement sur le règlement IA dont le plan est donné dans l’instruction."
+    contents.append(
+        types.Content(
+            role="user",
+            parts=[types.Part.from_text(text=user_question)],
         )
-        tools = [
-            types.Tool(url_context=types.UrlContext()),
-            types.Tool(googleSearch=types.GoogleSearch()),
-        ]
-        generate_content_config = types.GenerateContentConfig(
-            temperature=0,
-            top_p=0.95,
-            max_output_tokens=65536,
-            thinking_config=types.ThinkingConfig(thinking_budget=-1),
-            tools=tools,
-            response_mime_type="text/plain",
-            system_instruction=[
-                types.Part.from_text(text="""Tu es un expert du règlement européen sur l'IA. 
+    )
+    tools = [
+        types.Tool(url_context=types.UrlContext()),
+        types.Tool(googleSearch=types.GoogleSearch()),
+    ]
+    generate_content_config = types.GenerateContentConfig(
+        temperature=0,
+        top_p=0.95,
+        max_output_tokens=65536,
+        thinking_config=types.ThinkingConfig(thinking_budget=-1),
+        tools=tools,
+        response_mime_type="text/plain",
+        system_instruction=[
+            types.Part.from_text(text="""Tu es un expert du règlement européen sur l'IA. 
 
 Tu dois répondre aux questions avec la plus grande rigueur juridique possible. 
 Tu dois avant tout te baser sur le règlement IA pour fonder tes réponses (je te donne le plan).
@@ -261,40 +229,13 @@ Chacun de tes réponses doit finir par les phrases suivantes en italique :
 Ce contenu a été généré par une IA, consultez le texte pour vérifier les informations : https://www.ria-facile.com/consulter
 Pour être accompagné dans votre mise en conformité par des professionnels, contactez-nous via ce formulaire : https://www.ria-facile.com/contact
 """)
-            ],
-        )
-        response = ""
-        for chunk in client.models.generate_content_stream(
-            model=model,
-            contents=contents,
-            config=generate_content_config,
-        ):
-            response += chunk.text
-        logger.info("Réponse générée avec succès")
-        return {"answer": response}
-    except Exception as e:
-        error_type = type(e).__name__
-        error_message = str(e)
-        logger.error(f"Erreur lors de l'appel à Gemini API: {error_type} - {error_message}")
-        
-        # Gestion spécifique des erreurs Google GenAI
-        if "429" in error_message or "RESOURCE_EXHAUSTED" in error_message:
-            raise HTTPException(
-                status_code=429,
-                detail="Quota API dépassé. Veuillez vérifier votre facturation Google AI Studio."
-            )
-        elif "401" in error_message or "UNAUTHENTICATED" in error_message:
-            raise HTTPException(
-                status_code=401,
-                detail="Clé API invalide. Vérifiez la configuration dans Render."
-            )
-        elif "404" in error_message or "NOT_FOUND" in error_message:
-            raise HTTPException(
-                status_code=404,
-                detail="Modèle gemini-2.5-pro non trouvé. Vérifiez la disponibilité du modèle."
-            )
-        else:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Erreur lors de l'appel à l'API Gemini: {error_message}"
-            ) 
+        ],
+    )
+    response = ""
+    for chunk in client.models.generate_content_stream(
+        model=model,
+        contents=contents,
+        config=generate_content_config,
+    ):
+        response += chunk.text
+    return {"answer": response} 
