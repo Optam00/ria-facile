@@ -1,7 +1,8 @@
 import os
 import logging
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from google import genai
 from google.genai import types
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# Configuration CORS - DOIT être avant les routes
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -25,6 +27,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Gestionnaire d'exceptions global pour s'assurer que CORS est toujours appliqué
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Exception globale: {type(exc).__name__} - {str(exc)}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Erreur serveur: {str(exc)}"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "message": "Service opérationnel"}
 
 class HistoryItem(BaseModel):
     question: str
@@ -241,8 +261,8 @@ Chacun de tes réponses doit finir par les phrases suivantes en italique :
 Ce contenu a été généré par une IA, consultez le texte pour vérifier les informations : https://www.ria-facile.com/consulter
 Pour être accompagné dans votre mise en conformité par des professionnels, contactez-nous via ce formulaire : https://www.ria-facile.com/contact
 """)
-        ],
-    )
+            ],
+        )
         response = ""
         for chunk in client.models.generate_content_stream(
             model=model,
