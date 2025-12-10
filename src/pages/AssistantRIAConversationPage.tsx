@@ -40,50 +40,13 @@ const AssistantRIAConversationPage = () => {
   // Appel réel à l'API Gemini via le backend Python
   const callGeminiAPI = async (question: string, history: {question: string, answer: string}[]) => {
     const recentHistory = history.slice(-MAX_HISTORY);
-    
-    try {
-      const response = await fetch('https://assistant-ria-backend.onrender.com/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, history: recentHistory }),
-      });
-      
-      if (!response.ok) {
-        let errorDetail = '';
-        try {
-          const errorData = await response.json();
-          errorDetail = errorData.detail || errorData.message || JSON.stringify(errorData);
-        } catch {
-          try {
-            errorDetail = await response.text();
-          } catch {
-            errorDetail = response.statusText;
-          }
-        }
-        console.error('Erreur API:', response.status, errorDetail);
-        
-        // Gestion spécifique des erreurs 429 (quota)
-        if (response.status === 429) {
-          throw new Error('QUOTA_EXCEEDED');
-        }
-        
-        throw new Error(`Erreur ${response.status}: ${errorDetail || response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data || !data.answer) {
-        console.error('Réponse API invalide:', data);
-        throw new Error('Réponse invalide de l\'API');
-      }
-      
-      return data.answer;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error('Erreur de connexion à l\'API');
-    }
+    const response = await fetch('https://assistant-ria-backend.onrender.com/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, history: recentHistory }),
+    });
+    const data = await response.json();
+    return data.answer;
   };
 
   // Sauvegarde la question dans Supabase
@@ -101,37 +64,15 @@ const AssistantRIAConversationPage = () => {
     const userQuestion = question;
     if (!userQuestion.trim()) return;
     setIsLoading(true);
-    setLoadingStage('thinking');
     try {
-      await saveQuestionToSupabase(userQuestion);
+      saveQuestionToSupabase(userQuestion);
       const answer = await callGeminiAPI(userQuestion, history);
       setHistory(prev => [...prev, { question: userQuestion, answer }]);
     } catch (e) {
-      console.error('Erreur lors de l\'appel à l\'API:', e);
-      let errorMessage = "Le service est momentanément indisponible. ";
-      
-      if (e instanceof Error) {
-        if (e.message === 'QUOTA_EXCEEDED') {
-          errorMessage = "⚠️ Le quota de l'API Gemini a été dépassé. La facturation a été activée mais peut prendre jusqu'à 24 heures pour être effective. Veuillez réessayer dans quelques heures ou contacter le support si le problème persiste.";
-        } else if (e.message.includes('CORS') || e.message.includes('blocked')) {
-          errorMessage += "Erreur de configuration serveur (CORS). Veuillez contacter l'administrateur.";
-        } else if (e.message.includes('500') || e.message.includes('Internal Server Error')) {
-          errorMessage += "Le serveur backend rencontre un problème technique. Veuillez réessayer dans quelques instants ou contacter le support.";
-        } else if (e.message.includes('Failed to fetch') || e.message.includes('network')) {
-          errorMessage += "Problème de connexion réseau. Vérifiez votre connexion internet et réessayez.";
-        } else {
-          errorMessage += `Erreur: ${e.message}. Merci de réessayer dans quelques instants.`;
-        }
-      } else {
-        errorMessage += "Merci de réessayer dans quelques instants.";
-      }
-      
-      setHistory(prev => [...prev, { question: userQuestion, answer: errorMessage }]);
-    } finally {
-      setQuestion('');
-      setIsLoading(false);
-      setLoadingStage('idle');
+      setHistory(prev => [...prev, { question: userQuestion, answer: "Le service est momentanément saturé en raison d’un grand nombre de demandes. Merci de réessayer dans quelques instants." }]);
     }
+    setQuestion('');
+    setIsLoading(false);
   };
 
   const handleCopy = (text: string, idx: number) => {
