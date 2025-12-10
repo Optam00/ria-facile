@@ -204,17 +204,19 @@ const VerifierPage: React.FC = () => {
           </div>
           <div className="col-start-2 md:hidden">
             <Card
-              title="Déterminer le niveau de risque d’un modèle d’IA"
+              title="Déterminer le niveau de risque d'un modèle d'IA"
               color="blue"
-              disabled
+              to="/verificateur/niveau-risque-modele"
+              subtitle="Cliquer pour accéder au questionnaire"
             />
           </div>
           <div className="hidden md:block" />
           <div className="hidden md:block col-start-3">
             <Card
-              title="Déterminer le niveau de risque d’un modèle d’IA"
+              title="Déterminer le niveau de risque d'un modèle d'IA"
               color="blue"
-              disabled
+              to="/verificateur/niveau-risque-modele"
+              subtitle="Cliquer pour accéder au questionnaire"
             />
           </div>
 
