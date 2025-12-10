@@ -240,7 +240,8 @@ const VerifierPage: React.FC = () => {
             <Card
               title="Déterminer le rôle de mon organisation concernant un modèle d’IA"
               color="blue"
-              disabled
+              to="/verificateur/role-organisation-modele"
+              subtitle="Cliquer pour accéder au questionnaire"
             />
           </div>
           <div className="hidden md:block" />
@@ -248,7 +249,8 @@ const VerifierPage: React.FC = () => {
             <Card
               title="Déterminer le rôle de mon organisation concernant un modèle d’IA"
               color="blue"
-              disabled
+              to="/verificateur/role-organisation-modele"
+              subtitle="Cliquer pour accéder au questionnaire"
             />
           </div>
           </div>
