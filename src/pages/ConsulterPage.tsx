@@ -267,7 +267,7 @@ export const ConsulterPage = () => {
             if (numero) {
               // Recherche par numéro d'article
               const { data: articleData } = await supabase
-                .from('article')
+              .from('article')
                 .select('id_article, titre, numero, contenu, resume, recitals, fiches')
                 .eq('numero', numero)
                 .single()
@@ -277,8 +277,8 @@ export const ConsulterPage = () => {
               const { data: articleData } = await supabase
                 .from('article')
                 .select('id_article, titre, numero, contenu, resume, recitals, fiches')
-                .eq('id_article', parseInt(id))
-                .single()
+              .eq('id_article', parseInt(id))
+              .single()
               article = articleData
             }
             
