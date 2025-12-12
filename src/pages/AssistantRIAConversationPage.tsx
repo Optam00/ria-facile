@@ -45,7 +45,16 @@ const AssistantRIAConversationPage = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ question, history: recentHistory }),
     });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Erreur serveur' }));
+      throw new Error(errorData.error || `Erreur ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
     return data.answer;
   };
 
