@@ -867,9 +867,9 @@ const VerifierNiveauRisquePage: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-amber-600 mb-3">RISQUE LIMITÉ (DÉROGATION ART. 6.3)</h3>
+                <h3 className="text-2xl font-bold text-amber-600 mb-3">SYSTÈME SOUS DÉROGATION (ART. 6.3)</h3>
                 <p className="text-lg text-gray-800 mb-4">
-                  Votre système relève de l&apos;Annexe III mais remplit les critères de dérogation. Il n&apos;est <strong>pas</strong> considéré comme &quot;Haut Risque&quot;.
+                  Votre système relève d&apos;un domaine critique (Annexe III) mais votre réponse indique qu&apos;il remplit les conditions de l&apos;article 6.3 pour ne pas être qualifié de &quot;Haut Risque&quot;.
                 </p>
                 <p className="text-base text-gray-700 mb-4">
                   Consultez la <Link to="/matrice-des-obligations" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold hover:underline">matrice des obligations</Link> pour connaître vos obligations.
