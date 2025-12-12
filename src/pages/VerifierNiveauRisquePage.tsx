@@ -2,22 +2,119 @@ import React, { useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
-type RisqueResultat = 'inacceptable' | 'haut-risque' | 'risque-limite' | 'risque-minimal' | null
+type RisqueResultat = 'inacceptable' | 'haut-risque' | 'risque-limite-derogation' | 'risque-limite-transparence' | 'risque-minimal' | null
+
+// Types pour les détails des domaines
+type DomaineDetail = {
+  id: number
+  label: string
+  exceptions?: string
+  condition?: string
+}
+
+type Domaine = {
+  id: number
+  label: string
+  details: DomaineDetail[]
+}
 
 const VerifierNiveauRisquePage: React.FC = () => {
   const [openRefs, setOpenRefs] = useState<boolean>(false)
   
   // État pour les réponses
   const [q1, setQ1] = useState<number | null>(null) // RISK_PROHIBITED
-  const [q2, setQ2] = useState<number | null>(null) // RISK_SAFETY_COMP_TYPE
+  const [q2, setQ2] = useState<number | null>(null) // RISK_SAFETY_COMP
   const [q3, setQ3] = useState<number | null>(null) // RISK_3RD_PARTY
-  const [q4, setQ4] = useState<number[]>([]) // RISK_ANNEX_III (multiple)
+  const [q4Domaines, setQ4Domaines] = useState<number[]>([]) // Domaines sélectionnés
+  const [q4Details, setQ4Details] = useState<Record<number, number[]>>({}) // Détails cochés par domaine
   const [q5, setQ5] = useState<number | null>(null) // DEROGATION_PROFILING
   const [q6, setQ6] = useState<number | null>(null) // DEROGATION_CRITERIA
-  const [q7, setQ7] = useState<number[]>([]) // RISK_TRANSPARENCY (multiple)
+  const [q7, setQ7] = useState<number[]>([]) // RISK_TRANSPARENCY
   
   // État pour gérer quelles questions sont dépliées
   const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(new Set([1]))
+  
+  // Définir les domaines et leurs détails
+  const domaines: Domaine[] = [
+    {
+      id: 1,
+      label: 'Biométrie',
+      details: [
+        { id: 1, label: 'Identification à distance : Identification biométrique à distance (a posteriori)', exceptions: 'EXCEPTION : Ne cochez PAS si le système sert uniquement à l\'authentification biométrique (vérification 1:1).' },
+        { id: 2, label: 'Catégorisation biométrique : Inférence de caractéristiques (si non interdit par l\'Art. 5)' },
+        { id: 3, label: 'Reconnaissance des émotions : (Hors cas interdits)', exceptions: 'EXCEPTION : Ne cochez PAS si le système est utilisé à des fins médicales ou de sécurité.' },
+        { id: 999, label: 'Aucun de ces cas.' }
+      ]
+    },
+    {
+      id: 2,
+      label: 'Infrastructures Critiques',
+      details: [
+        { id: 1, label: 'Composant de sécurité : Gestion du trafic (routier, fer, air) ou fourniture d\'eau, gaz, chauffage urbain, électricité ou infrastructures numériques critiques', condition: 'CONDITION : La défaillance doit mettre en danger la vie/santé des personnes ou causer des dommages matériels graves.' },
+        { id: 999, label: 'Aucun de ces cas.' }
+      ]
+    },
+    {
+      id: 3,
+      label: 'Éducation et Formation',
+      details: [
+        { id: 1, label: 'Admission, affectation dans les établissements' },
+        { id: 2, label: 'Évaluation des acquis ou du niveau d\'éducation' },
+        { id: 3, label: 'Surveillance d\'examens (proctoring)' },
+        { id: 999, label: 'Aucun de ces cas.' }
+      ]
+    },
+    {
+      id: 4,
+      label: 'Emploi et Gestion des travailleurs',
+      details: [
+        { id: 1, label: 'Recrutement (tri CV, offres ciblées, évaluation candidats)' },
+        { id: 2, label: 'Prise de décision (promotion, affectation, licenciement)' },
+        { id: 999, label: 'Aucun de ces cas.' }
+      ]
+    },
+    {
+      id: 5,
+      label: 'Accès aux services essentiels (Publics & Privés)',
+      details: [
+        { id: 1, label: 'Aides publiques : Éligibilité, octroi, révocation des prestations sociales' },
+        { id: 2, label: 'Solvabilité / Crédit : Évaluation de la solvabilité', exceptions: 'EXCEPTION : Ne cochez PAS si le système sert exclusivement à la détection de la fraude financière.' },
+        { id: 3, label: 'Assurance : Évaluation des risques/tarification en assurance vie et santé' },
+        { id: 4, label: 'Urgence : Tri et gestion des appels d\'urgence (Pompiers, Police, etc.)' },
+        { id: 999, label: 'Aucun de ces cas.' }
+      ]
+    },
+    {
+      id: 6,
+      label: 'Autorités répressives (Police)',
+      details: [
+        { id: 1, label: 'Prédiction de risque de victimisation ou récidive' },
+        { id: 2, label: 'Polygraphes / Détection d\'état émotionnel' },
+        { id: 3, label: 'Évaluation de la fiabilité des preuves' },
+        { id: 4, label: 'Profilage criminel (si non interdit)' },
+        { id: 999, label: 'Aucun de ces cas.' }
+      ]
+    },
+    {
+      id: 7,
+      label: 'Migration, Asile et Frontières',
+      details: [
+        { id: 1, label: 'Polygraphes / Détection d\'état émotionnel' },
+        { id: 2, label: 'Examen des demandes d\'asile, visa, titres de séjour' },
+        { id: 3, label: 'Évaluation des risques sécuritaires ou sanitaires aux frontières' },
+        { id: 999, label: 'Aucun de ces cas.' }
+      ]
+    },
+    {
+      id: 8,
+      label: 'Justice et Démocratie',
+      details: [
+        { id: 1, label: 'Assistance judiciaire (recherche/interprétation faits ou droit)' },
+        { id: 2, label: 'Influence sur les élections ou le comportement électoral' },
+        { id: 999, label: 'Aucun de ces cas.' }
+      ]
+    }
+  ]
   
   const toggleQuestion = (idx: number) => {
     setExpandedQuestions(prev => {
@@ -31,57 +128,72 @@ const VerifierNiveauRisquePage: React.FC = () => {
     })
   }
   
+  // Vérifier si au moins un cas spécifique (pas "Aucun de ces cas") est coché dans les domaines sélectionnés
+  const hasAnnexIIICase = useMemo(() => {
+    if (q4Domaines.length === 0 || q4Domaines.includes(9)) return false
+    return q4Domaines.some(domaineId => {
+      const details = q4Details[domaineId] || []
+      // Vérifier qu'il y a au moins un détail coché ET que ce n'est pas uniquement "Aucun de ces cas" (id: 999)
+      return details.length > 0 && !(details.length === 1 && details[0] === 999)
+    })
+  }, [q4Domaines, q4Details])
+  
   // Déplier automatiquement la question suivante quand on répond
   const handleAnswer = (questionId: number, value: number | number[]) => {
     if (questionId === 1) {
       setQ1(value as number)
       if (value !== 9) {
-        // Si pratique interdite, on arrête
         return
       }
-      // Sinon, déplier Q2
       setExpandedQuestions(prev => new Set([...prev, 2]))
     } else if (questionId === 2) {
       setQ2(value as number)
       if (value === 5) {
-        // Passer à Q4 (Domaines Critiques)
         setExpandedQuestions(prev => new Set([...prev, 4]))
       } else {
-        // Continuer vers Q3
         setExpandedQuestions(prev => new Set([...prev, 3]))
       }
     } else if (questionId === 3) {
       setQ3(value as number)
       if (value === 1) {
-        // Haut Risque Art. 6.1, on arrête
+        // Haut Risque Art. 6.1, passer à transparence
+        setExpandedQuestions(prev => new Set([...prev, 7]))
         return
       }
-      // Sinon, passer à Q4
       setExpandedQuestions(prev => new Set([...prev, 4]))
     } else if (questionId === 4) {
-      setQ4(value as number[])
-      if (value.length === 0 || (value as number[]).includes(9)) {
-        // Passer à Q7 (Transparence)
+      // Gestion des domaines sélectionnés
+      const domainesArray = value as number[]
+      setQ4Domaines(domainesArray)
+      
+      // Si aucun domaine ou "Aucun", passer à transparence
+      if (domainesArray.length === 0 || domainesArray.includes(9)) {
         setExpandedQuestions(prev => new Set([...prev, 7]))
-      } else {
-        // Continuer vers Q5 (Dérogation)
+      }
+      // Sinon, on attend que l'utilisateur coche des détails
+    } else if (questionId === 4.5) {
+      // Gestion des détails cochés - vérifier si on peut passer à l'étape suivante
+      if (hasAnnexIIICase) {
         setExpandedQuestions(prev => new Set([...prev, 5]))
+      } else if (q4Domaines.length === 0 || q4Domaines.includes(9)) {
+        setExpandedQuestions(prev => new Set([...prev, 7]))
       }
     } else if (questionId === 5) {
       setQ5(value as number)
       if (value === 1) {
-        // Profilage = Haut Risque, on arrête
+        // Profilage = Haut Risque, passer à transparence
+        setExpandedQuestions(prev => new Set([...prev, 7]))
         return
       }
-      // Sinon, continuer vers Q6
       setExpandedQuestions(prev => new Set([...prev, 6]))
     } else if (questionId === 6) {
       setQ6(value as number)
       if (value === 5) {
-        // Haut Risque, on arrête
+        // Haut Risque, passer à transparence
+        setExpandedQuestions(prev => new Set([...prev, 7]))
         return
       }
-      // Sinon, passer à Q7 (Transparence)
+      // Dérogation applicable, passer à transparence
       setExpandedQuestions(prev => new Set([...prev, 7]))
     } else if (questionId === 7) {
       setQ7(value as number[])
@@ -101,8 +213,7 @@ const VerifierNiveauRisquePage: React.FC = () => {
     }
     
     // Étape 3 & 4 : Haut Risque - Domaines critiques
-    const isAnnexIII = q4.length > 0 && !q4.includes(9)
-    if (isAnnexIII) {
+    if (hasAnnexIIICase) {
       // Vérifier la dérogation
       if (q5 === 1) {
         // Profilage = Haut Risque
@@ -112,21 +223,27 @@ const VerifierNiveauRisquePage: React.FC = () => {
         // Pas de condition remplie = Haut Risque
         return 'haut-risque'
       }
-      // Si dérogation applicable, continuer vers transparence
+      if (q6 !== null && q6 !== 5) {
+        // Dérogation applicable
+        if (q7.length > 0 && !q7.includes(5)) {
+          return 'risque-limite-derogation' // Avec transparence
+        }
+        return 'risque-limite-derogation'
+      }
     }
     
-    // Étape 5 : Risque de transparence
-    if (q7.length > 0 && !q7.includes(5)) {
-      return 'risque-limite'
+    // Étape 5 : Risque de transparence seule
+    if (q7.length > 0 && !q7.includes(5) && !hasAnnexIIICase) {
+      return 'risque-limite-transparence'
     }
     
     // Par défaut : Risque minimal
-    if (q1 === 9 && q2 === 5 && (q4.length === 0 || q4.includes(9)) && (q7.length === 0 || q7.includes(5))) {
+    if (q1 === 9 && (q2 === 5 || (q3 !== null && q3 === 2)) && !hasAnnexIIICase && (q7.length === 0 || q7.includes(5))) {
       return 'risque-minimal'
     }
     
     return null
-  }, [q1, q2, q3, q4, q5, q6, q7])
+  }, [q1, q2, q3, q4Domaines, q4Details, q5, q6, q7, hasAnnexIIICase])
   
   // Vérifier si toutes les questions nécessaires sont répondues
   const toutesQuestionsRepondues = useMemo(() => {
@@ -136,155 +253,93 @@ const VerifierNiveauRisquePage: React.FC = () => {
     if (q2 === null) return false
     if (q2 === 5) {
       // Passer à Q4
-      if (q4.length === 0) return false
-      if (q4.includes(9)) {
-        // Passer à Q7
+      if (q4Domaines.length === 0) return false
+      if (q4Domaines.includes(9)) {
+        // Aucun domaine, passer à transparence
+        return q7.length > 0
+      }
+      // Vérifier si au moins un cas spécifique est coché (pas uniquement "Aucun")
+      if (!hasAnnexIIICase) {
+        // Tous les domaines ont "Aucun de ces cas" ou aucun détail coché, passer à transparence
         return q7.length > 0
       }
       // Sinon, vérifier dérogation
       if (q5 === null) return false
-      if (q5 === 1) return true // Profilage = Haut Risque
+      if (q5 === 1) return q7.length > 0 // Profilage = Haut Risque, mais on peut avoir transparence
       if (q6 === null) return false
-      if (q6 === 5) return true // Haut Risque
-      // Sinon, passer à Q7
+      if (q6 === 5) return q7.length > 0 // Haut Risque, mais on peut avoir transparence
       return q7.length > 0
     }
     
     if (q3 === null) return false
-    if (q3 === 1) return true // Haut Risque Art. 6.1
+    if (q3 === 1) return q7.length > 0 // Haut Risque Art. 6.1, mais on peut avoir transparence
     
     // Passer à Q4
-    if (q4.length === 0) return false
-    if (q4.includes(9)) {
-      // Passer à Q7
+    if (q4Domaines.length === 0) return false
+    if (q4Domaines.includes(9)) {
+      // Aucun domaine, passer à transparence
+      return q7.length > 0
+    }
+    // Vérifier si au moins un cas spécifique est coché (pas uniquement "Aucun")
+    if (!hasAnnexIIICase) {
+      // Tous les domaines ont "Aucun de ces cas" ou aucun détail coché, passer à transparence
       return q7.length > 0
     }
     // Sinon, vérifier dérogation
     if (q5 === null) return false
-    if (q5 === 1) return true // Profilage = Haut Risque
+    if (q5 === 1) return q7.length > 0
     if (q6 === null) return false
-    if (q6 === 5) return true // Haut Risque
-    // Sinon, passer à Q7
+    if (q6 === 5) return q7.length > 0
     return q7.length > 0
-  }, [q1, q2, q3, q4, q5, q6, q7])
+  }, [q1, q2, q3, q4Domaines, q4Details, q5, q6, q7, hasAnnexIIICase])
   
-  // Structure des questions
-  const questions = [
-    {
-      id: 1,
-      q: "Le système d'IA effectue-t-il l'une des fonctions suivantes ?",
-      p: "Objectif : Identifier immédiatement les \"lignes rouges\" (Risque Inacceptable).",
-      type: 'radio',
-      options: [
-        { value: 1, label: 'Manipulation : Techniques subliminales ou manipulatrices altérant le comportement de manière nuisible.' },
-        { value: 2, label: 'Exploitation : Exploitation des vulnérabilités (âge, handicap, situation sociale).' },
-        { value: 3, label: 'Notation Sociale (Social Scoring) : Évaluation ou classification des personnes par des autorités publiques menant à un traitement défavorable injustifié.' },
-        { value: 4, label: 'Police Prédictive : Évaluation du risque qu\'une personne commette une infraction (basée uniquement sur le profilage).' },
-        { value: 5, label: 'Scraping Facial : Création de bases de données faciales par moissonnage non ciblé d\'internet ou de vidéosurveillance.' },
-        { value: 6, label: 'Émotions (Travail/École) : Reconnaissance des émotions sur le lieu de travail ou dans l\'enseignement (sauf raison médicale/sécurité).' },
-        { value: 7, label: 'Catégorisation Biométrique : Classement des personnes selon des données sensibles (race, opinions, religion, orientation sexuelle).' },
-        { value: 8, label: 'Identification Biométrique Temps Réel : Identification à distance en temps réel dans des espaces publics à des fins répressives (sauf exceptions strictes type terrorisme/enlèvement).' },
-        { value: 9, label: 'Aucune de ces fonctions.' }
-      ],
-      value: q1,
-      setValue: (v: number) => handleAnswer(1, v),
-      condition: true
-    },
-    {
-      id: 2,
-      q: "Le système d'IA est-il un composant de sécurité destiné à l'un des types de produits suivants ?",
-      p: "Aide : Un \"composant de sécurité\" est un composant dont la défaillance ou le dysfonctionnement mettrait en danger la santé ou la sécurité des personnes ou des biens.",
-      type: 'radio',
-      options: [
-        { value: 1, label: 'Machines et Industrie : Machines, Ascenseurs, Installations à câbles, Équipements sous pression, Appareils pour atmosphères explosibles (ATEX).' },
-        { value: 2, label: 'Santé : Dispositifs médicaux ou Dispositifs médicaux de diagnostic in vitro.' },
-        { value: 3, label: 'Transports : Voitures, Véhicules agricoles/forestiers, Deux/trois roues, Aviation civile, Marine (équipements marins), Ferroviaire.' },
-        { value: 4, label: 'Grand Public & Divers : Jouets, Équipements radio, Équipements de protection individuelle (EPI), Appareils à gaz.' },
-        { value: 5, label: 'Aucun de ces produits.' }
-      ],
-      value: q2,
-      setValue: (v: number) => handleAnswer(2, v),
-      condition: q1 === 9
-    },
-    {
-      id: 3,
-      q: "Pour ce produit spécifique, la législation de l'UE impose-t-elle une évaluation de conformité par un tiers (organisme notifié) avant la mise sur le marché ?",
-      p: "Aide : En général, les produits les plus dangereux (ex: une scie circulaire, un pacemaker, un jouet complexe) nécessitent l'intervention d'un auditeur externe. Les produits moins dangereux (autocertification) ne sont pas \"Haut Risque\" au sens de l'article 6.1.",
-      type: 'radio',
-      options: [
-        { value: 1, label: 'Oui, une évaluation par un tiers est requise pour ce produit.' },
-        { value: 2, label: 'Non, le fabricant peut s\'autocertifier (contrôle interne) pour ce produit.' }
-      ],
-      value: q3,
-      setValue: (v: number) => handleAnswer(3, v),
-      condition: q2 !== null && q2 !== 5
-    },
-    {
-      id: 4,
-      q: "Le système d'IA est-il destiné à être utilisé dans l'un des cas suivants ?",
-      p: "Objectif : Identifier les IA autonomes (\"Stand-alone\") dans des secteurs sensibles.",
-      type: 'checkbox',
-      options: [
-        { value: 1, label: 'Biométrie : Identification biométrique à distance (a posteriori), vérification biométrique (sauf authentification simple), reconnaissance des émotions (hors travail/école).' },
-        { value: 2, label: 'Infrastructures Critiques : Composant de sécurité pour la gestion de l\'eau, gaz, électricité, trafic routier.' },
-        { value: 3, label: 'Éducation / Formation : Admission, affectation, évaluation des acquis, surveillance d\'examens.' },
-        { value: 4, label: 'Emploi : Recrutement, sélection, analyse des candidatures, prise de décision sur la promotion/licenciement, surveillance des tâches.' },
-        { value: 5, label: 'Services Essentiels (Publics & Privés) : Éligibilité aux aides sociales, évaluation de solvabilité/crédit, évaluation des risques en assurance vie/santé, tri des appels d\'urgence (pompiers/police).' },
-        { value: 6, label: 'Autorités Répressives (Police) : Évaluation de fiabilité des preuves, profilage, prédiction de victimisation, etc.' },
-        { value: 7, label: 'Migration / Asile : Polygraphes, examen des demandes, évaluation des risques sécuritaires.' },
-        { value: 8, label: 'Justice / Démocratie : Assistance judiciaire à l\'interprétation des faits/lois, influence sur les élections.' },
-        { value: 9, label: 'Aucun de ces cas.' }
-      ],
-      value: q4,
-      setValue: (v: number[]) => handleAnswer(4, v),
-      condition: q2 === 5 || (q3 !== null && q3 === 2)
-    },
-    {
-      id: 5,
-      q: "Le système effectue-t-il un profilage des personnes physiques ?",
-      p: "Aide : Le profilage désigne le traitement automatisé de données pour évaluer des aspects personnels (rendement au travail, situation économique, santé, préférences, etc.).",
-      type: 'radio',
-      options: [
-        { value: 1, label: 'Oui' },
-        { value: 2, label: 'Non' }
-      ],
-      value: q5,
-      setValue: (v: number) => handleAnswer(5, v),
-      condition: q4.length > 0 && !q4.includes(9)
-    },
-    {
-      id: 6,
-      q: "Le système remplit-il l'une des conditions suivantes ?",
-      p: "",
-      type: 'radio',
-      options: [
-        { value: 1, label: 'Il est destiné à accomplir une tâche procédurale étroite (ex: trier des dossiers par date, convertir des formats).' },
-        { value: 2, label: 'Il améliore le résultat d\'une activité humaine préalablement réalisée (ex: correction orthographique, amélioration du style).' },
-        { value: 3, label: 'Il détecte des constantes ou des écarts par rapport à des décisions antérieures, sans se substituer à l\'évaluation humaine et sans l\'influencer sans examen.' },
-        { value: 4, label: 'Il exécute une tâche préparatoire à une évaluation pertinente (ex: extraction de données brutes).' },
-        { value: 5, label: 'Aucune de ces conditions.' }
-      ],
-      value: q6,
-      setValue: (v: number) => handleAnswer(6, v),
-      condition: q5 === 2
-    },
-    {
-      id: 7,
-      q: "Le système correspond-il à l'un des cas suivants ?",
-      p: "Objectif : Identifier les obligations d'information (IA générative, Chatbots, Deepfakes).",
-      type: 'checkbox',
-      options: [
-        { value: 1, label: 'Interaction : Système destiné à interagir directement avec des personnes physiques (ex: Chatbot, service client automatisé).' },
-        { value: 2, label: 'Génération de contenu : Système générant du contenu de synthèse (audio, image, vidéo, texte).' },
-        { value: 3, label: 'Deepfake : Système générant ou manipulant des images/sons ressemblant à des personnes/objets réels (hypertrucage).' },
-        { value: 4, label: 'Reconnaissance d\'émotions / Catégorisation biométrique : (Dans les cas non interdits et non haut risque).' },
-        { value: 5, label: 'Aucun de ces cas.' }
-      ],
-      value: q7,
-      setValue: (v: number[]) => handleAnswer(7, v),
-      condition: (q4.length > 0 && q4.includes(9)) || (q6 !== null && q6 !== 5)
-    }
-  ]
+  // Gérer la sélection d'un détail de domaine
+  const handleDetailToggle = (domaineId: number, detailId: number) => {
+    setQ4Details(prev => {
+      const current = prev[domaineId] || []
+      let newDetails: number[]
+      
+      // Si on coche "Aucun de ces cas" (999), décocher tous les autres détails de ce domaine
+      if (detailId === 999) {
+        if (current.includes(999)) {
+          newDetails = []
+        } else {
+          newDetails = [999]
+        }
+      } else {
+        // Si on coche un autre détail, décocher "Aucun de ces cas" (999)
+        newDetails = current.includes(detailId)
+          ? current.filter(id => id !== detailId)
+          : [...current.filter(id => id !== 999), detailId]
+      }
+      
+      const newState = { ...prev, [domaineId]: newDetails }
+      
+      // Vérifier si on peut passer à l'étape suivante avec la nouvelle valeur
+      // Vérifier qu'il y a au moins un cas spécifique (pas uniquement "Aucun")
+      const hasCase = Object.values(newState).some(details => 
+        details.length > 0 && !(details.length === 1 && details[0] === 999)
+      )
+      
+      // Utiliser setTimeout pour s'assurer que le state est mis à jour
+      setTimeout(() => {
+        if (hasCase && q4Domaines.length > 0 && !q4Domaines.includes(9)) {
+          // Au moins un cas spécifique coché, passer à la dérogation (Q5)
+          setExpandedQuestions(prev => new Set([...prev, 5]))
+        } else {
+          // Si aucun cas spécifique (seulement "Aucun de ces cas" ou rien) OU aucun domaine sélectionné, passer à transparence (Q7)
+          setExpandedQuestions(prev => new Set([...prev, 7]))
+        }
+      }, 0)
+      
+      return newState
+    })
+  }
+  
+  // Vérifier si la transparence s'applique
+  const hasTransparency = useMemo(() => {
+    return q7.length > 0 && !q7.includes(5)
+  }, [q7])
   
   return (
     <div className="min-h-[60vh]">
@@ -353,85 +408,418 @@ const VerifierNiveauRisquePage: React.FC = () => {
 
         {/* Questionnaire */}
         <div className="bg-white rounded-2xl shadow divide-y">
-          {questions
-            .filter(q => q.condition !== false)
-            .map(item => {
-              const isExpanded = expandedQuestions.has(item.id)
-              const isAnswered = item.type === 'checkbox' 
-                ? (item.value as number[]).length > 0
-                : item.value !== null
-              return (
-                <div key={item.id} className="border-b last:border-b-0">
-                  {/* Header de la question - toujours visible */}
-                  <button
-                    onClick={() => toggleQuestion(item.id)}
-                    className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-semibold text-purple-600">Question {item.id}</span>
-                      {isAnswered && (
-                        <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
-                          Répondu
+          {/* Question 1 */}
+          {q1 === null || q1 === 9 ? (
+            <div className="border-b">
+              <button
+                onClick={() => toggleQuestion(1)}
+                className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-semibold text-purple-600">Question 1</span>
+                  {q1 !== null && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">Répondu</span>
+                  )}
+                </div>
+                <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedQuestions.has(1) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {expandedQuestions.has(1) && (
+                <div className="px-5 pb-5">
+                  <div className="text-base font-medium text-gray-900 mb-3">
+                    Le système d&apos;IA effectue-t-il l&apos;une des fonctions suivantes ?
+                  </div>
+                  <div className="text-sm text-gray-600 bg-[#f3f1ff] border border-[#f3f1ff] rounded-xl p-4 mb-4">
+                    Objectif : Identifier immédiatement les &quot;lignes rouges&quot;.
+                  </div>
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(val => (
+                      <label key={val} className="flex items-start space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="q1"
+                          checked={q1 === val}
+                          onChange={() => handleAnswer(1, val)}
+                          className="mt-1 h-4 w-4"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {val === 1 && 'Manipulation : Techniques subliminales ou manipulatrices altérant le comportement de manière nuisible.'}
+                          {val === 2 && 'Exploitation : Exploitation des vulnérabilités (âge, handicap, situation sociale/économique).'}
+                          {val === 3 && 'Notation Sociale (Social Scoring) : Évaluation par des autorités publiques menant à un traitement défavorable injustifié.'}
+                          {val === 4 && 'Police Prédictive : Évaluation du risque criminel basée uniquement sur le profilage ou les traits de personnalité.'}
+                          {val === 5 && 'Scraping Facial : Constitution ou extension de bases de données faciales par moissonnage non ciblé d\'internet ou de vidéosurveillance (CCTV).'}
+                          {val === 6 && 'Émotions (Travail/École) : Reconnaissance des émotions sur le lieu de travail ou dans l\'enseignement (sauf raison médicale/sécurité).'}
+                          {val === 7 && 'Catégorisation Biométrique : Classement selon des données sensibles (race, opinions, religion, orientation sexuelle).'}
+                          {val === 8 && 'Identification Biométrique Temps Réel : Identification à distance dans des espaces publics à des fins répressives (sauf exceptions strictes type terrorisme/enlèvement).'}
+                          {val === 9 && 'Aucune de ces fonctions.'}
                         </span>
-                      )}
-                    </div>
-                    <svg 
-                      className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {/* Contenu de la question - visible seulement si dépliée */}
-                  {isExpanded && (
-                    <div className="px-5 pb-5 transition-all duration-300 ease-in-out">
-                      <div className="text-base font-medium text-gray-900 mb-3">{item.q}</div>
-                      {item.p && (
-                        <div className="text-sm text-gray-600 bg-[#f3f1ff] border border-[#f3f1ff] rounded-xl p-4 mb-4">
-                          {item.p}
-                        </div>
-                      )}
-                      <div className="space-y-3">
-                        {item.type === 'radio' ? (
-                          item.options.map(option => (
-                            <label key={option.value} className="flex items-start space-x-3 cursor-pointer">
-                              <input
-                                type="radio"
-                                name={`q${item.id}`}
-                                checked={item.value === option.value}
-                                onChange={() => item.setValue(option.value)}
-                                className="mt-1 h-4 w-4"
-                              />
-                              <span className="text-sm text-gray-700">{option.label}</span>
-                            </label>
-                          ))
-                        ) : (
-                          item.options.map(option => (
-                            <label key={option.value} className="flex items-start space-x-3 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={(item.value as number[]).includes(option.value)}
-                                onChange={(e) => {
-                                  const currentValue = item.value as number[]
-                                  const newValue = e.target.checked
-                                    ? [...currentValue, option.value]
-                                    : currentValue.filter(v => v !== option.value)
-                                  item.setValue(newValue)
-                                }}
-                                className="mt-1 h-4 w-4"
-                              />
-                              <span className="text-sm text-gray-700">{option.label}</span>
-                            </label>
-                          ))
-                        )}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
+
+          {/* Question 2 */}
+          {q1 === 9 && (
+            <div className="border-b">
+              <button
+                onClick={() => toggleQuestion(2)}
+                className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-semibold text-purple-600">Question 2</span>
+                  {q2 !== null && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">Répondu</span>
+                  )}
+                </div>
+                <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedQuestions.has(2) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {expandedQuestions.has(2) && (
+                <div className="px-5 pb-5">
+                  <div className="text-base font-medium text-gray-900 mb-3">
+                    Le système d&apos;IA est-il un composant de sécurité (ou le produit lui-même) relevant de l&apos;une des législations suivantes ?
+                  </div>
+                  <div className="text-sm text-gray-600 bg-[#f3f1ff] border border-[#f3f1ff] rounded-xl p-4 mb-4">
+                    Objectif : Identifier les IA intégrées dans des produits réglementés (Marquage CE existant).
+                  </div>
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4, 5].map(val => (
+                      <label key={val} className="flex items-start space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="q2"
+                          checked={q2 === val}
+                          onChange={() => handleAnswer(2, val)}
+                          className="mt-1 h-4 w-4"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {val === 1 && 'Industrie : Machines, Ascenseurs, ATEX, Équipements sous pression, Installations à câbles.'}
+                          {val === 2 && 'Santé : Dispositifs médicaux ou Diagnostic in vitro.'}
+                          {val === 3 && 'Transports : Aviation civile, Marine, Ferroviaire, Véhicules à moteur (voitures, agricoles).'}
+                          {val === 4 && 'Grand Public : Jouets, Équipements radio, EPI, Appareils à gaz.'}
+                          {val === 5 && 'Aucun de ces produits.'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Question 3 */}
+          {q2 !== null && q2 !== 5 && (
+            <div className="border-b">
+              <button
+                onClick={() => toggleQuestion(3)}
+                className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-semibold text-purple-600">Question 3</span>
+                  {q3 !== null && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">Répondu</span>
+                  )}
+                </div>
+                <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedQuestions.has(3) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {expandedQuestions.has(3) && (
+                <div className="px-5 pb-5">
+                  <div className="text-base font-medium text-gray-900 mb-3">
+                    Pour ce produit spécifique, la législation sectorielle impose-t-elle une évaluation de conformité par un tiers (organisme notifié) ?
+                  </div>
+                  <div className="space-y-3">
+                    {[1, 2].map(val => (
+                      <label key={val} className="flex items-start space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="q3"
+                          checked={q3 === val}
+                          onChange={() => handleAnswer(3, val)}
+                          className="mt-1 h-4 w-4"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {val === 1 && 'Oui'}
+                          {val === 2 && 'Non (Autocertification possible)'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Question 4 - Domaines */}
+          {(q2 === 5 || (q3 !== null && q3 === 2)) && (
+            <div className="border-b">
+              <button
+                onClick={() => toggleQuestion(4)}
+                className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-semibold text-purple-600">Question 4</span>
+                  {q4Domaines.length > 0 && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">Répondu</span>
+                  )}
+                </div>
+                <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedQuestions.has(4) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {expandedQuestions.has(4) && (
+                <div className="px-5 pb-5">
+                  <div className="text-base font-medium text-gray-900 mb-3">
+                    Le système d&apos;IA est-il destiné à être utilisé dans l&apos;un des grands domaines suivants ?
+                  </div>
+                  <div className="text-sm text-gray-600 bg-[#f3f1ff] border border-[#f3f1ff] rounded-xl p-4 mb-4">
+                    Instruction : Sélectionnez un domaine pour afficher les cas d&apos;usage précis et les exceptions.
+                  </div>
+                  <div className="space-y-3 mb-6">
+                    {domaines.map(domaine => (
+                      <label key={domaine.id} className="flex items-start space-x-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={q4Domaines.includes(domaine.id)}
+                          onChange={(e) => {
+                            const newDomaines = e.target.checked
+                              ? [...q4Domaines, domaine.id]
+                              : q4Domaines.filter(id => id !== domaine.id)
+                            handleAnswer(4, newDomaines)
+                          }}
+                          className="mt-1 h-4 w-4"
+                        />
+                        <span className="text-sm text-gray-700">{domaine.label}</span>
+                      </label>
+                    ))}
+                    <label className="flex items-start space-x-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={q4Domaines.includes(9)}
+                        onChange={(e) => {
+                          const newDomaines = e.target.checked
+                            ? [...q4Domaines, 9]
+                            : q4Domaines.filter(id => id !== 9)
+                          handleAnswer(4, newDomaines)
+                        }}
+                        className="mt-1 h-4 w-4"
+                      />
+                      <span className="text-sm text-gray-700">Aucun de ces domaines.</span>
+                    </label>
+                  </div>
+                  
+                  {/* Détails des domaines sélectionnés */}
+                  {q4Domaines.length > 0 && !q4Domaines.includes(9) && (
+                    <div className="mt-6 space-y-6">
+                      <div className="text-sm font-semibold text-gray-900 mb-3">
+                        Détails des domaines sélectionnés :
                       </div>
+                      {q4Domaines.filter(id => id !== 9).map(domaineId => {
+                        const domaine = domaines.find(d => d.id === domaineId)
+                        if (!domaine) return null
+                        return (
+                          <div key={domaineId} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div className="font-semibold text-gray-900 mb-3">
+                              Domaine {domaineId} : {domaine.label}
+                            </div>
+                            <div className="text-xs text-gray-600 italic mb-3">
+                              Cochez si votre système correspond à l&apos;un de ces cas :
+                            </div>
+                            <div className="space-y-3">
+                              {domaine.details.map(detail => (
+                                <div key={detail.id}>
+                                  <label className="flex items-start space-x-3 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={(q4Details[domaineId] || []).includes(detail.id)}
+                                      onChange={() => handleDetailToggle(domaineId, detail.id)}
+                                      className="mt-1 h-4 w-4"
+                                    />
+                                    <div className="flex-1">
+                                      <span className="text-sm text-gray-700">{detail.label}</span>
+                                      {detail.exceptions && (
+                                        <div className="text-xs text-amber-700 mt-1 italic">
+                                          {detail.exceptions}
+                                        </div>
+                                      )}
+                                      {detail.condition && (
+                                        <div className="text-xs text-blue-700 mt-1 italic">
+                                          {detail.condition}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </div>
-              )
-            })}
+              )}
+            </div>
+          )}
+
+          {/* Question 5 - Profilage */}
+          {hasAnnexIIICase && (
+            <div className="border-b">
+              <button
+                onClick={() => toggleQuestion(5)}
+                className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-semibold text-purple-600">Question 5</span>
+                  {q5 !== null && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">Répondu</span>
+                  )}
+                </div>
+                <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedQuestions.has(5) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {expandedQuestions.has(5) && (
+                <div className="px-5 pb-5">
+                  <div className="text-base font-medium text-gray-900 mb-3">
+                    Le système effectue-t-il un profilage des personnes physiques ?
+                  </div>
+                  <div className="text-sm text-gray-600 bg-[#f3f1ff] border border-[#f3f1ff] rounded-xl p-4 mb-4">
+                    Aide : Traitement automatisé pour évaluer des aspects personnels (rendement, santé, préférences, etc.).
+                  </div>
+                  <div className="space-y-3">
+                    {[1, 2].map(val => (
+                      <label key={val} className="flex items-start space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="q5"
+                          checked={q5 === val}
+                          onChange={() => handleAnswer(5, val)}
+                          className="mt-1 h-4 w-4"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {val === 1 && 'Oui'}
+                          {val === 2 && 'Non'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Question 6 - Critères de dérogation */}
+          {q5 === 2 && (
+            <div className="border-b">
+              <button
+                onClick={() => toggleQuestion(6)}
+                className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-semibold text-purple-600">Question 6</span>
+                  {q6 !== null && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">Répondu</span>
+                  )}
+                </div>
+                <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedQuestions.has(6) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {expandedQuestions.has(6) && (
+                <div className="px-5 pb-5">
+                  <div className="text-base font-medium text-gray-900 mb-3">
+                    Le système remplit-il l&apos;une des conditions suivantes ?
+                  </div>
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4, 5].map(val => (
+                      <label key={val} className="flex items-start space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="q6"
+                          checked={q6 === val}
+                          onChange={() => handleAnswer(6, val)}
+                          className="mt-1 h-4 w-4"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {val === 1 && 'Il accomplit une tâche procédurale étroite.'}
+                          {val === 2 && 'Il améliore le résultat d\'une activité humaine préalablement réalisée.'}
+                          {val === 3 && 'Il détecte des constantes/écarts sans se substituer à l\'évaluation humaine (pas de décision).'}
+                          {val === 4 && 'Il exécute une tâche préparatoire uniquement.'}
+                          {val === 5 && 'Aucune de ces conditions.'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Question 7 - Transparence */}
+          {((q3 === 1) || 
+            (q4Domaines.length > 0 && (q4Domaines.includes(9) || !hasAnnexIIICase)) || 
+            (hasAnnexIIICase && (q5 === 1 || q6 !== null)) ||
+            (q4Domaines.length > 0 && Object.values(q4Details).some(details => 
+              details.length > 0 && details.length === 1 && details[0] === 999
+            ))) && (
+            <div className="border-b">
+              <button
+                onClick={() => toggleQuestion(7)}
+                className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-semibold text-purple-600">Question 7</span>
+                  {q7.length > 0 && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">Répondu</span>
+                  )}
+                </div>
+                <svg className={`w-5 h-5 text-gray-500 transition-transform ${expandedQuestions.has(7) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {expandedQuestions.has(7) && (
+                <div className="px-5 pb-5">
+                  <div className="text-base font-medium text-gray-900 mb-3">
+                    Le système correspond-il à l&apos;un des cas suivants ?
+                  </div>
+                  <div className="text-sm text-gray-600 bg-[#f3f1ff] border border-[#f3f1ff] rounded-xl p-4 mb-4">
+                    Objectif : Identifier les obligations d&apos;information (cumulables avec le Haut Risque).
+                  </div>
+                  <div className="space-y-3">
+                    {[1, 2, 3, 4, 5].map(val => (
+                      <label key={val} className="flex items-start space-x-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={q7.includes(val)}
+                          onChange={(e) => {
+                            const newValue = e.target.checked
+                              ? [...q7, val]
+                              : q7.filter(v => v !== val)
+                            handleAnswer(7, newValue)
+                          }}
+                          className="mt-1 h-4 w-4"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {val === 1 && 'Interaction : Système destiné à interagir directement avec des personnes (Chatbot, etc.).'}
+                          {val === 2 && 'Génération de contenu : Système générant du texte, audio, vidéo, image (GPAI).'}
+                          {val === 3 && 'Deepfake : Génération/manipulation réaliste (Hypertrucage).'}
+                          {val === 4 && 'Reconnaissance d\'émotions / Catégorisation biométrique : (Dans les cas autorisés et non Haut Risque).'}
+                          {val === 5 && 'Aucun de ces cas.'}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Résultat */}
@@ -461,22 +849,48 @@ const VerifierNiveauRisquePage: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-orange-600 mb-3">HAUT RISQUE</h3>
-                <p className="text-lg text-gray-800">
-                  Ce système d&apos;IA est classé &quot;Haut Risque&quot; au sens du Règlement IA.
+                <h3 className="text-2xl font-bold text-orange-600 mb-3">SYSTÈME À HAUT RISQUE</h3>
+                <p className="text-lg text-gray-800 mb-4">
+                  Consultez la <Link to="/matrice-des-obligations" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold hover:underline">matrice des obligations</Link> pour connaître vos obligations.
                 </p>
+                {hasTransparency && (
+                  <p className="text-base text-amber-700 mt-4 p-3 bg-amber-50 rounded-lg">
+                    <strong>ATTENTION :</strong> Vous avez également des obligations de transparence (Art. 50) : consultez la <Link to="/matrice-des-obligations" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold hover:underline">matrice des obligations</Link> pour connaître vos obligations.
+                  </p>
+                )}
               </div>
             )}
-            {resultat === 'risque-limite' && (
+            {resultat === 'risque-limite-derogation' && (
               <div className="text-center">
                 <div className="mb-4">
                   <svg className="w-16 h-16 mx-auto text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-amber-600 mb-3">RISQUE LIMITÉ (TRANSPARENCE)</h3>
-                <p className="text-lg text-gray-800">
-                  Ce système d&apos;IA est classé &quot;Risque Limité&quot; au sens du Règlement IA (Art. 50).
+                <h3 className="text-2xl font-bold text-amber-600 mb-3">RISQUE LIMITÉ (DÉROGATION ART. 6.3)</h3>
+                <p className="text-lg text-gray-800 mb-4">
+                  Votre système relève de l&apos;Annexe III mais remplit les critères de dérogation. Il n&apos;est <strong>pas</strong> considéré comme &quot;Haut Risque&quot;.
+                </p>
+                <p className="text-base text-gray-700 mb-4">
+                  Consultez la <Link to="/matrice-des-obligations" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold hover:underline">matrice des obligations</Link> pour connaître vos obligations.
+                </p>
+                {hasTransparency && (
+                  <p className="text-base text-amber-700 mt-4 p-3 bg-amber-50 rounded-lg">
+                    N&apos;oubliez pas vos obligations de transparence (Art. 50).
+                  </p>
+                )}
+              </div>
+            )}
+            {resultat === 'risque-limite-transparence' && (
+              <div className="text-center">
+                <div className="mb-4">
+                  <svg className="w-16 h-16 mx-auto text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-amber-600 mb-3">RISQUE LIMITÉ (OBLIGATIONS DE TRANSPARENCE)</h3>
+                <p className="text-lg text-gray-800 mb-4">
+                  Consultez la <Link to="/matrice-des-obligations" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold hover:underline">matrice des obligations</Link> pour connaître vos obligations.
                 </p>
               </div>
             )}
@@ -489,15 +903,8 @@ const VerifierNiveauRisquePage: React.FC = () => {
                 </div>
                 <h3 className="text-2xl font-bold text-green-600 mb-3">RISQUE MINIMAL</h3>
                 <p className="text-lg text-gray-800 mb-4">
-                  <strong>Aucune obligation spécifique au titre du Règlement IA</strong>
+                  Votre système ne rentre dans aucune catégorie réglementée spécifique du Règlement IA. Ce texte n&apos;impose aucune obligation particulière mais d&apos;autres textes sont applicables (ex : applicabilité du RGPD concernant la gestion des droits, l&apos;exactitude des données, etc.)
                 </p>
-                <p className="text-base text-gray-700 mb-4">
-                  Ce système d&apos;IA n&apos;est pas soumis aux obligations spécifiques du Règlement IA. Cependant :
-                </p>
-                <ul className="text-sm text-gray-700 text-left max-w-2xl mx-auto space-y-2 list-disc list-inside mb-6">
-                  <li>Le RGPD et autres lois s&apos;appliquent toujours</li>
-                  <li>Les codes de conduite volontaires sont encouragés</li>
-                </ul>
               </div>
             )}
           </div>
