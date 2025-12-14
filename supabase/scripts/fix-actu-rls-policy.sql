@@ -30,24 +30,53 @@ CREATE POLICY "Actu - Lecture publique"
 
 -- 5. Créer la politique d'écriture pour les administrateurs
 -- IMPORTANT: Utiliser FOR INSERT, UPDATE, DELETE séparément pour plus de clarté
+-- Note: WITH CHECK est utilisé pour INSERT pour vérifier les nouvelles lignes
 CREATE POLICY "Actu - Insertion admin"
   ON "Actu"
   FOR INSERT
   TO authenticated
-  WITH CHECK (public.is_admin());
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 
+      FROM public.profiles 
+      WHERE id = auth.uid() 
+      AND role = 'admin'
+    )
+  );
 
 CREATE POLICY "Actu - Modification admin"
   ON "Actu"
   FOR UPDATE
   TO authenticated
-  USING (public.is_admin())
-  WITH CHECK (public.is_admin());
+  USING (
+    EXISTS (
+      SELECT 1 
+      FROM public.profiles 
+      WHERE id = auth.uid() 
+      AND role = 'admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 
+      FROM public.profiles 
+      WHERE id = auth.uid() 
+      AND role = 'admin'
+    )
+  );
 
 CREATE POLICY "Actu - Suppression admin"
   ON "Actu"
   FOR DELETE
   TO authenticated
-  USING (public.is_admin());
+  USING (
+    EXISTS (
+      SELECT 1 
+      FROM public.profiles 
+      WHERE id = auth.uid() 
+      AND role = 'admin'
+    )
+  );
 
 -- 6. Vérifier les politiques créées
 SELECT 
