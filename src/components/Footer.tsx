@@ -9,9 +9,18 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <h3 className="text-base font-semibold mb-2">À propos</h3>
-            <Link to="/mentions-legales" className="text-gray-600 hover:text-[#774792] text-sm">
-              Mentions légales
-            </Link>
+            <ul className="space-y-1">
+              <li>
+                <Link to="/mentions-legales" className="text-gray-600 hover:text-[#774792] text-sm">
+                  Mentions légales
+                </Link>
+              </li>
+              <li>
+                <Link to="/connexion" className="text-gray-600 hover:text-[#774792] text-sm">
+                  Connexion
+                </Link>
+              </li>
+            </ul>
           </div>
           <div>
             <h3 className="text-base font-semibold mb-2">Liens utiles</h3>
