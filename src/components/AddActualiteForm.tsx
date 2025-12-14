@@ -113,7 +113,19 @@ export const AddActualiteForm: React.FC = () => {
           hint: insertError.hint,
           code: insertError.code,
         })
-        throw insertError
+        
+        // Messages d'erreur plus explicites selon le type d'erreur
+        let errorMessage = insertError.message || 'Une erreur est survenue'
+        
+        if (insertError.code === 'PGRST301' || insertError.code === '42501') {
+          errorMessage = 'Erreur de permissions : Les politiques RLS bloquent l\'insertion. Vérifiez que vous êtes bien connecté en tant qu\'administrateur et que les politiques RLS sont correctement configurées.'
+        } else if (insertError.message?.includes('permission') || insertError.message?.includes('policy') || insertError.message?.includes('RLS')) {
+          errorMessage = 'Erreur de permissions RLS : ' + insertError.message
+        } else if (insertError.details) {
+          errorMessage = insertError.message + ' (' + insertError.details + ')'
+        }
+        
+        throw new Error(errorMessage)
       }
 
       console.log('Actualité ajoutée avec succès:', data)
