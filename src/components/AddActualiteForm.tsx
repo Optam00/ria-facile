@@ -93,10 +93,13 @@ export const AddActualiteForm: React.FC = () => {
       console.log('Vérification de la session actuelle...')
       
       // Vérifier la session avant l'insertion
+      console.log('Appel de getSession()...')
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      console.log('getSession() terminé')
       console.log('Session actuelle:', sessionData.session ? 'Connecté' : 'Non connecté')
       if (sessionError) {
         console.error('Erreur lors de la vérification de la session:', sessionError)
+        throw new Error('Erreur de session: ' + sessionError.message)
       }
       if (sessionData.session) {
         console.log('User ID:', sessionData.session.user.id)
@@ -109,13 +112,28 @@ export const AddActualiteForm: React.FC = () => {
       console.log('Table: Actu')
       console.log('Données:', JSON.stringify(insertData, null, 2))
       
+      // Créer un timeout spécifique pour la requête Supabase avec Promise.race
       const insertPromise = supabase
         .from('Actu')
         .insert([insertData])
         .select()
       
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('TIMEOUT: La requête Supabase a pris plus de 20 secondes. Vérifiez votre connexion et les politiques RLS.'))
+        }, 20000)
+      })
+      
       console.log('Requête Supabase lancée, en attente de réponse...')
-      const { data, error: insertError } = await insertPromise
+      let result: any
+      try {
+        result = await Promise.race([insertPromise, timeoutPromise])
+      } catch (timeoutError) {
+        clearTimeout(timeoutId)
+        throw timeoutError
+      }
+      
+      const { data, error: insertError } = result
       
       console.log('Réponse de Supabase reçue')
       console.log('Data:', data)
@@ -163,6 +181,8 @@ export const AddActualiteForm: React.FC = () => {
     } catch (err: any) {
       clearTimeout(timeoutId)
       console.error('Erreur lors de l\'ajout de l\'actualité:', err)
+      console.error('Type d\'erreur:', err?.constructor?.name)
+      console.error('Stack:', err?.stack)
       
       // Message d'erreur plus détaillé
       let errorMessage = 'Une erreur est survenue lors de l\'ajout de l\'actualité'
