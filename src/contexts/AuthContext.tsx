@@ -46,15 +46,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const ADMIN_WARNING_TIME = ADMIN_INACTIVITY_TIMEOUT - 5 * 60 * 1000 // Avertir 5 minutes avant
 
   useEffect(() => {
+    // Timeout de sécurité pour éviter un blocage indéfini
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.warn('Timeout lors du chargement de la session, arrêt du loading')
+        setLoading(false)
+      }
+    }, 10000) // 10 secondes maximum
+
     // Vérifier la session actuelle
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(timeoutId)
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
-        loadUserProfile(session.user.id)
+        loadUserProfile(session.user.id).catch((error) => {
+          console.error('Erreur lors du chargement du profil:', error)
+          setLoading(false)
+        })
       } else {
         setLoading(false)
       }
+    }).catch((error) => {
+      clearTimeout(timeoutId)
+      console.error('Erreur lors de la récupération de la session:', error)
+      setLoading(false)
     })
 
     // Écouter les changements d'authentification
@@ -64,16 +80,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
-        await loadUserProfile(session.user.id)
-        // Réinitialiser le timestamp d'activité lors de la connexion
-        setLastActivity(Date.now())
+        try {
+          await loadUserProfile(session.user.id)
+          // Réinitialiser le timestamp d'activité lors de la connexion
+          setLastActivity(Date.now())
+        } catch (error) {
+          console.error('Erreur lors du chargement du profil:', error)
+          setLoading(false)
+        }
       } else {
         setProfile(null)
         setLoading(false)
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      clearTimeout(timeoutId)
+      subscription.unsubscribe()
+    }
   }, [])
 
   // Système de déconnexion automatique pour les administrateurs après inactivité
@@ -137,6 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error && error.code !== 'PGRST116') {
         // PGRST116 = pas de résultat trouvé, ce n'est pas grave
         console.error('Erreur lors du chargement du profil:', error)
+        // Continuer avec les métadonnées utilisateur en cas d'erreur
       }
 
       if (data) {
@@ -145,8 +170,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: data.email,
           role: data.role || 'adherent', // Par défaut, adhérent
         })
-      } else {
-        // Si pas de profil dans la table, utiliser les métadonnées de l'utilisateur
+        setLoading(false)
+        return
+      }
+
+      // Si pas de profil dans la table, utiliser les métadonnées de l'utilisateur
+      const { data: userData } = await supabase.auth.getUser()
+      if (userData?.user) {
+        const userRole = (userData.user.user_metadata?.role as UserRole) || 'adherent'
+        setProfile({
+          id: userData.user.id,
+          email: userData.user.email || '',
+          role: userRole,
+        })
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du profil:', error)
+      // En cas d'erreur, essayer de récupérer au moins les métadonnées utilisateur
+      try {
         const { data: userData } = await supabase.auth.getUser()
         if (userData?.user) {
           const userRole = (userData.user.user_metadata?.role as UserRole) || 'adherent'
@@ -156,9 +197,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role: userRole,
           })
         }
+      } catch (err) {
+        console.error('Erreur lors de la récupération des métadonnées utilisateur:', err)
       }
-    } catch (error) {
-      console.error('Erreur lors du chargement du profil:', error)
     } finally {
       setLoading(false)
     }
