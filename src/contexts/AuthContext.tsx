@@ -15,10 +15,12 @@ interface AuthContextType {
   profile: UserProfile | null
   session: Session | null
   loading: boolean
+  showInactivityWarning: boolean
   signIn: (email: string, password: string, role: UserRole) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<void>
   isAdmin: () => boolean
   isAdherent: () => boolean
+  dismissInactivityWarning: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -36,6 +38,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [lastActivity, setLastActivity] = useState<number>(Date.now())
+  const [showInactivityWarning, setShowInactivityWarning] = useState(false)
+
+  // Durée d'inactivité avant déconnexion automatique pour les administrateurs (2 heures)
+  const ADMIN_INACTIVITY_TIMEOUT = 2 * 60 * 60 * 1000 // 2 heures en millisecondes
+  const ADMIN_WARNING_TIME = ADMIN_INACTIVITY_TIMEOUT - 5 * 60 * 1000 // Avertir 5 minutes avant
 
   useEffect(() => {
     // Vérifier la session actuelle
@@ -57,6 +65,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null)
       if (session?.user) {
         await loadUserProfile(session.user.id)
+        // Réinitialiser le timestamp d'activité lors de la connexion
+        setLastActivity(Date.now())
       } else {
         setProfile(null)
         setLoading(false)
@@ -65,6 +75,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => subscription.unsubscribe()
   }, [])
+
+  // Système de déconnexion automatique pour les administrateurs après inactivité
+  useEffect(() => {
+    // Fonction pour mettre à jour le timestamp d'activité
+    const updateActivity = () => {
+      setLastActivity(Date.now())
+    }
+
+    // Écouter les événements utilisateur pour détecter l'activité
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click']
+    events.forEach((event) => {
+      window.addEventListener(event, updateActivity, { passive: true })
+    })
+
+    // Vérifier périodiquement si l'administrateur doit être déconnecté
+    const checkInactivity = setInterval(() => {
+      if (profile?.role === 'admin' && user) {
+        const timeSinceLastActivity = Date.now() - lastActivity
+        
+        // Afficher un avertissement 5 minutes avant la déconnexion
+        if (timeSinceLastActivity >= ADMIN_WARNING_TIME && timeSinceLastActivity < ADMIN_INACTIVITY_TIMEOUT) {
+          setShowInactivityWarning(true)
+        } else {
+          setShowInactivityWarning(false)
+        }
+        
+        // Déconnexion automatique après 2 heures d'inactivité
+        if (timeSinceLastActivity >= ADMIN_INACTIVITY_TIMEOUT) {
+          console.log('Déconnexion automatique : inactivité de 2 heures détectée')
+          setShowInactivityWarning(false)
+          supabase.auth.signOut()
+          setUser(null)
+          setProfile(null)
+          setSession(null)
+        }
+      } else {
+        setShowInactivityWarning(false)
+      }
+    }, 30000) // Vérifier toutes les 30 secondes
+
+    return () => {
+      // Nettoyer les event listeners
+      events.forEach((event) => {
+        window.removeEventListener(event, updateActivity)
+      })
+      clearInterval(checkInactivity)
+    }
+  }, [profile, user, lastActivity])
 
   const loadUserProfile = async (userId: string) => {
     try {
@@ -182,15 +240,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return profile?.role === 'adherent'
   }
 
+  const dismissInactivityWarning = () => {
+    setShowInactivityWarning(false)
+    // Réinitialiser l'activité pour donner plus de temps
+    setLastActivity(Date.now())
+  }
+
   const value = {
     user,
     profile,
     session,
     loading,
+    showInactivityWarning,
     signIn,
     signOut,
     isAdmin,
     isAdherent,
+    dismissInactivityWarning,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

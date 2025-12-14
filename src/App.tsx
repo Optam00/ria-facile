@@ -44,6 +44,7 @@ import FichePratiqueExceptionHautRisquePage from './pages/FichePratiqueException
 import FichePratiqueMaitriseIAPage from './pages/FichePratiqueMaitriseIAPage'
 import AdminConsolePage from './pages/AdminConsolePage'
 import { AuthProvider } from './contexts/AuthContext'
+import { InactivityWarning } from './components/InactivityWarning'
 
 // Composant pour scroller vers le haut à chaque changement de route
 function ScrollToTop() {
@@ -63,6 +64,7 @@ function App() {
         <Router>
           <ScrollToTop />
           <div className="min-h-screen">
+            <InactivityWarning />
             <Navigation />
             <Popup />
             <div className="container mx-auto px-4 py-8 flex-grow">
