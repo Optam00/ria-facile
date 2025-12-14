@@ -42,6 +42,7 @@ import FichePratiqueDroitsRGPDPage from './pages/FichePratiqueDroitsRGPDPage'
 import FichePratiqueSecteurBancairePage from './pages/FichePratiqueSecteurBancairePage'
 import FichePratiqueExceptionHautRisquePage from './pages/FichePratiqueExceptionHautRisquePage'
 import FichePratiqueMaitriseIAPage from './pages/FichePratiqueMaitriseIAPage'
+import AdminConsolePage from './pages/AdminConsolePage'
 import { AuthProvider } from './contexts/AuthContext'
 
 // Composant pour scroller vers le haut à chaque changement de route
@@ -75,6 +76,7 @@ function App() {
               <Route path="/documentation" element={<DocumentationPage />} />
               <Route path="/mentions-legales" element={<LegalNoticePage />} />
               <Route path="/connexion" element={<ConnexionPage />} />
+              <Route path="/admin/console" element={<AdminConsolePage />} />
               <Route path="/politique-de-confidentialite" element={<PrivacyPage />} />
               <Route path="/actualites" element={<ActualitesPage />} />
               <Route path="/doctrine" element={<DoctrinePage />} />

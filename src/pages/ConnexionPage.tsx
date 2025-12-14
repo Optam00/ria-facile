@@ -26,7 +26,12 @@ const ConnexionPage: React.FC = () => {
       setIsLoading(false)
     } else {
       // Redirection après connexion réussie
-      navigate('/')
+      // Les administrateurs vont vers la console d'administration
+      if (userType === 'admin') {
+        navigate('/admin/console')
+      } else {
+        navigate('/')
+      }
     }
   }
 
