@@ -80,14 +80,28 @@ export const AddActualiteForm: React.FC = () => {
       })
 
       // Insérer dans Supabase
+      // Note: Les noms de colonnes doivent correspondre exactement à ceux de la table Supabase
+      // Si la table utilise des minuscules, il faut adapter
+      const insertData: any = {
+        Titre: formData.Titre.trim(),
+        Date: formData.Date.trim(),
+        media: formData.media.trim(),
+        lien: formData.lien.trim(),
+      }
+
+      console.log('Données à insérer:', insertData)
+      console.log('Vérification de la session actuelle...')
+      
+      // Vérifier la session avant l'insertion
+      const { data: sessionData } = await supabase.auth.getSession()
+      console.log('Session actuelle:', sessionData.session ? 'Connecté' : 'Non connecté')
+      if (sessionData.session) {
+        console.log('User ID:', sessionData.session.user.id)
+      }
+
       const { data, error: insertError } = await supabase
         .from('Actu')
-        .insert([{
-          Titre: formData.Titre.trim(),
-          Date: formData.Date.trim(),
-          media: formData.media.trim(),
-          lien: formData.lien.trim(),
-        }])
+        .insert([insertData])
         .select()
 
       clearTimeout(timeoutId)
