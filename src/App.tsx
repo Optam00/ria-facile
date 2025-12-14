@@ -40,6 +40,7 @@ import FichePratiqueControleHumainPage from './pages/FichePratiqueControleHumain
 import FichePratiqueDroitsRGPDPage from './pages/FichePratiqueDroitsRGPDPage'
 import FichePratiqueSecteurBancairePage from './pages/FichePratiqueSecteurBancairePage'
 import FichePratiqueExceptionHautRisquePage from './pages/FichePratiqueExceptionHautRisquePage'
+import FichePratiqueMaitriseIAPage from './pages/FichePratiqueMaitriseIAPage'
 
 // Composant pour scroller vers le haut à chaque changement de route
 function ScrollToTop() {
@@ -97,6 +98,7 @@ function App() {
               <Route path="/fiches-pratiques/droits-rgpd" element={<FichePratiqueDroitsRGPDPage />} />
               <Route path="/fiches-pratiques/secteur-bancaire" element={<FichePratiqueSecteurBancairePage />} />
               <Route path="/fiches-pratiques/exception-haut-risque" element={<FichePratiqueExceptionHautRisquePage />} />
+              <Route path="/fiches-pratiques/maitrise-ia" element={<FichePratiqueMaitriseIAPage />} />
             </Routes>
           </div>
           <Footer />

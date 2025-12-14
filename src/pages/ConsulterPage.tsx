@@ -126,7 +126,9 @@ export const ConsulterPage = () => {
     '/fiches-pratiques/secteur-bancaire': "L'AI Act dans le secteur bancaire & financier",
     'secteur-bancaire': "L'AI Act dans le secteur bancaire & financier",
     '/fiches-pratiques/exception-haut-risque': "L'exception de qualification \"Haut Risque\" (Article 6.3)",
-    'exception-haut-risque': "L'exception de qualification \"Haut Risque\" (Article 6.3)"
+    'exception-haut-risque': "L'exception de qualification \"Haut Risque\" (Article 6.3)",
+    '/fiches-pratiques/maitrise-ia': "La maîtrise de l'IA (Article 4)",
+    'maitrise-ia': "La maîtrise de l'IA (Article 4)"
   }
 
   // Fonction pour obtenir les fiches pratiques avec titre et lien depuis le champ "fiches"

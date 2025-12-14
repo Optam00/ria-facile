@@ -109,6 +109,12 @@ const FICHES_PRATIQUES = [
     titre: "L'exception de qualification \"Haut Risque\" (Article 6.3)",
     description: "Guide pratique sur l'exception de qualification Haut Risque (Art. 6.3 AI Act) : conditions, documentation, enregistrement et articulation avec le RGPD.",
     articlesRIA: ['6', '51']
+  },
+  {
+    id: 'maitrise-ia',
+    titre: "La maîtrise de l'IA (Article 4)",
+    description: "Guide pratique sur l'obligation de maîtrise de l'IA (Art. 4 AI Act) : formation du personnel, approche contextuelle et plan d'actions pour la conformité.",
+    articlesRIA: ['4']
   }
 ]
 
