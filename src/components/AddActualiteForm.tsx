@@ -36,28 +36,48 @@ export const AddActualiteForm: React.FC = () => {
     setError(null)
     setSuccess(false)
 
+    // Timeout de sécurité (30 secondes)
+    const timeoutId = setTimeout(() => {
+      if (isSubmitting) {
+        setIsSubmitting(false)
+        setError('La requête a pris trop de temps. Veuillez réessayer.')
+        console.error('Timeout lors de l\'ajout de l\'actualité')
+      }
+    }, 30000)
+
     try {
       // Validation des champs requis
       if (!formData.Titre.trim()) {
+        clearTimeout(timeoutId)
         setError('Le titre est requis')
         setIsSubmitting(false)
         return
       }
       if (!formData.Date.trim()) {
+        clearTimeout(timeoutId)
         setError('La date est requise')
         setIsSubmitting(false)
         return
       }
       if (!formData.media.trim()) {
+        clearTimeout(timeoutId)
         setError('Le média est requis')
         setIsSubmitting(false)
         return
       }
       if (!formData.lien.trim()) {
+        clearTimeout(timeoutId)
         setError('Le lien est requis')
         setIsSubmitting(false)
         return
       }
+
+      console.log('Tentative d\'insertion dans Supabase:', {
+        Titre: formData.Titre.trim(),
+        Date: formData.Date.trim(),
+        media: formData.media.trim(),
+        lien: formData.lien.trim(),
+      })
 
       // Insérer dans Supabase
       const { data, error: insertError } = await supabase
@@ -70,9 +90,19 @@ export const AddActualiteForm: React.FC = () => {
         }])
         .select()
 
+      clearTimeout(timeoutId)
+
       if (insertError) {
+        console.error('Erreur Supabase détaillée:', {
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint,
+          code: insertError.code,
+        })
         throw insertError
       }
+
+      console.log('Actualité ajoutée avec succès:', data)
 
       // Succès
       setSuccess(true)
@@ -88,9 +118,27 @@ export const AddActualiteForm: React.FC = () => {
       setTimeout(() => {
         setSuccess(false)
       }, 5000)
-    } catch (err) {
+    } catch (err: any) {
+      clearTimeout(timeoutId)
       console.error('Erreur lors de l\'ajout de l\'actualité:', err)
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue lors de l\'ajout de l\'actualité')
+      
+      // Message d'erreur plus détaillé
+      let errorMessage = 'Une erreur est survenue lors de l\'ajout de l\'actualité'
+      
+      if (err?.message) {
+        errorMessage = err.message
+      } else if (err instanceof Error) {
+        errorMessage = err.message
+      }
+      
+      // Ajouter des détails si disponibles
+      if (err?.details) {
+        errorMessage += ` (${err.details})`
+      } else if (err?.hint) {
+        errorMessage += ` (${err.hint})`
+      }
+      
+      setError(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
