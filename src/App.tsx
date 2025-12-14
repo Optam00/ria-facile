@@ -7,6 +7,7 @@ import { ContactPage } from './pages/ContactPage'
 import { QuizIntroPage } from './pages/QuizIntroPage'
 import { LegalNoticePage } from './pages/LegalNoticePage'
 import { PrivacyPage } from './pages/PrivacyPage'
+import ConnexionPage from './pages/ConnexionPage'
 import { HomePage } from './pages/HomePage'
 import { ConsulterPage } from './pages/ConsulterPage'
 import { DocumentationPage } from './pages/DocumentationPage'
@@ -41,6 +42,7 @@ import FichePratiqueDroitsRGPDPage from './pages/FichePratiqueDroitsRGPDPage'
 import FichePratiqueSecteurBancairePage from './pages/FichePratiqueSecteurBancairePage'
 import FichePratiqueExceptionHautRisquePage from './pages/FichePratiqueExceptionHautRisquePage'
 import FichePratiqueMaitriseIAPage from './pages/FichePratiqueMaitriseIAPage'
+import { AuthProvider } from './contexts/AuthContext'
 
 // Composant pour scroller vers le haut à chaque changement de route
 function ScrollToTop() {
@@ -56,13 +58,14 @@ function ScrollToTop() {
 function App() {
   return (
     <HelmetProvider>
-      <Router>
-        <ScrollToTop />
-        <div className="min-h-screen">
-          <Navigation />
-          <Popup />
-          <div className="container mx-auto px-4 py-8 flex-grow">
-            <Routes>
+      <AuthProvider>
+        <Router>
+          <ScrollToTop />
+          <div className="min-h-screen">
+            <Navigation />
+            <Popup />
+            <div className="container mx-auto px-4 py-8 flex-grow">
+              <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/quiz" element={<QuizIntroPage />} />
               <Route path="/quiz/questions" element={<QuizPage />} />
@@ -71,6 +74,7 @@ function App() {
               <Route path="/schemas" element={<SchemasPage />} />
               <Route path="/documentation" element={<DocumentationPage />} />
               <Route path="/mentions-legales" element={<LegalNoticePage />} />
+              <Route path="/connexion" element={<ConnexionPage />} />
               <Route path="/politique-de-confidentialite" element={<PrivacyPage />} />
               <Route path="/actualites" element={<ActualitesPage />} />
               <Route path="/doctrine" element={<DoctrinePage />} />
@@ -99,12 +103,13 @@ function App() {
               <Route path="/fiches-pratiques/secteur-bancaire" element={<FichePratiqueSecteurBancairePage />} />
               <Route path="/fiches-pratiques/exception-haut-risque" element={<FichePratiqueExceptionHautRisquePage />} />
               <Route path="/fiches-pratiques/maitrise-ia" element={<FichePratiqueMaitriseIAPage />} />
-            </Routes>
+              </Routes>
+            </div>
+            <Footer />
+            <CookieConsentBanner />
           </div>
-          <Footer />
-          <CookieConsentBanner />
-        </div>
-      </Router>
+        </Router>
+      </AuthProvider>
     </HelmetProvider>
   )
 }
