@@ -80,16 +80,16 @@ export const AddActualiteForm: React.FC = () => {
       })
 
       // Insérer dans Supabase
-      // Note: Les noms de colonnes doivent correspondre exactement à ceux de la table Supabase
-      // Si la table utilise des minuscules, il faut adapter
-      const insertData: any = {
+      // Noms de colonnes exacts selon la table Supabase : id, Date, media, lien, Titre
+      // Note: Date et Titre avec majuscules, media et lien en minuscules
+      const insertData = {
         Titre: formData.Titre.trim(),
         Date: formData.Date.trim(),
         media: formData.media.trim(),
         lien: formData.lien.trim(),
       }
 
-      console.log('Données à insérer:', insertData)
+      console.log('Données à insérer (noms exacts):', insertData)
       console.log('Vérification de la session actuelle...')
       
       // Vérifier la session avant l'insertion
