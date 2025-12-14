@@ -24,7 +24,7 @@ Vous pouvez trouver ces valeurs dans votre dashboard Supabase :
 
 1. Allez dans votre dashboard Supabase
 2. Ouvrez l'éditeur SQL (SQL Editor dans le menu de gauche)
-3. Exécutez le script `supabase-setup.sql` qui crée :
+3. Exécutez le script `supabase/scripts/supabase-setup.sql` qui crée :
    - La table `profiles` pour stocker les rôles des utilisateurs
    - Les politiques de sécurité (RLS)
    - Les triggers pour créer automatiquement un profil lors de l'inscription
