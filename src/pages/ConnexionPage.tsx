@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -6,13 +6,26 @@ import { useAuth } from '../contexts/AuthContext'
 type UserType = 'adherent' | 'admin'
 
 const ConnexionPage: React.FC = () => {
-  const { signIn } = useAuth()
+  const { signIn, isAdmin, isAdherent, loading } = useAuth()
   const navigate = useNavigate()
   const [userType, setUserType] = useState<UserType>('adherent')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Rediriger si l'utilisateur est déjà connecté
+  useEffect(() => {
+    if (!loading) {
+      if (isAdmin()) {
+        // Si l'utilisateur est déjà connecté en tant qu'admin, rediriger vers la console
+        navigate('/admin/console', { replace: true })
+      } else if (isAdherent()) {
+        // Si l'utilisateur est déjà connecté en tant qu'adhérent, rediriger vers l'accueil
+        navigate('/', { replace: true })
+      }
+    }
+  }, [loading, isAdmin, isAdherent, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,6 +46,23 @@ const ConnexionPage: React.FC = () => {
         navigate('/')
       }
     }
+  }
+
+  // Afficher un loader pendant la vérification de la session
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Vérification de la session...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Si l'utilisateur est déjà connecté, ne rien afficher (redirection en cours)
+  if (isAdmin() || isAdherent()) {
+    return null
   }
 
   return (

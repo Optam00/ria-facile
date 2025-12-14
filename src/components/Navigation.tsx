@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 import logo from '../assets/logo.jpeg'
 
 export const Navigation = () => {
+  const { isAdmin } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [showSearch, setShowSearch] = useState(false)
@@ -225,6 +227,20 @@ export const Navigation = () => {
           )}
             </form>
           )}
+          {/* Bouton console admin (si admin) */}
+          {isAdmin() && (
+            <Link
+              to="/admin/console"
+              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-none hover:from-indigo-700 hover:to-purple-700 transition-all text-sm"
+              style={{ minWidth: 140, justifyContent: 'center' }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Console Admin
+            </Link>
+          )}
           {/* Bouton contact */}
           <Link
             to="/contact"
@@ -317,6 +333,17 @@ export const Navigation = () => {
                     </div>
                   )}
                 </div>
+                {isAdmin() && (
+                  <Link to="/admin/console" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-indigo-50 transition bg-indigo-50 text-indigo-700 font-semibold" onClick={() => setIsOpen(false)}>
+                    <span className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Console d'administration
+                    </span>
+                  </Link>
+                )}
                 <Link to="/contact" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Nous contacter</Link>
               </div>
             </div>
