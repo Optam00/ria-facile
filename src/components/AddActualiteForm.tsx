@@ -90,24 +90,6 @@ export const AddActualiteForm: React.FC = () => {
       }
 
       console.log('Données à insérer (noms exacts):', insertData)
-      console.log('Vérification de la session actuelle...')
-      
-      // Vérifier la session avant l'insertion
-      console.log('Appel de getSession()...')
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-      console.log('getSession() terminé')
-      console.log('Session actuelle:', sessionData.session ? 'Connecté' : 'Non connecté')
-      if (sessionError) {
-        console.error('Erreur lors de la vérification de la session:', sessionError)
-        throw new Error('Erreur de session: ' + sessionError.message)
-      }
-      if (sessionData.session) {
-        console.log('User ID:', sessionData.session.user.id)
-        console.log('Email:', sessionData.session.user.email)
-      } else {
-        throw new Error('Vous n\'êtes pas connecté. Veuillez vous reconnecter.')
-      }
-
       console.log('Début de l\'insertion dans Supabase...')
       console.log('Table: Actu')
       console.log('Données:', JSON.stringify(insertData, null, 2))
