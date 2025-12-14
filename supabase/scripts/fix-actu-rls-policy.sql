@@ -12,11 +12,17 @@ SELECT
     ELSE '✗ Fonction is_admin n''existe pas - Exécutez d''abord setup-rls-policies.sql'
   END as verification;
 
--- 2. Supprimer les anciennes politiques
+-- 2. Supprimer TOUTES les anciennes politiques de la table Actu
 DROP POLICY IF EXISTS "Actu - Lecture publique" ON "Actu";
 DROP POLICY IF EXISTS "Actu - Écriture admin" ON "Actu";
+DROP POLICY IF EXISTS "Actu - Insertion admin" ON "Actu";
+DROP POLICY IF EXISTS "Actu - Modification admin" ON "Actu";
+DROP POLICY IF EXISTS "Actu - Suppression admin" ON "Actu";
 DROP POLICY IF EXISTS "Actu - Lecture publique" ON public."Actu";
 DROP POLICY IF EXISTS "Actu - Écriture admin" ON public."Actu";
+DROP POLICY IF EXISTS "Actu - Insertion admin" ON public."Actu";
+DROP POLICY IF EXISTS "Actu - Modification admin" ON public."Actu";
+DROP POLICY IF EXISTS "Actu - Suppression admin" ON public."Actu";
 
 -- 3. S'assurer que RLS est activé
 ALTER TABLE IF EXISTS "Actu" ENABLE ROW LEVEL SECURITY;
