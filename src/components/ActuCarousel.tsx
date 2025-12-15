@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabasePublic } from '../lib/supabasePublic';
 import { Actu } from '../types/Actu';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -19,9 +19,9 @@ export const ActuCarousel = () => {
     const fetchActus = async () => {
       try {
         console.log('ActuCarousel - Début de la récupération des actualités');
-        console.log('ActuCarousel - Client Supabase initialisé:', !!supabase);
+        console.log('ActuCarousel - Client SupabasePublic initialisé:', !!supabasePublic);
 
-        const { data, error } = await supabase
+        const { data, error } = await supabasePublic
           .from('Actu')
           .select('*')
           .order('Date', { ascending: false })

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { supabase } from '../lib/supabase'
+import { supabasePublic } from '../lib/supabasePublic'
 
 interface Actualite {
   id: number
@@ -40,9 +40,9 @@ export const ActualitesPage = () => {
   const fetchActualites = async () => {
     try {
       console.log('ActualitesPage - Début de la récupération des actualités');
-      console.log('ActualitesPage - Client Supabase initialisé:', !!supabase);
+      console.log('ActualitesPage - Client SupabasePublic initialisé:', !!supabasePublic);
 
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic
         .from('Actu')
         .select('*')
         .order('Date', { ascending: false });
