@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabasePublic } from '../lib/supabasePublic';
 import { Helmet } from 'react-helmet-async';
 
 interface DoctrineArticleComplet {
@@ -33,7 +33,7 @@ const DoctrineArticlePage: React.FC = () => {
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabasePublic
           .from('doctrine')
           .select('*')
           .eq('id', id)

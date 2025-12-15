@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabasePublic } from '../lib/supabasePublic';
 import { AdvancedSearch } from '../components/AdvancedSearch';
 import { CollapsibleSection } from '../components/CollapsibleSection';
 
@@ -171,7 +171,7 @@ export const SearchResultsPage = () => {
     try {
       // Recherche dans le règlement IA (articles)
       if (searchFilters.reglement) {
-        const { data: reglement } = await supabase
+        const { data: reglement } = await supabasePublic
           .from('article')
           .select('id_article, titre, numero, contenu')
           .or(`titre.ilike.%${searchQuery}%,contenu.ilike.%${searchQuery}%`);
@@ -180,7 +180,7 @@ export const SearchResultsPage = () => {
 
       // Recherche dans la documentation
       if (searchFilters.documentation) {
-        const { data: documentation } = await supabase
+        const { data: documentation } = await supabasePublic
           .from('documentation')
           .select('id, titre, resume, themes')
           .or(`titre.ilike.%${searchQuery}%,resume.ilike.%${searchQuery}%,themes.ilike.%${searchQuery}%`);
@@ -189,7 +189,7 @@ export const SearchResultsPage = () => {
 
       // Recherche dans la doctrine
       if (searchFilters.doctrine) {
-        const { data: doctrine } = await supabase
+        const { data: doctrine } = await supabasePublic
           .from('doctrine')
           .select('id, titre, abstract, auteur')
           .or(`titre.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,auteur.ilike.%${searchQuery}%`);
@@ -198,7 +198,7 @@ export const SearchResultsPage = () => {
 
       // Recherche dans les actualités
       if (searchFilters.actualites) {
-        const { data: actualites } = await supabase
+        const { data: actualites } = await supabasePublic
           .from('Actu')
           .select('id, Titre, Date, media, lien')
           .ilike('Titre', `%${searchQuery}%`);
@@ -206,7 +206,7 @@ export const SearchResultsPage = () => {
       }
 
       // Recherche dans les considérants (corrigé)
-      const { data: considerants, error: considerantsError } = await supabase
+      const { data: considerants, error: considerantsError } = await supabasePublic
         .from('considerant')
         .select('id_considerant, numero, contenu')
         .ilike('contenu', `%${searchQuery}%`);
@@ -217,7 +217,7 @@ export const SearchResultsPage = () => {
       // Recherche dans les annexes
       if (searchFilters.annexes) {
         // On cherche dans la table annexes (contenu) puis on récupère le titre dans liste_annexes
-        const { data: annexesData, error: annexesError } = await supabase
+        const { data: annexesData, error: annexesError } = await supabasePublic
           .from('annexes')
           .select('id_annexe, titre_section, contenu')
           .ilike('contenu', `%${searchQuery}%`);
@@ -228,7 +228,7 @@ export const SearchResultsPage = () => {
         if (annexesData && annexesData.length > 0) {
           // Récupérer les titres et numéros des annexes
           const ids = annexesData.map(a => a.id_annexe);
-          const { data: listeAnnexes } = await supabase
+          const { data: listeAnnexes } = await supabasePublic
             .from('liste_annexes')
             .select('id_annexe, titre, numero')
             .in('id_annexe', ids);

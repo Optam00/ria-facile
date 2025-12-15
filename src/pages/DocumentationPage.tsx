@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabasePublic } from '../lib/supabasePublic';
 import { DocCard } from '../components/DocCard';
 import { DocumentationFilters } from '../components/DocumentationFilters';
 import { Helmet } from 'react-helmet-async';
@@ -65,7 +65,7 @@ export const DocumentationPage = () => {
   useEffect(() => {
     const fetchDocs = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabasePublic
           .from('docs')
           .select('*')
           .order('date', { ascending: false });

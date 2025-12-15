@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabasePublic } from '../lib/supabasePublic'
 import { Sommaire } from '@/components/Sommaire'
 import { TextSettings } from '@/components/TextSettings'
 import { Helmet } from 'react-helmet-async'
@@ -215,7 +215,7 @@ export const ConsulterPage = () => {
   useEffect(() => {
     const fetchReglementData = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabasePublic
           .from('reglement')
           .select('titre, visa')
           .single()
@@ -268,7 +268,7 @@ export const ConsulterPage = () => {
             let article
             if (numero) {
               // Recherche par numéro d'article
-              const { data: articleData } = await supabase
+              const { data: articleData } = await supabasePublic
               .from('article')
                 .select('id_article, titre, numero, contenu, resume, recitals, fiches')
                 .eq('numero', numero)
@@ -276,7 +276,7 @@ export const ConsulterPage = () => {
               article = articleData
             } else if (id) {
               // Recherche par id_article (comportement existant)
-              const { data: articleData } = await supabase
+              const { data: articleData } = await supabasePublic
                 .from('article')
                 .select('id_article, titre, numero, contenu, resume, recitals, fiches')
               .eq('id_article', parseInt(id))
@@ -297,7 +297,7 @@ export const ConsulterPage = () => {
             break
           case 'annexe':
             // D'abord récupérer l'annexe depuis liste_annexes
-            const { data: listeAnnexe } = await supabase
+            const { data: listeAnnexe } = await supabasePublic
               .from('liste_annexes')
               .select('*')
               .eq('id_annexe', parseInt(id))
@@ -305,7 +305,7 @@ export const ConsulterPage = () => {
             
             if (listeAnnexe) {
               // Récupérer le contenu depuis la table annexes
-              const { data: annexeContent } = await supabase
+              const { data: annexeContent } = await supabasePublic
                 .from('annexes')
                 .select('*')
                 .eq('id_annexe', parseInt(id))
@@ -344,7 +344,7 @@ export const ConsulterPage = () => {
             }
             break
           case 'section':
-            const { data: section } = await supabase
+            const { data: section } = await supabasePublic
               .from('section')
               .select('*')
               .eq('id_section', parseInt(id))
@@ -369,7 +369,7 @@ export const ConsulterPage = () => {
     setSelectedChapitre(null)
     setSelectedArticle(null)
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic
         .from('considerant')
         .select('numero, contenu')
         .eq('numero', numero)
@@ -394,7 +394,7 @@ export const ConsulterPage = () => {
     setLoadingContent(true)
     setSelectedConsiderant(null)
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic
         .from('chapitre')
         .select('id, titre, contenu')
         .eq('id', id)
@@ -421,7 +421,7 @@ export const ConsulterPage = () => {
     setSelectedChapitre(null)
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic
         .from('article')
         .select(`
           *,
@@ -461,7 +461,7 @@ export const ConsulterPage = () => {
     if (!selectedArticle) return
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic
         .from('article')
         .select(`
           *,
@@ -500,7 +500,7 @@ export const ConsulterPage = () => {
     if (!selectedArticle) return
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic
         .from('article')
         .select(`
           *,
@@ -539,7 +539,7 @@ export const ConsulterPage = () => {
     if (!selectedConsiderant) return
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic
         .from('considerant')
         .select('numero, contenu')
         .gt('numero', selectedConsiderant.numero)
@@ -563,7 +563,7 @@ export const ConsulterPage = () => {
     if (!selectedConsiderant) return
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic
         .from('considerant')
         .select('numero, contenu')
         .lt('numero', selectedConsiderant.numero)
@@ -621,7 +621,7 @@ export const ConsulterPage = () => {
     
     try {
       // Récupérer les détails de la section
-      const { data: sectionData, error: sectionError } = await supabase
+      const { data: sectionData, error: sectionError } = await supabasePublic
         .from('section')
         .select('*')
         .eq('id_section', section.id_section)
@@ -630,7 +630,7 @@ export const ConsulterPage = () => {
       if (sectionError) throw sectionError
 
       // Récupérer tous les articles de cette section et les trier
-      const { data: articlesData, error: articleError } = await supabase
+      const { data: articlesData, error: articleError } = await supabasePublic
         .from('article')
         .select(`
           id_article,
@@ -772,7 +772,7 @@ export const ConsulterPage = () => {
     setIsLoadingFullContent(true)
     try {
       // Charger les considérants
-      const { data: considerants, error: considerantsError } = await supabase
+      const { data: considerants, error: considerantsError } = await supabasePublic
         .from('considerant')
         .select('*')
         .order('numero')
@@ -781,7 +781,7 @@ export const ConsulterPage = () => {
       setAllConsiderants(considerants)
 
       // Charger les articles avec leurs relations
-      const { data: articles, error: articlesError } = await supabase
+      const { data: articles, error: articlesError } = await supabasePublic
         .from('article')
         .select(`
           *,
@@ -802,7 +802,7 @@ export const ConsulterPage = () => {
 
       // Charger les annexes avec leur contenu complet
       console.log('Début de la récupération des annexes...')
-      const { data: annexes, error: annexesError } = await supabase
+      const { data: annexes, error: annexesError } = await supabasePublic
         .from('annexe')
         .select('*')
         .order('numero', { ascending: true })

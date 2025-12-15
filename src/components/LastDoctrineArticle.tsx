@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabasePublic } from '../lib/supabasePublic';
 
 interface DoctrineArticle {
   id: number;
@@ -27,7 +27,7 @@ export const LastDoctrineArticle: React.FC = () => {
   useEffect(() => {
     const fetchLastArticle = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabasePublic
           .from('doctrine')
           .select('id, titre, abstract, date, theme, auteur')
           .order('date', { ascending: false })
