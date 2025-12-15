@@ -54,16 +54,41 @@ export default async function handler(req, res) {
     // Appeler la fonction Supabase Edge Function
     const functionUrl = `${supabaseUrl}/functions/v1/assistant-ria`;
     console.log('📤 Appel de Supabase Edge Function:', functionUrl);
-    
-    const response = await fetch(functionUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-        'apikey': supabaseAnonKey,
-      },
-      body: JSON.stringify({ question, history }),
+    console.log('📤 Headers:', {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabaseAnonKey.substring(0, 20)}...`,
+      'apikey': `${supabaseAnonKey.substring(0, 20)}...`,
     });
+    
+    let response;
+    try {
+      response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'apikey': supabaseAnonKey,
+        },
+        body: JSON.stringify({ question, history }),
+      });
+    } catch (fetchError) {
+      console.error('❌ Erreur fetch détaillée:', {
+        message: fetchError.message,
+        stack: fetchError.stack,
+        name: fetchError.name,
+        cause: fetchError.cause,
+        url: functionUrl,
+        fetchAvailable: typeof fetch !== 'undefined'
+      });
+      return res.status(500).json({
+        error: `Erreur réseau lors de l'appel à Supabase: ${fetchError.message}`,
+        details: {
+          url: functionUrl,
+          fetchAvailable: typeof fetch !== 'undefined',
+          errorType: fetchError.name
+        }
+      });
+    }
 
     console.log('📥 Réponse Supabase:', { status: response.status, ok: response.ok });
 
