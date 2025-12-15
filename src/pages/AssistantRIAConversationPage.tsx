@@ -50,63 +50,34 @@ const AssistantRIAConversationPage = () => {
   // Appel à l'API Gemini via la Supabase Edge Function
   const callGeminiAPI = async (question: string, history: {question: string, answer: string}[]) => {
     const recentHistory = history.slice(-MAX_HISTORY);
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
-    console.log('🔍 Configuration Supabase:', {
-      url: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'MANQUANTE',
-      key: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'MANQUANTE'
-    });
-    
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('❌ Configuration Supabase manquante');
-      throw new Error('Configuration Supabase manquante');
-    }
-
-    const functionUrl = `${supabaseUrl}/functions/v1/assistant-ria`;
-    const requestBody = { question, history: recentHistory };
-    
-    console.log('📤 Envoi de la requête:', {
-      url: functionUrl,
+    console.log('📤 Appel de la fonction assistant-ria:', {
       question: question.substring(0, 50),
       historyLength: recentHistory.length
     });
 
     try {
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-          'apikey': supabaseAnonKey,
-        },
-        body: JSON.stringify(requestBody),
+      // Utiliser le client Supabase pour éviter les problèmes CORS
+      const { data, error } = await supabase.functions.invoke('assistant-ria', {
+        body: { question, history: recentHistory }
       });
       
       console.log('📥 Réponse reçue:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
+        hasData: !!data,
+        hasError: !!error,
+        answerLength: data?.answer?.length
       });
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Erreur HTTP:', errorText);
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { error: errorText || `Erreur ${response.status}: ${response.statusText}` };
-        }
-        throw new Error(errorData.error || `Erreur ${response.status}: ${response.statusText}`);
+      if (error) {
+        console.error('❌ Erreur Supabase:', error);
+        throw new Error(error.message || 'Erreur lors de l\'appel à la fonction');
       }
       
-      const data = await response.json();
-      console.log('✅ Données reçues:', { hasAnswer: !!data.answer, answerLength: data.answer?.length });
-      
-      if (data.error) {
-        throw new Error(data.error);
+      if (!data || !data.answer) {
+        throw new Error('Réponse invalide de la fonction');
       }
+      
+      console.log('✅ Réponse obtenue avec succès');
       return data.answer;
     } catch (error) {
       console.error('❌ Erreur lors de l\'appel API:', error);
