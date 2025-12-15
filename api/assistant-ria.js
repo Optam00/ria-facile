@@ -68,8 +68,12 @@ export default async function handler(req, res) {
     }
 
     // Appeler la fonction Supabase Edge Function
-    const functionUrl = `${supabaseUrl}/functions/v1/assistant-ria`;
+    // Le nom de la fonction dans Supabase est "assistant RIA" (avec espace) ou "bright-processor"
+    // Les espaces dans les URLs doivent être encodés en %20
+    const functionName = 'assistant RIA'; // Nom exact dans Supabase
+    const functionUrl = `${supabaseUrl}/functions/v1/${encodeURIComponent(functionName)}`;
     console.log('📤 Appel de Supabase Edge Function:', functionUrl);
+    console.log('📤 Nom de fonction:', functionName);
     console.log('📤 Headers:', {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${supabaseAnonKey.substring(0, 20)}...`,
