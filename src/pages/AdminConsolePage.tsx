@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { supabase } from '../lib/supabase'
 
 type AdminAction = 'ajouter-actualite' | 'ajouter-article-doctrine' | 'ajouter-document' | 'enrichir-article' | null
 
@@ -50,6 +49,24 @@ const AdminConsolePage: React.FC = () => {
     message: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+  const getAuthHeaders = () => {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Configuration Supabase manquante côté client')
+    }
+    if (!session?.access_token) {
+      throw new Error('Session administrateur introuvable')
+    }
+    return {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal',
+    } as const
+  }
 
   // Rediriger si l'utilisateur n'est pas admin une fois la session chargée
   useEffect(() => {
@@ -195,24 +212,25 @@ const AdminConsolePage: React.FC = () => {
                     className="grid grid-cols-1 md:grid-cols-2 gap-6"
                     onSubmit={async (e) => {
                       e.preventDefault()
-                      console.log('[AdminConsole] Soumission actualité', actualiteForm)
                       setIsSubmitting(true)
                       setFormStatus({ type: null, message: '' })
 
                       try {
-                        console.log('[AdminConsole] Avant insert Actu')
-                        const insertPromise = supabase.from('Actu').insert({
-                          Titre: actualiteForm.Titre.trim(),
-                          Date: actualiteForm.Date,
-                          media: actualiteForm.media.trim(),
-                          lien: actualiteForm.lien.trim(),
+                        const headers = getAuthHeaders()
+                        const response = await fetch(`${supabaseUrl}/rest/v1/Actu`, {
+                          method: 'POST',
+                          headers,
+                          body: JSON.stringify({
+                            Titre: actualiteForm.Titre.trim(),
+                            Date: actualiteForm.Date,
+                            media: actualiteForm.media.trim(),
+                            lien: actualiteForm.lien.trim(),
+                          }),
                         })
-                        console.log('[AdminConsole] Après supabase.from(Actu).insert, promise =', insertPromise)
-                        const { error } = await insertPromise
-                        console.log('[AdminConsole] Résultat insertion actualité', { error })
 
-                        if (error) {
-                          throw new Error(error.message)
+                        if (!response.ok) {
+                          const text = await response.text()
+                          throw new Error(text || `Erreur Supabase (${response.status})`)
                         }
 
                         setFormStatus({ type: 'success', message: 'Actualité ajoutée avec succès.' })
@@ -338,25 +356,28 @@ const AdminConsolePage: React.FC = () => {
                     className="grid grid-cols-1 md:grid-cols-2 gap-6"
                     onSubmit={async (e) => {
                       e.preventDefault()
-                      console.log('[AdminConsole] Soumission document', docForm)
                       setIsSubmitting(true)
                       setFormStatus({ type: null, message: '' })
 
                       try {
-                        const { error } = await supabase.from('docs').insert({
-                          titre: docForm.titre.trim(),
-                          auteur: docForm.auteur.trim() || null,
-                          lien: docForm.lien.trim(),
-                          date: docForm.date,
-                          resume: docForm.resume.trim(),
-                          themes: docForm.themes.trim(),
-                          langue: docForm.langue.trim(),
+                        const headers = getAuthHeaders()
+                        const response = await fetch(`${supabaseUrl}/rest/v1/docs`, {
+                          method: 'POST',
+                          headers,
+                          body: JSON.stringify({
+                            titre: docForm.titre.trim(),
+                            auteur: docForm.auteur.trim() || null,
+                            lien: docForm.lien.trim(),
+                            date: docForm.date,
+                            resume: docForm.resume.trim(),
+                            themes: docForm.themes.trim(),
+                            langue: docForm.langue.trim(),
+                          }),
                         })
 
-                        console.log('[AdminConsole] Résultat insertion document', { error })
-
-                        if (error) {
-                          throw new Error(error.message)
+                        if (!response.ok) {
+                          const text = await response.text()
+                          throw new Error(text || `Erreur Supabase (${response.status})`)
                         }
 
                         setFormStatus({ type: 'success', message: 'Document ajouté avec succès.' })
@@ -526,36 +547,39 @@ const AdminConsolePage: React.FC = () => {
                     className="space-y-6"
                     onSubmit={async (e) => {
                       e.preventDefault()
-                      console.log('[AdminConsole] Soumission doctrine', doctrineForm)
                       setIsSubmitting(true)
                       setFormStatus({ type: null, message: '' })
 
                       try {
-                        const { error } = await supabase.from('doctrine').insert({
-                          titre: doctrineForm.titre.trim(),
-                          date: doctrineForm.date,
-                          abstract: doctrineForm.abstract.trim(),
-                          intro: doctrineForm.intro.trim(),
-                          titre1: doctrineForm.titre1.trim(),
-                          'sous-titre1': doctrineForm['sous-titre1'].trim(),
-                          contenu1: doctrineForm.contenu1.trim(),
-                          'sous-titre2': doctrineForm['sous-titre2'].trim(),
-                          contenu2: doctrineForm.contenu2.trim(),
-                          titre2: doctrineForm.titre2.trim(),
-                          'sous-titre3': doctrineForm['sous-titre3'].trim(),
-                          contenu3: doctrineForm.contenu3.trim(),
-                          'sous-titre4': doctrineForm['sous-titre4'].trim(),
-                          contenu4: doctrineForm.contenu4.trim(),
-                          conclusion: doctrineForm.conclusion.trim(),
-                          references: doctrineForm.references.trim(),
-                          auteur: doctrineForm.auteur.trim(),
-                          theme: doctrineForm.theme.trim(),
+                        const headers = getAuthHeaders()
+                        const response = await fetch(`${supabaseUrl}/rest/v1/doctrine`, {
+                          method: 'POST',
+                          headers,
+                          body: JSON.stringify({
+                            titre: doctrineForm.titre.trim(),
+                            date: doctrineForm.date,
+                            abstract: doctrineForm.abstract.trim(),
+                            intro: doctrineForm.intro.trim(),
+                            titre1: doctrineForm.titre1.trim(),
+                            'sous-titre1': doctrineForm['sous-titre1'].trim(),
+                            contenu1: doctrineForm.contenu1.trim(),
+                            'sous-titre2': doctrineForm['sous-titre2'].trim(),
+                            contenu2: doctrineForm.contenu2.trim(),
+                            titre2: doctrineForm.titre2.trim(),
+                            'sous-titre3': doctrineForm['sous-titre3'].trim(),
+                            contenu3: doctrineForm.contenu3.trim(),
+                            'sous-titre4': doctrineForm['sous-titre4'].trim(),
+                            contenu4: doctrineForm.contenu4.trim(),
+                            conclusion: doctrineForm.conclusion.trim(),
+                            references: doctrineForm.references.trim(),
+                            auteur: doctrineForm.auteur.trim(),
+                            theme: doctrineForm.theme.trim(),
+                          }),
                         })
 
-                        console.log('[AdminConsole] Résultat insertion doctrine', { error })
-
-                        if (error) {
-                          throw new Error(error.message)
+                        if (!response.ok) {
+                          const text = await response.text()
+                          throw new Error(text || `Erreur Supabase (${response.status})`)
                         }
 
                         setFormStatus({ type: 'success', message: 'Article de doctrine ajouté avec succès.' })
