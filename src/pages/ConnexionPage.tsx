@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 type UserType = 'adherent' | 'admin'
 
 const ConnexionPage: React.FC = () => {
-  const { isAdmin, isAdherent } = useAuth()
+  const { isAdmin, isAdherent, loading } = useAuth()
   const navigate = useNavigate()
   const [userType, setUserType] = useState<UserType>('adherent')
   const [email, setEmail] = useState('')
