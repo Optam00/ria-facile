@@ -200,13 +200,15 @@ const AdminConsolePage: React.FC = () => {
                       setFormStatus({ type: null, message: '' })
 
                       try {
-                        const { error } = await supabase.from('Actu').insert({
+                        console.log('[AdminConsole] Avant insert Actu')
+                        const insertPromise = supabase.from('Actu').insert({
                           Titre: actualiteForm.Titre.trim(),
                           Date: actualiteForm.Date,
                           media: actualiteForm.media.trim(),
                           lien: actualiteForm.lien.trim(),
                         })
-
+                        console.log('[AdminConsole] Après supabase.from(Actu).insert, promise =', insertPromise)
+                        const { error } = await insertPromise
                         console.log('[AdminConsole] Résultat insertion actualité', { error })
 
                         if (error) {
