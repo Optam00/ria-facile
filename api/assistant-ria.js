@@ -18,7 +18,10 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('📥 Requête reçue dans /api/assistant-ria');
+    
     const { question, history = [] } = req.body;
+    console.log('📋 Body reçu:', { question: question?.substring(0, 50), historyLength: history?.length });
 
     if (!question || !question.trim()) {
       return res.status(400).json({ error: 'Question requise' });
@@ -29,13 +32,30 @@ export default async function handler(req, res) {
     const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
     const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
+    console.log('🔍 Variables d\'environnement:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseAnonKey,
+      urlPreview: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'MANQUANTE',
+      envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE'))
+    });
+
     if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('Configuration Supabase manquante');
-      return res.status(500).json({ error: 'Configuration serveur manquante' });
+      console.error('❌ Configuration Supabase manquante');
+      return res.status(500).json({ 
+        error: 'Configuration serveur manquante',
+        details: {
+          hasUrl: !!supabaseUrl,
+          hasKey: !!supabaseAnonKey,
+          envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE'))
+        }
+      });
     }
 
     // Appeler la fonction Supabase Edge Function
-    const response = await fetch(`${supabaseUrl}/functions/v1/assistant-ria`, {
+    const functionUrl = `${supabaseUrl}/functions/v1/assistant-ria`;
+    console.log('📤 Appel de Supabase Edge Function:', functionUrl);
+    
+    const response = await fetch(functionUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,9 +65,11 @@ export default async function handler(req, res) {
       body: JSON.stringify({ question, history }),
     });
 
+    console.log('📥 Réponse Supabase:', { status: response.status, ok: response.ok });
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Erreur Supabase Edge Function:', errorText);
+      console.error('❌ Erreur Supabase Edge Function:', errorText);
       let errorData;
       try {
         errorData = JSON.parse(errorText);
@@ -58,11 +80,14 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
+    console.log('✅ Données reçues de Supabase');
     return res.status(200).json(data);
   } catch (error) {
-    console.error('Erreur dans la route API:', error);
+    console.error('❌ Erreur dans la route API:', error);
+    console.error('Stack:', error.stack);
     return res.status(500).json({
       error: error.message || 'Erreur serveur',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 }
