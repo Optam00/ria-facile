@@ -17,7 +17,38 @@ serve(async (req) => {
   }
 
   try {
-    const { question, history = [] }: RequestBody = await req.json()
+    // Logger les headers pour le débogage
+    console.log('Method:', req.method)
+    console.log('Content-Type:', req.headers.get('content-type'))
+    
+    // Parser le body de la requête avec gestion d'erreur
+    let requestBody: RequestBody
+    let bodyText: string
+    
+    try {
+      // Lire le body brut d'abord pour le débogage
+      bodyText = await req.text()
+      console.log('Body brut reçu:', bodyText.substring(0, 200)) // Logger les 200 premiers caractères
+      
+      // Parser le JSON
+      requestBody = JSON.parse(bodyText)
+      console.log('Body parsé:', { question: requestBody.question?.substring(0, 50), historyLength: requestBody.history?.length })
+    } catch (parseError) {
+      console.error('Erreur parsing JSON:', parseError)
+      console.error('Body qui a causé l\'erreur:', bodyText?.substring(0, 500) || 'Impossible de lire le body')
+      return new Response(
+        JSON.stringify({ 
+          error: 'Format de requête invalide. Le body doit être du JSON valide.',
+          details: parseError instanceof Error ? parseError.message : 'Erreur inconnue'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      )
+    }
+
+    const { question, history = [] } = requestBody
 
     if (!question || !question.trim()) {
       return new Response(
@@ -320,7 +351,24 @@ Pour être accompagné dans votre mise en conformité par des professionnels, co
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text()
       console.error('Erreur Gemini API:', errorText)
-      throw new Error(`Erreur API Gemini: ${geminiResponse.status}`)
+      
+      // Parser l'erreur pour obtenir plus de détails
+      let errorMessage = `Erreur API Gemini: ${geminiResponse.status}`
+      try {
+        const errorJson = JSON.parse(errorText)
+        if (errorJson.error?.message) {
+          errorMessage = `Erreur API Gemini (${geminiResponse.status}): ${errorJson.error.message}`
+        } else if (errorJson.message) {
+          errorMessage = `Erreur API Gemini (${geminiResponse.status}): ${errorJson.message}`
+        }
+      } catch {
+        // Si ce n'est pas du JSON, utiliser le texte brut
+        if (errorText) {
+          errorMessage = `Erreur API Gemini (${geminiResponse.status}): ${errorText.substring(0, 200)}`
+        }
+      }
+      
+      throw new Error(errorMessage)
     }
 
     const geminiData = await geminiResponse.json()
@@ -352,9 +400,19 @@ Pour être accompagné dans votre mise en conformité par des professionnels, co
     )
   } catch (error) {
     console.error('Erreur assistant-ria:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Erreur serveur'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    
+    // Logger plus de détails pour le débogage
+    console.error('Message d\'erreur:', errorMessage)
+    if (errorStack) {
+      console.error('Stack trace:', errorStack)
+    }
+    
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : 'Erreur serveur',
+        error: errorMessage,
+        ...(process.env.NODE_ENV === 'development' && errorStack ? { stack: errorStack } : {}),
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

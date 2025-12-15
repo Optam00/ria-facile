@@ -77,7 +77,7 @@ POST {SUPABASE_URL}/functions/v1/assistant-ria
 
 ## Modèle utilisé
 
-La fonction utilise le modèle **gemini-1.5-pro** comme mentionné dans l'interface utilisateur.
+La fonction utilise le modèle **gemini-2.5-pro** comme mentionné dans l'interface utilisateur.
 
 ## Notes
 

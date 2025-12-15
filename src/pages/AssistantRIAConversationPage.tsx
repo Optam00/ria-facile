@@ -37,36 +37,81 @@ const AssistantRIAConversationPage = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [loadingStage, setLoadingStage] = useState<LoadingStage>('idle');
 
+  // Sauvegarder la question dans Supabase (optionnel, pour analytics)
+  const saveQuestionToSupabase = async (question: string) => {
+    try {
+      await supabase.from('assistant_ria').insert([{ question }]);
+    } catch (error) {
+      // On continue même si la sauvegarde échoue
+      console.warn('Erreur sauvegarde question:', error);
+    }
+  };
+
   // Appel à l'API Gemini via la Supabase Edge Function
   const callGeminiAPI = async (question: string, history: {question: string, answer: string}[]) => {
     const recentHistory = history.slice(-MAX_HISTORY);
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
+    console.log('🔍 Configuration Supabase:', {
+      url: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'MANQUANTE',
+      key: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'MANQUANTE'
+    });
+    
     if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('❌ Configuration Supabase manquante');
       throw new Error('Configuration Supabase manquante');
     }
 
-    const response = await fetch(`${supabaseUrl}/functions/v1/assistant-ria`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-        'apikey': supabaseAnonKey,
-      },
-      body: JSON.stringify({ question, history: recentHistory }),
+    const functionUrl = `${supabaseUrl}/functions/v1/assistant-ria`;
+    const requestBody = { question, history: recentHistory };
+    
+    console.log('📤 Envoi de la requête:', {
+      url: functionUrl,
+      question: question.substring(0, 50),
+      historyLength: recentHistory.length
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Erreur serveur' }));
-      throw new Error(errorData.error || `Erreur ${response.status}: ${response.statusText}`);
+
+    try {
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'apikey': supabaseAnonKey,
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      console.log('📥 Réponse reçue:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erreur HTTP:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || `Erreur ${response.status}: ${response.statusText}` };
+        }
+        throw new Error(errorData.error || `Erreur ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ Données reçues:', { hasAnswer: !!data.answer, answerLength: data.answer?.length });
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      return data.answer;
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'appel API:', error);
+      throw error;
     }
-    
-    const data = await response.json();
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    return data.answer;
   };
 
   const handleAsk = async (e?: React.FormEvent) => {
@@ -74,12 +119,19 @@ const AssistantRIAConversationPage = () => {
     const userQuestion = question;
     if (!userQuestion.trim()) return;
     setIsLoading(true);
+    console.log('🚀 Début de handleAsk:', { question: userQuestion });
     try {
       saveQuestionToSupabase(userQuestion);
       const answer = await callGeminiAPI(userQuestion, history);
+      console.log('✅ Réponse obtenue avec succès');
       setHistory(prev => [...prev, { question: userQuestion, answer }]);
     } catch (e) {
-      setHistory(prev => [...prev, { question: userQuestion, answer: "Le service est momentanément saturé en raison d’un grand nombre de demandes. Merci de réessayer dans quelques instants." }]);
+      console.error('❌ Erreur dans handleAsk:', e);
+      const errorMessage = e instanceof Error ? e.message : 'Erreur inconnue';
+      setHistory(prev => [...prev, { 
+        question: userQuestion, 
+        answer: `Erreur: ${errorMessage}. Le service est momentanément saturé en raison d'un grand nombre de demandes. Merci de réessayer dans quelques instants.` 
+      }]);
     }
     setQuestion('');
     setIsLoading(false);
