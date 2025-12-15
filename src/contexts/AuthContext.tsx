@@ -207,14 +207,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(null)
   }
 
+  const ADMIN_EMAILS = ['promenadedepensees@gmail.com']
+
   const isAdmin = () => {
+    const email = session?.user.email || profile?.email
     const metaRole = session?.user.user_metadata?.role as UserRole | undefined
-    return profile?.role === 'admin' || metaRole === 'admin'
+    return (
+      profile?.role === 'admin' ||
+      metaRole === 'admin' ||
+      (email ? ADMIN_EMAILS.includes(email) : false)
+    )
   }
 
   const isAdherent = () => {
     const metaRole = session?.user.user_metadata?.role as UserRole | undefined
-    return profile?.role === 'adherent' || metaRole === 'adherent'
+    // Adhérent explicite OU tout utilisateur connecté qui n'est pas admin
+    return profile?.role === 'adherent' || metaRole === 'adherent' || (!!user && !isAdmin())
   }
 
   const dismissInactivityWarning = () => {

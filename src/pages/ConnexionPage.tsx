@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 
 type UserType = 'adherent' | 'admin'
 
 const ConnexionPage: React.FC = () => {
-  const { signIn, isAdmin, isAdherent, loading } = useAuth()
+  const { isAdmin, isAdherent } = useAuth()
   const navigate = useNavigate()
   const [userType, setUserType] = useState<UserType>('adherent')
   const [email, setEmail] = useState('')
@@ -31,18 +32,21 @@ const ConnexionPage: React.FC = () => {
     setError('')
 
     try {
-      const { error: authError } = await signIn(email, password, userType)
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-      if (authError) {
-        setError(authError.message || 'Erreur lors de la connexion')
+      if (error) {
+        setError(error.message || 'Erreur lors de la connexion')
         return
       }
 
-      // Redirection après connexion réussie
+      // Redirection après connexion réussie : on force un rechargement complet
       if (userType === 'admin') {
-        navigate('/admin/console', { replace: true })
+        window.location.assign('/admin/console')
       } else {
-        navigate('/', { replace: true })
+        window.location.assign('/')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors de la connexion')
