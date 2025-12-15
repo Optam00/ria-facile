@@ -164,12 +164,12 @@ const AdminConsolePage: React.FC = () => {
         </div>
 
         {/* Contenu principal avec sidebar */}
-        <div className="flex gap-6">
-          {/* Sidebar à gauche */}
-          <div className="w-64 flex-shrink-0">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Sidebar (en haut sur mobile, à gauche sur desktop) */}
+          <div className="w-full lg:w-64 flex-shrink-0">
             <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl shadow-lg border border-white p-4">
               <h2 className="text-lg font-semibold text-[#774792] mb-4">Actions</h2>
-              <nav className="space-y-2">
+              <nav className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
                 {actions.map((action) => (
                   <button
                     key={action.id}

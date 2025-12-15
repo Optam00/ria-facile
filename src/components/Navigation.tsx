@@ -22,6 +22,7 @@ export const Navigation = () => {
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   const isActive = (path: string) => location.pathname === path
+  const isAdminUser = isAdmin()
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -198,7 +199,7 @@ export const Navigation = () => {
             <form
               onSubmit={handleSearchSubmit}
               className="hidden lg:flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5 hover:border-purple-300 focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-200 transition-all"
-              style={{ minWidth: 220 }}
+              style={{ minWidth: isAdminUser ? 170 : 220 }}
             >
               <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="11" cy="11" r="8" strokeWidth="2" />
@@ -228,7 +229,7 @@ export const Navigation = () => {
             </form>
           )}
           {/* Bouton console admin (si admin) */}
-          {isAdmin() && (
+          {isAdminUser && (
             <Link
               to="/admin/console"
               className="hidden lg:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-none hover:from-indigo-700 hover:to-purple-700 transition-all text-sm"
@@ -244,11 +245,13 @@ export const Navigation = () => {
           {/* Bouton contact */}
           <Link
             to="/contact"
-            className="hidden lg:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold shadow-none hover:from-purple-700 hover:to-blue-700 transition-all text-sm"
-            style={{ minWidth: 120, justifyContent: 'center' }}
+            className="hidden lg:inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold shadow-none hover:from-purple-700 hover:to-blue-700 transition-all text-sm"
+            style={{ minWidth: isAdminUser ? 40 : 120 }}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-            Nous contacter
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 00-2 2z"/>
+            </svg>
+            {!isAdminUser && <span className="ml-1.5">Nous contacter</span>}
           </Link>
         </div>
 
