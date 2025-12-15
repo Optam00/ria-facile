@@ -194,22 +194,17 @@ const AdminConsolePage: React.FC = () => {
         {/* Contenu principal avec sidebar */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar (en haut sur mobile, à gauche sur desktop) */}
-          <div className={`w-full lg:w-64 flex-shrink-0 ${isSidebarCollapsed ? 'lg:w-16' : ''}`}>
-            <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl shadow-lg border border-white p-3 flex flex-col h-full">
+          <div className={`w-full lg:w-64 flex-shrink-0 ${isSidebarCollapsed ? 'lg:w-14' : ''}`}>
+            <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl shadow-lg border border-white px-3 py-4 flex flex-col h-full">
               {isSidebarCollapsed ? (
                 <div className="flex items-center justify-center h-full">
                   <button
                     type="button"
                     onClick={() => setIsSidebarCollapsed(false)}
-                    className="flex flex-col items-center justify-center w-10 h-40 rounded-2xl bg-gradient-to-b from-purple-500 to-indigo-600 text-white shadow-md hover:shadow-lg hover:scale-[1.02] transition-transform"
+                    className="flex items-center justify-center w-8 h-28 rounded-full bg-gradient-to-b from-purple-500 to-indigo-600 text-white shadow-md hover:shadow-lg hover:scale-[1.04] transition-transform"
                     aria-label="Déployer le menu d'administration"
                   >
-                    <span className="text-[10px] font-semibold tracking-wide mb-1">
-                      Admin
-                    </span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <span className="text-base font-semibold">{'>'}</span>
                   </button>
                 </div>
               ) : (
