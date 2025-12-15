@@ -23,3 +23,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey); 
+
+// Facilite le debug dans la console navigateur : window.supabase.from(...)
+if (typeof window !== 'undefined') {
+  // @ts-expect-error: attache volontaire sur l'objet global pour inspection
+  window.supabase = supabase;
+}
