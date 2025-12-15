@@ -30,19 +30,24 @@ const ConnexionPage: React.FC = () => {
     setIsLoading(true)
     setError('')
 
-    const { error: authError } = await signIn(email, password, userType)
+    try {
+      const { error: authError } = await signIn(email, password, userType)
 
-    if (authError) {
-      setError(authError.message || 'Erreur lors de la connexion')
-      setIsLoading(false)
-    } else {
-      // Redirection après connexion réussie
-      // Les administrateurs vont vers la console d'administration
-      if (userType === 'admin') {
-        navigate('/admin/console')
-      } else {
-        navigate('/')
+      if (authError) {
+        setError(authError.message || 'Erreur lors de la connexion')
+        return
       }
+
+      // Redirection après connexion réussie
+      if (userType === 'admin') {
+        navigate('/admin/console', { replace: true })
+      } else {
+        navigate('/', { replace: true })
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de la connexion')
+    } finally {
+      setIsLoading(false)
     }
   }
 

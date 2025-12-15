@@ -186,45 +186,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error }
       }
 
-      if (data.user) {
-        // Charger le profil pour vérifier le rôle
-        let userProfile: UserProfile | null = null
-        
-        // Essayer de récupérer depuis la table profiles
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, email, role')
-          .eq('id', data.user.id)
-          .single()
-
-        if (!profileError && profileData) {
-          userProfile = {
-            id: profileData.id,
-            email: profileData.email || data.user.email || '',
-            role: (profileData.role as UserRole) || 'adherent',
-          }
-        } else {
-          // Utiliser les métadonnées de l'utilisateur
-          const userRole = (data.user.user_metadata?.role as UserRole) || 'adherent'
-          userProfile = {
-            id: data.user.id,
-            email: data.user.email || '',
-            role: userRole,
-          }
-        }
-        
-        // Vérifier que le rôle correspond
-        if (userProfile.role !== role) {
-          await supabase.auth.signOut()
-          return {
-            error: {
-              name: 'AuthError',
-              message: `Vous n'avez pas les droits pour vous connecter en tant que ${role === 'admin' ? 'administrateur' : 'adhérent'}`,
-            } as AuthError,
-          }
-        }
-      }
-
+      // On ne refait pas de logique de rôle ici : 
+      // - on laisse onAuthStateChange + loadUserProfile charger le profil
+      // - la vérification de rôle se fait ensuite dans les composants (isAdmin / isAdherent)
       return { error: null }
     } catch (error) {
       return {
