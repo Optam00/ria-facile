@@ -76,6 +76,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe()
   }, [])
 
+  // Filet de sécurité : ne jamais rester bloqué indéfiniment en mode "loading"
+  useEffect(() => {
+    if (!loading) return
+
+    const timeout = setTimeout(() => {
+      setLoading(false)
+    }, 5000) // 5 secondes max de "loading"
+
+    return () => clearTimeout(timeout)
+  }, [loading])
+
   // Système de déconnexion automatique pour les administrateurs après inactivité
   useEffect(() => {
     // Fonction pour mettre à jour le timestamp d'activité

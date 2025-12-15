@@ -54,18 +54,6 @@ const AdminConsolePage: React.FC = () => {
     { id: 'enrichir-article' as AdminAction, label: 'Enrichir un article', icon: '✨' },
   ]
 
-  // Afficher un loader pendant la vérification des droits
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Vérification des droits d'accès...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen p-4">
       <Helmet>
