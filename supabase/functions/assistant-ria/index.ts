@@ -285,8 +285,7 @@ Ce contenu a été généré par une IA, consultez le texte pour vérifier les i
 Pour être accompagné dans votre mise en conformité par des professionnels, contactez-nous via ce formulaire : https://www.ria-facile.com/contact`
 
     // Appel à l'API Gemini (modèle gemini-2.5-pro comme dans le backend Python)
-    // Note: gemini-2.5-pro n'existe pas encore, utilisation de gemini-1.5-pro (le modèle pro le plus récent disponible)
-    const model = "gemini-1.5-pro"
+    const model = "gemini-2.5-pro"
     
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
