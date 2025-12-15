@@ -29,13 +29,29 @@ export default async function handler(req, res) {
 
     // Récupérer les variables d'environnement Supabase
     // Dans les routes API Vercel, les variables peuvent être avec ou sans préfixe VITE_
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    let supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
     const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+
+    // Corriger l'URL si elle commence par "ttps://" (erreur de copier-coller)
+    if (supabaseUrl && supabaseUrl.startsWith('ttps://')) {
+      console.warn('⚠️ URL corrigée: ttps:// -> https://');
+      supabaseUrl = 'h' + supabaseUrl;
+    }
+
+    // Vérifier que l'URL commence bien par https://
+    if (supabaseUrl && !supabaseUrl.startsWith('https://')) {
+      console.error('❌ URL Supabase invalide (doit commencer par https://):', supabaseUrl.substring(0, 20));
+      return res.status(500).json({ 
+        error: 'Configuration serveur invalide: URL Supabase doit commencer par https://',
+        receivedUrl: supabaseUrl.substring(0, 30)
+      });
+    }
 
     console.log('🔍 Variables d\'environnement:', {
       hasUrl: !!supabaseUrl,
       hasKey: !!supabaseAnonKey,
       urlPreview: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'MANQUANTE',
+      urlStartsWithHttps: supabaseUrl ? supabaseUrl.startsWith('https://') : false,
       envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE'))
     });
 
