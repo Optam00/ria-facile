@@ -244,11 +244,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const isAdmin = () => {
-    return profile?.role === 'admin'
+    const metaRole = session?.user.user_metadata?.role as UserRole | undefined
+    return profile?.role === 'admin' || metaRole === 'admin'
   }
 
   const isAdherent = () => {
-    return profile?.role === 'adherent'
+    const metaRole = session?.user.user_metadata?.role as UserRole | undefined
+    return profile?.role === 'adherent' || metaRole === 'adherent'
   }
 
   const dismissInactivityWarning = () => {
