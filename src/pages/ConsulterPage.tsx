@@ -799,58 +799,10 @@ export const ConsulterPage = () => {
         chapitre_titre: article.chapitre?.titre,
         section_titre: article.section?.titre
       })))
-
-      // Charger les annexes avec leur contenu complet
-      console.log('Début de la récupération des annexes...')
-      const { data: annexes, error: annexesError } = await supabasePublic
-        .from('annexe')
-        .select('*')
-        .order('numero', { ascending: true })
-      
-      if (annexesError) {
-        console.error('Erreur lors du chargement des annexes:', annexesError)
-        throw annexesError
-      }
-
-      // Transformer les annexes de la même manière que handleAnnexeClick
-      const transformedAnnexes = annexes?.map(annexe => {
-        console.log('Traitement de l\'annexe:', annexe.numero)
-        
-        // Parser les subdivisions
-        let parsedSubdivisions = null
-        try {
-          if (annexe.subdivision) {
-            parsedSubdivisions = JSON.parse(annexe.subdivision as string)
-            console.log('Subdivisions parsées:', parsedSubdivisions)
-          }
-        } catch (err) {
-          console.error('Erreur parsing subdivision pour annexe', annexe.numero, err)
-        }
-
-        // Si l'annexe a des subdivisions, on retourne une annexe pour chaque subdivision
-        if (parsedSubdivisions && Array.isArray(parsedSubdivisions) && parsedSubdivisions.length > 0) {
-          return parsedSubdivisions.map(sub => ({
-            numero: annexe.numero,
-            titre: annexe.titre,
-            contenu: sub.contenu,
-            subdivision: [sub]
-          }))
-        }
-        
-        // Si l'annexe a un contenu direct, on le retourne
-        if (annexe.contenu) {
-          return [{
-            numero: annexe.numero,
-            titre: annexe.titre,
-            contenu: annexe.contenu
-          }]
-        }
-
-        return []
-      }).flat()
-
-      console.log('Annexes transformées:', transformedAnnexes)
-      setAllAnnexes(transformedAnnexes || [])
+      // Pour l'instant, on ne précharge pas les annexes complètes ici.
+      // Le chargement détaillé des annexes est géré par handleAnnexeClick,
+      // qui utilise les bonnes tables (`liste_annexes` et `annexes`).
+      setAllAnnexes([])
 
     } catch (err) {
       console.error('Erreur lors du chargement du contenu complet:', err)
@@ -1126,6 +1078,11 @@ export const ConsulterPage = () => {
                     </button>
                   </div>
                 </div>
+                {error && (
+                  <div className="mb-4 p-3 rounded-md bg-red-50 text-red-700 text-sm">
+                    {error}
+                  </div>
+                )}
                 {loadingContent ? (
                   <p className="text-gray-400 text-sm">Chargement...</p>
                 ) : selectedArticle ? (
