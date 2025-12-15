@@ -63,6 +63,7 @@ const AdminConsolePage: React.FC = () => {
     doc_associee: '',
   })
   const [isLoadingArticle, setIsLoadingArticle] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -132,17 +133,6 @@ const AdminConsolePage: React.FC = () => {
       })
     }
   }, [selectedAction])
-  const selectedArticle = selectedArticleId
-    ? articlesList.find((a) => a.id_article === selectedArticleId) ?? null
-    : null
-  const filteredArticles = articlesList.filter((article) => {
-    const q = articleSearch.trim().toLowerCase()
-    if (!q) return true
-    return (
-      article.numero.toLowerCase().includes(q) ||
-      article.titre.toLowerCase().includes(q)
-    )
-  })
 
   // Charger la liste des articles quand on arrive sur "enrichir un article"
   useEffect(() => {
@@ -181,6 +171,18 @@ const AdminConsolePage: React.FC = () => {
     { id: 'enrichir-article' as AdminAction, label: 'Enrichir un article', icon: '✨' },
   ]
 
+  const selectedArticle = selectedArticleId
+    ? articlesList.find((a) => a.id_article === selectedArticleId) ?? null
+    : null
+  const filteredArticles = articlesList.filter((article) => {
+    const q = articleSearch.trim().toLowerCase()
+    if (!q) return true
+    return (
+      article.numero.toLowerCase().includes(q) ||
+      article.titre.toLowerCase().includes(q)
+    )
+  })
+
   return (
     <div className="min-h-screen p-4">
       <Helmet>
@@ -188,58 +190,83 @@ const AdminConsolePage: React.FC = () => {
         <meta name="description" content="Console d'administration de RIA Facile" />
       </Helmet>
 
-      <div className="max-w-7xl mx-auto">
-        {/* En-tête avec bouton de déconnexion */}
-        <div className="bg-white bg-opacity-90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-[#774792] mb-2">Console d'administration</h1>
-              <p className="text-gray-600">
-                Connecté en tant que{' '}
-                <span className="font-semibold">
-                  {profile?.email ?? session?.user.email ?? 'Administrateur'}
-                </span>
-              </p>
-            </div>
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6">
+        {/* Sidebar : bandeau d'administration */}
+        <div className={isSidebarCollapsed ? 'w-12 flex-shrink-0 flex justify-center' : 'w-full lg:w-72 flex-shrink-0'}>
+          {isSidebarCollapsed ? (
             <button
-              onClick={handleSignOut}
-              className="px-6 py-3 rounded-xl bg-red-500 text-white font-medium shadow-md hover:bg-red-600 transition-all duration-300 flex items-center gap-2"
+              type="button"
+              onClick={() => setIsSidebarCollapsed(false)}
+              className="mt-3 inline-flex items-center justify-center h-10 w-10 rounded-full bg-white shadow-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#774792] transition-colors"
+              aria-label="Afficher le menu d'administration"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              Se déconnecter
             </button>
-          </div>
+          ) : (
+            <div className="w-full">
+              <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl shadow-lg border border-white p-4 flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-[#774792]">Menu d’administration</h2>
+                  <button
+                    type="button"
+                    onClick={() => setIsSidebarCollapsed(true)}
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#774792] transition-colors"
+                    aria-label="Masquer le menu d'administration"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                </div>
+
+                <nav className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 flex-1">
+                  {actions.map((action) => (
+                    <button
+                      key={action.id}
+                      onClick={() => setSelectedAction(action.id)}
+                      className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 ${
+                        selectedAction === action.id
+                          ? 'bg-gradient-to-r from-purple-500 to-[#774792] text-white shadow-md'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <span className="text-xl">{action.icon}</span>
+                      <span className="font-medium">{action.label}</span>
+                    </button>
+                  ))}
+                </nav>
+
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <p className="text-xs text-gray-500 mb-2">
+                    Connecté en tant que{' '}
+                    <span className="font-semibold text-gray-700">
+                      {profile?.email ?? session?.user.email ?? 'Administrateur'}
+                    </span>
+                  </p>
+                  <button
+                    onClick={handleSignOut}
+                    className="mt-1 inline-flex items-center justify-center w-full px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-medium shadow-sm hover:bg-red-600 transition-colors gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                      />
+                    </svg>
+                    Se déconnecter
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Contenu principal avec sidebar */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar (en haut sur mobile, à gauche sur desktop) */}
-          <div className="w-full lg:w-64 flex-shrink-0">
-            <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl shadow-lg border border-white p-4">
-              <h2 className="text-lg font-semibold text-[#774792] mb-4">Actions</h2>
-              <nav className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
-                {actions.map((action) => (
-                  <button
-                    key={action.id}
-                    onClick={() => setSelectedAction(action.id)}
-                    className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 ${
-                      selectedAction === action.id
-                        ? 'bg-gradient-to-r from-purple-500 to-[#774792] text-white shadow-md'
-                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <span className="text-xl">{action.icon}</span>
-                    <span className="font-medium">{action.label}</span>
-                  </button>
-                ))}
-              </nav>
-            </div>
-          </div>
-
-          {/* Zone de contenu principale */}
-          <div className="flex-1">
+        {/* Zone de contenu principale */}
+        <div className="flex-1">
             <div className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white min-h-[500px]">
               {selectedAction === 'ajouter-actualite' && (
                 <div>
