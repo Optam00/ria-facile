@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 type AdminAction = 'ajouter-actualite' | 'ajouter-article-doctrine' | 'ajouter-document' | 'enrichir-article' | null
 
 const AdminConsolePage: React.FC = () => {
-  const { signOut, isAdmin, profile, loading } = useAuth()
+  const { signOut, isAdmin, profile, loading, session } = useAuth()
   const navigate = useNavigate()
   const [selectedAction, setSelectedAction] = useState<AdminAction>(null)
   const [actualiteForm, setActualiteForm] = useState({
@@ -44,7 +44,8 @@ const AdminConsolePage: React.FC = () => {
 
   const handleSignOut = async () => {
     await signOut()
-    navigate('/connexion')
+    // Rechargement complet pour repartir sur une app "propre"
+    window.location.assign('/connexion')
   }
 
   const actions = [
@@ -68,7 +69,10 @@ const AdminConsolePage: React.FC = () => {
             <div>
               <h1 className="text-3xl font-bold text-[#774792] mb-2">Console d'administration</h1>
               <p className="text-gray-600">
-                Connecté en tant que <span className="font-semibold">{profile?.email}</span>
+                Connecté en tant que{' '}
+                <span className="font-semibold">
+                  {profile?.email ?? session?.user.email ?? 'Administrateur'}
+                </span>
               </p>
             </div>
             <button
