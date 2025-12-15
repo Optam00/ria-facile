@@ -47,37 +47,43 @@ const AssistantRIAConversationPage = () => {
     }
   };
 
-  // Appel à l'API Gemini via la Supabase Edge Function
+  // Appel à l'API Gemini via la route API Vercel (qui appelle Supabase)
   const callGeminiAPI = async (question: string, history: {question: string, answer: string}[]) => {
     const recentHistory = history.slice(-MAX_HISTORY);
     
-    console.log('📤 Appel de la fonction assistant-ria:', {
+    console.log('📤 Appel de la route API assistant-ria:', {
       question: question.substring(0, 50),
       historyLength: recentHistory.length
     });
 
     try {
-      // Utiliser le client Supabase pour éviter les problèmes CORS
-      const { data, error } = await supabase.functions.invoke('assistant-ria', {
-        body: { question, history: recentHistory }
+      // Appeler notre route API Vercel au lieu de Supabase directement
+      const response = await fetch('/api/assistant-ria', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question, history: recentHistory }),
       });
       
       console.log('📥 Réponse reçue:', {
-        hasData: !!data,
-        hasError: !!error,
-        answerLength: data?.answer?.length
+        status: response.status,
+        ok: response.ok
       });
       
-      if (error) {
-        console.error('❌ Erreur Supabase:', error);
-        throw new Error(error.message || 'Erreur lors de l\'appel à la fonction');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Erreur serveur' }));
+        console.error('❌ Erreur HTTP:', errorData);
+        throw new Error(errorData.error || `Erreur ${response.status}`);
       }
+      
+      const data = await response.json();
+      console.log('✅ Données reçues:', { hasAnswer: !!data.answer });
       
       if (!data || !data.answer) {
         throw new Error('Réponse invalide de la fonction');
       }
       
-      console.log('✅ Réponse obtenue avec succès');
       return data.answer;
     } catch (error) {
       console.error('❌ Erreur lors de l\'appel API:', error);
