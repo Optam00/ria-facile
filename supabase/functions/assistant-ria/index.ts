@@ -3,8 +3,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-region',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
+  'Access-Control-Max-Age': '86400',
 }
 
 interface RequestBody {
@@ -13,11 +14,18 @@ interface RequestBody {
 }
 
 serve(async (req) => {
+  // Logger toutes les requêtes pour le débogage
+  console.log('Request received:', {
+    method: req.method,
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries())
+  })
+  
   // Gérer les requêtes OPTIONS (preflight CORS)
   if (req.method === 'OPTIONS') {
-    console.log('OPTIONS request received')
-    return new Response('ok', { 
-      status: 200,
+    console.log('OPTIONS request received - returning CORS headers')
+    return new Response(null, { 
+      status: 204,
       headers: corsHeaders 
     })
   }
