@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { supabasePublic } from '../lib/supabasePublic'
 
 type AdminAction = 'ajouter-actualite' | 'ajouter-article-doctrine' | 'ajouter-document' | 'enrichir-article' | null
 
@@ -49,6 +50,17 @@ const AdminConsolePage: React.FC = () => {
     message: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [articlesList, setArticlesList] = useState<Array<{ id_article: number; numero: string; titre: string }>>([])
+  const [selectedArticleId, setSelectedArticleId] = useState<number | null>(null)
+  const [enrichForm, setEnrichForm] = useState({
+    numero: '',
+    titre: '',
+    resume: '',
+    recitals: '',
+    fiches: '',
+    doc_associee: '',
+  })
+  const [isLoadingArticle, setIsLoadingArticle] = useState(false)
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -117,6 +129,31 @@ const AdminConsolePage: React.FC = () => {
         theme: '',
       })
     }
+  }, [selectedAction])
+
+  // Charger la liste des articles quand on arrive sur "enrichir un article"
+  useEffect(() => {
+    if (selectedAction !== 'enrichir-article') return
+
+    const loadArticles = async () => {
+      try {
+        const { data, error } = await supabasePublic
+          .from('article')
+          .select('id_article, numero, titre')
+          .order('id_article')
+
+        if (error) throw error
+        setArticlesList(data ?? [])
+      } catch (err) {
+        console.error('Erreur lors du chargement des articles pour enrichissement:', err)
+        setFormStatus({
+          type: 'error',
+          message: "Impossible de charger la liste des articles. Réessayez plus tard.",
+        })
+      }
+    }
+
+    loadArticles()
   }, [selectedAction])
 
   const handleSignOut = () => {
@@ -888,16 +925,245 @@ const AdminConsolePage: React.FC = () => {
               )}
 
               {selectedAction === 'enrichir-article' && (
-                <div className="text-center py-12">
-                  <svg className="w-24 h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  <h2 className="text-2xl font-semibold text-gray-700 mb-2">
-                    Enrichir un article
-                  </h2>
-                  <p className="text-gray-500">
-                    Le contenu de cette action sera ajouté prochainement.
+                <div>
+                  <h2 className="text-2xl font-semibold text-gray-800 mb-6">Enrichir un article</h2>
+                  <p className="text-gray-600 mb-6">
+                    Sélectionnez un article par son numéro, puis complétez ou modifiez les champs ci-dessous :{' '}
+                    <span className="font-medium">considérants (recitals)</span>, <span className="font-medium">résumé</span>,{' '}
+                    <span className="font-medium">fiches pratiques</span> et <span className="font-medium">document associé</span>.
                   </p>
+
+                  {formStatus.type && (
+                    <div
+                      className={`mb-4 rounded-xl px-4 py-3 ${
+                        formStatus.type === 'success'
+                          ? 'bg-green-50 text-green-800 border border-green-200'
+                          : 'bg-red-50 text-red-800 border border-red-200'
+                      }`}
+                    >
+                      {formStatus.message}
+                    </div>
+                  )}
+
+                  <div className="space-y-6">
+                    {/* Sélection de l'article par numéro */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sélectionner l&apos;article (par numéro)
+                      </label>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <select
+                          value={selectedArticleId ?? ''}
+                          onChange={async (e) => {
+                            const value = e.target.value ? Number(e.target.value) : null
+                            setSelectedArticleId(value)
+                            setFormStatus({ type: null, message: '' })
+
+                            if (!value) {
+                              setEnrichForm({
+                                numero: '',
+                                titre: '',
+                                resume: '',
+                                recitals: '',
+                                fiches: '',
+                                doc_associee: '',
+                              })
+                              return
+                            }
+
+                            setIsLoadingArticle(true)
+                            try {
+                              const { data, error } = await supabasePublic
+                                .from('article')
+                                .select('id_article, numero, titre, resume, recitals, fiches, doc_associee')
+                                .eq('id_article', value)
+                                .single()
+
+                              if (error) throw error
+
+                              setEnrichForm({
+                                numero: data.numero ?? '',
+                                titre: data.titre ?? '',
+                                resume: data.resume ?? '',
+                                recitals: data.recitals ?? '',
+                                fiches: data.fiches ?? '',
+                                doc_associee: (data as any).doc_associee ?? '',
+                              })
+                            } catch (err) {
+                              console.error('Erreur lors du chargement de l’article à enrichir:', err)
+                              setFormStatus({
+                                type: 'error',
+                                message: "Impossible de charger cet article. Réessayez ou choisissez-en un autre.",
+                              })
+                            } finally {
+                              setIsLoadingArticle(false)
+                            }
+                          }}
+                          className="w-full sm:max-w-xs px-4 py-2.5 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                        >
+                          <option value="">Choisir un article…</option>
+                          {articlesList.map((article) => (
+                            <option key={article.id_article} value={article.id_article}>
+                              {article.numero} — {article.titre}
+                            </option>
+                          ))}
+                        </select>
+                        {isLoadingArticle && (
+                          <span className="text-sm text-gray-500 flex items-center">
+                            Chargement de l&apos;article…
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {selectedArticleId && (
+                      <form
+                        className="space-y-5 mt-4"
+                        onSubmit={async (e) => {
+                          e.preventDefault()
+                          if (!selectedArticleId) return
+                          setIsSubmitting(true)
+                          setFormStatus({ type: null, message: '' })
+
+                          try {
+                            const headers = getAuthHeaders()
+                            const response = await fetch(
+                              `${supabaseUrl}/rest/v1/article?id_article=eq.${selectedArticleId}`,
+                              {
+                                method: 'PATCH',
+                                headers,
+                                body: JSON.stringify({
+                                  resume: enrichForm.resume.trim(),
+                                  recitals: enrichForm.recitals.trim(),
+                                  fiches: enrichForm.fiches.trim(),
+                                  doc_associee: enrichForm.doc_associee.trim() || null,
+                                }),
+                              }
+                            )
+
+                            if (!response.ok) {
+                              const text = await response.text()
+                              throw new Error(text || `Erreur Supabase (${response.status})`)
+                            }
+
+                            setFormStatus({
+                              type: 'success',
+                              message: 'Article enrichi avec succès.',
+                            })
+                          } catch (err) {
+                            console.error('Erreur lors de la mise à jour de l’article:', err)
+                            setFormStatus({
+                              type: 'error',
+                              message:
+                                err instanceof Error
+                                  ? err.message
+                                  : "Une erreur est survenue lors de l'enregistrement.",
+                            })
+                          } finally {
+                            setIsSubmitting(false)
+                          }
+                        }}
+                      >
+                        {/* Rappel numéro + titre */}
+                        <div className="p-4 rounded-xl bg-purple-50 border border-purple-100">
+                          <p className="text-sm text-purple-900 font-medium">
+                            Article sélectionné :{' '}
+                            <span className="font-semibold">
+                              {enrichForm.numero} — {enrichForm.titre}
+                            </span>
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Considérants associés (champ <code>recitals</code>)
+                            </label>
+                            <input
+                              type="text"
+                              value={enrichForm.recitals}
+                              onChange={(e) => setEnrichForm({ ...enrichForm, recitals: e.target.value })}
+                              className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                              placeholder="Ex : 12, 13-16, 20"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                              Format suggéré : liste de numéros séparés par des virgules et/ou des intervalles (par exemple
+                              &quot;12, 13-16, 20&quot;).
+                            </p>
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Résumé de l&apos;article (champ <code>resume</code>)
+                            </label>
+                            <textarea
+                              value={enrichForm.resume}
+                              onChange={(e) => setEnrichForm({ ...enrichForm, resume: e.target.value })}
+                              className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors min-h-[120px]"
+                              placeholder="Résumé pédagogique de l'article…"
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Fiches pratiques associées (champ <code>fiches</code>)
+                            </label>
+                            <textarea
+                              value={enrichForm.fiches}
+                              onChange={(e) => setEnrichForm({ ...enrichForm, fiches: e.target.value })}
+                              className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors min-h-[80px]"
+                              placeholder='Ex : "/fiches-pratiques/exactitude", "/fiches-pratiques/controle-humain"…'
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                              Vous pouvez saisir des chemins internes (ex. <code>/fiches-pratiques/exactitude</code>) ou des
+                              URLs complètes, séparées par des virgules.
+                            </p>
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Document associé (champ <code>doc_associee</code>)
+                            </label>
+                            <input
+                              type="text"
+                              value={enrichForm.doc_associee}
+                              onChange={(e) => setEnrichForm({ ...enrichForm, doc_associee: e.target.value })}
+                              className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                              placeholder="Identifiant ou lien vers un document complémentaire"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEnrichForm({
+                                numero: enrichForm.numero,
+                                titre: enrichForm.titre,
+                                resume: '',
+                                recitals: '',
+                                fiches: '',
+                                doc_associee: '',
+                              })
+                              setFormStatus({ type: null, message: '' })
+                            }}
+                            className="px-5 py-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                            disabled={isSubmitting}
+                          >
+                            Réinitialiser les champs
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-[#774792] text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {isSubmitting ? 'Enregistrement…' : 'Enregistrer les modifications'}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
