@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabasePublic } from '@/lib/supabasePublic'
 
 interface ConsiderantType {
   numero: number
@@ -97,7 +97,7 @@ export const Sommaire: React.FC<SommaireProps> = ({
   useEffect(() => {
     const fetchConsiderants = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabasePublic
           .from('ria_preambule')
           .select('numero')
           .eq('type', 'considerant')
@@ -121,7 +121,7 @@ export const Sommaire: React.FC<SommaireProps> = ({
         console.log('Début de la récupération des annexes...')
         
         // Récupérer les annexes principales
-        const { data: annexesData, error: annexesError } = await supabase
+        const { data: annexesData, error: annexesError } = await supabasePublic
           .from('liste_annexes')
           .select('*')
 
@@ -131,7 +131,7 @@ export const Sommaire: React.FC<SommaireProps> = ({
         }
 
         // Récupérer les subdivisions et leur contenu
-        const { data: subdivisionsData, error: subdivisionsError } = await supabase
+        const { data: subdivisionsData, error: subdivisionsError } = await supabasePublic
           .from('annexes')
           .select('id_annexe, titre_section, contenu')
 
@@ -197,7 +197,7 @@ export const Sommaire: React.FC<SommaireProps> = ({
         setChapitresError('Chargement des données...')
         
         // Récupérer les chapitres
-        const { data: chapitresData, error: chapitresError } = await supabase
+        const { data: chapitresData, error: chapitresError } = await supabasePublic
           .from('chapitre')
           .select('id_chapitre, titre')
           .order('id_chapitre')
@@ -213,7 +213,7 @@ export const Sommaire: React.FC<SommaireProps> = ({
         }
 
         // Récupérer toutes les sections
-        const { data: sectionsData, error: sectionsError } = await supabase
+        const { data: sectionsData, error: sectionsError } = await supabasePublic
           .from('section')
           .select('titre, id_chapitre, id_section')
           .order('id_section')
@@ -224,7 +224,7 @@ export const Sommaire: React.FC<SommaireProps> = ({
         }
 
         // Récupérer tous les articles
-        const { data: articlesData, error: articlesError } = await supabase
+        const { data: articlesData, error: articlesError } = await supabasePublic
           .from('article')
           .select('titre, id_chapitre, id_section, id_article, numero, contenu')
           .order('id_article')
