@@ -16,14 +16,12 @@ const ConnexionPage: React.FC = () => {
 
   // Rediriger si l'utilisateur est déjà connecté
   useEffect(() => {
-    if (!loading) {
-      if (isAdmin()) {
-        // Si l'utilisateur est déjà connecté en tant qu'admin, rediriger vers la console
-        navigate('/admin/console', { replace: true })
-      } else if (isAdherent()) {
-        // Si l'utilisateur est déjà connecté en tant qu'adhérent, rediriger vers l'accueil
-        navigate('/', { replace: true })
-      }
+    // Dès que le profil est chargé et indique un utilisateur connecté,
+    // on redirige sans bloquer l'affichage de la page de connexion.
+    if (isAdmin()) {
+      navigate('/admin/console', { replace: true })
+    } else if (isAdherent()) {
+      navigate('/', { replace: true })
     }
   }, [loading, isAdmin, isAdherent, navigate])
 
@@ -46,23 +44,6 @@ const ConnexionPage: React.FC = () => {
         navigate('/')
       }
     }
-  }
-
-  // Afficher un loader pendant la vérification de la session
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Vérification de la session...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Si l'utilisateur est déjà connecté, ne rien afficher (redirection en cours)
-  if (isAdmin() || isAdherent()) {
-    return null
   }
 
   return (
