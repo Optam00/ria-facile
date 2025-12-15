@@ -42,10 +42,9 @@ const AdminConsolePage: React.FC = () => {
     }
   }, [selectedAction])
 
-  const handleSignOut = async () => {
-    await signOut()
-    // Rechargement complet pour repartir sur une app "propre"
-    window.location.assign('/connexion')
+  const handleSignOut = () => {
+    // On délègue le signOut à la page connexion via le paramètre logout=1
+    window.location.assign('/connexion?logout=1')
   }
 
   const actions = [

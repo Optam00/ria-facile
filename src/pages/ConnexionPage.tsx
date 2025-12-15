@@ -15,6 +15,22 @@ const ConnexionPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Si on arrive avec ?logout=1, on déconnecte puis on nettoie l'URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const shouldLogout = params.get('logout') === '1'
+
+    if (!shouldLogout) return
+
+    supabase.auth.signOut().finally(() => {
+      params.delete('logout')
+      const newUrl =
+        window.location.pathname +
+        (params.toString() ? `?${params.toString()}` : '')
+      window.history.replaceState({}, '', newUrl)
+    })
+  }, [])
+
   // Rediriger si l'utilisateur est déjà connecté
   useEffect(() => {
     // Dès que le profil est chargé et indique un utilisateur connecté,
