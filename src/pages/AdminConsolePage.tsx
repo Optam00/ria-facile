@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 type AdminAction = 'ajouter-actualite' | 'ajouter-article-doctrine' | 'ajouter-document' | 'enrichir-article' | null
 
 const AdminConsolePage: React.FC = () => {
-  const { signOut, isAdmin, profile } = useAuth()
+  const { signOut, isAdmin, profile, loading } = useAuth()
   const navigate = useNavigate()
   const [selectedAction, setSelectedAction] = useState<AdminAction>(null)
   const [actualiteForm, setActualiteForm] = useState({
@@ -22,12 +22,12 @@ const AdminConsolePage: React.FC = () => {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Rediriger si l'utilisateur n'est pas admin
+  // Rediriger si l'utilisateur n'est pas admin une fois la session chargée
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!loading && !isAdmin()) {
       navigate('/connexion')
     }
-  }, [isAdmin, navigate])
+  }, [loading, isAdmin, navigate])
 
   // Réinitialiser les messages et formulaires quand on change d'action
   useEffect(() => {
@@ -54,8 +54,8 @@ const AdminConsolePage: React.FC = () => {
     { id: 'enrichir-article' as AdminAction, label: 'Enrichir un article', icon: '✨' },
   ]
 
-  // Afficher un loader pendant la vérification
-  if (!isAdmin()) {
+  // Afficher un loader pendant la vérification des droits
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
