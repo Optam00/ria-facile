@@ -40,10 +40,16 @@ const AssistantRIAConversationPage = () => {
   // Sauvegarder la question dans Supabase (optionnel, pour analytics)
   const saveQuestionToSupabase = async (question: string) => {
     try {
-      await supabase.from('assistant_ria').insert([{ question }]);
+      console.log('💾 Sauvegarde de la question dans Supabase');
+      const { error } = await supabase.from('assistant_ria').insert([{ question }]);
+      if (error) {
+        console.error('❌ Erreur sauvegarde question:', error);
+      } else {
+        console.log('✅ Question sauvegardée avec succès');
+      }
     } catch (error) {
       // On continue même si la sauvegarde échoue
-      console.warn('Erreur sauvegarde question:', error);
+      console.error('❌ Erreur sauvegarde question:', error);
     }
   };
 
@@ -98,7 +104,7 @@ const AssistantRIAConversationPage = () => {
     setIsLoading(true);
     console.log('🚀 Début de handleAsk:', { question: userQuestion });
     try {
-      saveQuestionToSupabase(userQuestion);
+      await saveQuestionToSupabase(userQuestion);
       const answer = await callGeminiAPI(userQuestion, history);
       console.log('✅ Réponse obtenue avec succès');
       setHistory(prev => [...prev, { question: userQuestion, answer }]);
