@@ -195,6 +195,7 @@ const AdminConsolePage: React.FC = () => {
                     className="grid grid-cols-1 md:grid-cols-2 gap-6"
                     onSubmit={async (e) => {
                       e.preventDefault()
+                      console.log('[AdminConsole] Soumission actualité', actualiteForm)
                       setIsSubmitting(true)
                       setFormStatus({ type: null, message: '' })
 
@@ -205,6 +206,8 @@ const AdminConsolePage: React.FC = () => {
                           media: actualiteForm.media.trim(),
                           lien: actualiteForm.lien.trim(),
                         })
+
+                        console.log('[AdminConsole] Résultat insertion actualité', { error })
 
                         if (error) {
                           throw new Error(error.message)
@@ -333,6 +336,7 @@ const AdminConsolePage: React.FC = () => {
                     className="grid grid-cols-1 md:grid-cols-2 gap-6"
                     onSubmit={async (e) => {
                       e.preventDefault()
+                      console.log('[AdminConsole] Soumission document', docForm)
                       setIsSubmitting(true)
                       setFormStatus({ type: null, message: '' })
 
@@ -346,6 +350,8 @@ const AdminConsolePage: React.FC = () => {
                           themes: docForm.themes.trim(),
                           langue: docForm.langue.trim(),
                         })
+
+                        console.log('[AdminConsole] Résultat insertion document', { error })
 
                         if (error) {
                           throw new Error(error.message)
@@ -518,6 +524,7 @@ const AdminConsolePage: React.FC = () => {
                     className="space-y-6"
                     onSubmit={async (e) => {
                       e.preventDefault()
+                      console.log('[AdminConsole] Soumission doctrine', doctrineForm)
                       setIsSubmitting(true)
                       setFormStatus({ type: null, message: '' })
 
@@ -542,6 +549,8 @@ const AdminConsolePage: React.FC = () => {
                           auteur: doctrineForm.auteur.trim(),
                           theme: doctrineForm.theme.trim(),
                         })
+
+                        console.log('[AdminConsole] Résultat insertion doctrine', { error })
 
                         if (error) {
                           throw new Error(error.message)
