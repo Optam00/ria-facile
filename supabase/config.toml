@@ -1,2 +1,5 @@
 [functions.get-doctrine-articles]
+verify_jwt = false
+
+[functions.assistant-ria]
 verify_jwt = false 

@@ -37,12 +37,23 @@ const AssistantRIAConversationPage = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [loadingStage, setLoadingStage] = useState<LoadingStage>('idle');
 
-  // Appel réel à l'API Gemini via le backend Python
+  // Appel à l'API Gemini via la Supabase Edge Function
   const callGeminiAPI = async (question: string, history: {question: string, answer: string}[]) => {
     const recentHistory = history.slice(-MAX_HISTORY);
-    const response = await fetch('https://assistant-ria-backend.onrender.com/ask', {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Configuration Supabase manquante');
+    }
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/assistant-ria`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
+      },
       body: JSON.stringify({ question, history: recentHistory }),
     });
     
@@ -56,16 +67,6 @@ const AssistantRIAConversationPage = () => {
       throw new Error(data.error);
     }
     return data.answer;
-  };
-
-  // Sauvegarde la question dans Supabase
-  const saveQuestionToSupabase = async (question: string) => {
-    try {
-      await supabase.from('assistant_ria').insert([{ question }]);
-    } catch (error) {
-      // Optionnel : log ou gestion d'erreur
-      console.error('Erreur lors de la sauvegarde de la question dans Supabase', error);
-    }
   };
 
   const handleAsk = async (e?: React.FormEvent) => {
