@@ -52,6 +52,8 @@ const AdminConsolePage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [articlesList, setArticlesList] = useState<Array<{ id_article: number; numero: string; titre: string }>>([])
   const [selectedArticleId, setSelectedArticleId] = useState<number | null>(null)
+  const [isArticleDropdownOpen, setIsArticleDropdownOpen] = useState(false)
+  const [articleSearch, setArticleSearch] = useState('')
   const [enrichForm, setEnrichForm] = useState({
     numero: '',
     titre: '',
@@ -130,6 +132,17 @@ const AdminConsolePage: React.FC = () => {
       })
     }
   }, [selectedAction])
+  const selectedArticle = selectedArticleId
+    ? articlesList.find((a) => a.id_article === selectedArticleId) ?? null
+    : null
+  const filteredArticles = articlesList.filter((article) => {
+    const q = articleSearch.trim().toLowerCase()
+    if (!q) return true
+    return (
+      article.numero.toLowerCase().includes(q) ||
+      article.titre.toLowerCase().includes(q)
+    )
+  })
 
   // Charger la liste des articles quand on arrive sur "enrichir un article"
   useEffect(() => {
@@ -952,62 +965,104 @@ const AdminConsolePage: React.FC = () => {
                         Sélectionner l&apos;article (par numéro)
                       </label>
                       <div className="flex flex-col sm:flex-row gap-3">
-                        <select
-                          value={selectedArticleId ?? ''}
-                          onChange={async (e) => {
-                            const value = e.target.value ? Number(e.target.value) : null
-                            setSelectedArticleId(value)
-                            setFormStatus({ type: null, message: '' })
+                        <div className="relative w-full sm:max-w-md">
+                          <button
+                            type="button"
+                            onClick={() => setIsArticleDropdownOpen((v) => !v)}
+                            className="w-full px-4 py-2.5 rounded-xl bg-white border border-gray-200 flex items-center justify-between text-left hover:border-[#774792] focus:outline-none focus:ring-2 focus:ring-purple-200"
+                          >
+                            <span className="truncate text-sm text-gray-800">
+                              {selectedArticle
+                                ? `${selectedArticle.numero} — ${selectedArticle.titre}`
+                                : 'Choisir un article…'}
+                            </span>
+                            <svg
+                              className={`w-4 h-4 text-gray-400 transition-transform ${
+                                isArticleDropdownOpen ? 'rotate-180' : ''
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </button>
 
-                            if (!value) {
-                              setEnrichForm({
-                                numero: '',
-                                titre: '',
-                                resume: '',
-                                recitals: '',
-                                fiches: '',
-                                doc_associee: '',
-                              })
-                              return
-                            }
+                          {isArticleDropdownOpen && (
+                            <div className="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-2xl shadow-xl max-h-72 overflow-hidden">
+                              <div className="p-2 border-b border-gray-100 bg-gray-50">
+                                <input
+                                  type="text"
+                                  value={articleSearch}
+                                  onChange={(e) => setArticleSearch(e.target.value)}
+                                  placeholder="Filtrer par numéro ou titre…"
+                                  className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-purple-300"
+                                />
+                              </div>
+                              <div className="max-h-56 overflow-y-auto">
+                                {filteredArticles.length === 0 ? (
+                                  <div className="px-4 py-3 text-xs text-gray-500">
+                                    Aucun article ne correspond à votre recherche.
+                                  </div>
+                                ) : (
+                                  filteredArticles.map((article) => (
+                                    <button
+                                      key={article.id_article}
+                                      type="button"
+                                      onClick={async () => {
+                                        const value = article.id_article
+                                        setSelectedArticleId(value)
+                                        setIsArticleDropdownOpen(false)
+                                        setArticleSearch('')
+                                        setFormStatus({ type: null, message: '' })
 
-                            setIsLoadingArticle(true)
-                            try {
-                              const { data, error } = await supabasePublic
-                                .from('article')
-                                .select('id_article, numero, titre, resume, recitals, fiches, doc_associee')
-                                .eq('id_article', value)
-                                .single()
+                                        setIsLoadingArticle(true)
+                                        try {
+                                          const { data, error } = await supabasePublic
+                                            .from('article')
+                                            .select('id_article, numero, titre, resume, recitals, fiches, doc_associee')
+                                            .eq('id_article', value)
+                                            .single()
 
-                              if (error) throw error
+                                          if (error) throw error
 
-                              setEnrichForm({
-                                numero: data.numero ?? '',
-                                titre: data.titre ?? '',
-                                resume: data.resume ?? '',
-                                recitals: data.recitals ?? '',
-                                fiches: data.fiches ?? '',
-                                doc_associee: (data as any).doc_associee ?? '',
-                              })
-                            } catch (err) {
-                              console.error('Erreur lors du chargement de l’article à enrichir:', err)
-                              setFormStatus({
-                                type: 'error',
-                                message: "Impossible de charger cet article. Réessayez ou choisissez-en un autre.",
-                              })
-                            } finally {
-                              setIsLoadingArticle(false)
-                            }
-                          }}
-                          className="w-full sm:max-w-xs px-4 py-2.5 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                        >
-                          <option value="">Choisir un article…</option>
-                          {articlesList.map((article) => (
-                            <option key={article.id_article} value={article.id_article}>
-                              {article.numero} — {article.titre}
-                            </option>
-                          ))}
-                        </select>
+                                          setEnrichForm({
+                                            numero: data.numero ?? '',
+                                            titre: data.titre ?? '',
+                                            resume: data.resume ?? '',
+                                            recitals: data.recitals ?? '',
+                                            fiches: data.fiches ?? '',
+                                            doc_associee: (data as any).doc_associee ?? '',
+                                          })
+                                        } catch (err) {
+                                          console.error('Erreur lors du chargement de l’article à enrichir:', err)
+                                          setFormStatus({
+                                            type: 'error',
+                                            message:
+                                              "Impossible de charger cet article. Réessayez ou choisissez-en un autre.",
+                                          })
+                                        } finally {
+                                          setIsLoadingArticle(false)
+                                        }
+                                      }}
+                                      className={`w-full px-4 py-2 text-sm text-left flex flex-col gap-0.5 hover:bg-purple-50 ${
+                                        selectedArticleId === article.id_article ? 'bg-purple-50' : ''
+                                      }`}
+                                    >
+                                      <span className="font-medium text-gray-900">{article.numero}</span>
+                                      <span className="text-xs text-gray-600 truncate">{article.titre}</span>
+                                    </button>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         {isLoadingArticle && (
                           <span className="text-sm text-gray-500 flex items-center">
                             Chargement de l&apos;article…
