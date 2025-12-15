@@ -194,28 +194,42 @@ const AdminConsolePage: React.FC = () => {
         {/* Contenu principal avec sidebar */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar (en haut sur mobile, à gauche sur desktop) */}
-          <div className={`w-full lg:w-64 flex-shrink-0 ${isSidebarCollapsed ? 'lg:max-w-[52px]' : ''}`}>
-            <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl shadow-lg border border-white p-4 flex flex-col h-full">
-              <div className="flex items-center justify-between mb-4">
-                {!isSidebarCollapsed && (
-                  <h2 className="text-lg font-semibold text-[#774792]">
-                    Menu d’administration
-                  </h2>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setIsSidebarCollapsed((v) => !v)}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm"
-                  aria-label={isSidebarCollapsed ? 'Déployer le menu admin' : 'Rétracter le menu admin'}
-                >
-                  <span className="text-sm font-semibold">
-                    {isSidebarCollapsed ? '>' : '<'}
-                  </span>
-                </button>
-              </div>
-
-              {!isSidebarCollapsed && (
+          <div className={`w-full lg:w-64 flex-shrink-0 ${isSidebarCollapsed ? 'lg:w-16' : ''}`}>
+            <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl shadow-lg border border-white p-3 flex flex-col h-full">
+              {isSidebarCollapsed ? (
+                <div className="flex items-center justify-center h-full">
+                  <button
+                    type="button"
+                    onClick={() => setIsSidebarCollapsed(false)}
+                    className="flex flex-col items-center justify-center w-10 h-40 rounded-2xl bg-gradient-to-b from-purple-500 to-indigo-600 text-white shadow-md hover:shadow-lg hover:scale-[1.02] transition-transform"
+                    aria-label="Déployer le menu d'administration"
+                  >
+                    <span className="text-[10px] font-semibold tracking-wide mb-1">
+                      Admin
+                    </span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
                 <>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-[#774792]">
+                      Menu d’administration
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={() => setIsSidebarCollapsed(true)}
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm"
+                      aria-label="Rétracter le menu d'administration"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  </div>
+
                   <nav className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
                     {actions.map((action) => (
                       <button
