@@ -3085,8 +3085,11 @@ const AdminConsolePage: React.FC = () => {
                               value={enrichForm.doc_associee}
                               onChange={(e) => setEnrichForm({ ...enrichForm, doc_associee: e.target.value })}
                               className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                              placeholder="Identifiant ou lien vers un document complémentaire"
+                              placeholder="Titre du document suivi du lien (ex: Guide pratique https://example.com/doc.pdf)"
                             />
+                            <p className="mt-1 text-xs text-gray-500">
+                              Format : Titre suivi d'un espace puis le lien (ex: Guide pratique https://example.com/doc.pdf)
+                            </p>
                           </div>
                         </div>
 
