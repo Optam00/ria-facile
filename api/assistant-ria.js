@@ -81,6 +81,10 @@ export default async function handler(req, res) {
     
     let response;
     try {
+      // Créer un AbortController pour gérer le timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 55000); // 55 secondes (moins que le maxDuration de 60s)
+      
       response = await fetch(functionUrl, {
         method: 'POST',
         headers: {
@@ -89,7 +93,10 @@ export default async function handler(req, res) {
           'apikey': supabaseAnonKey,
         },
         body: JSON.stringify({ question, history }),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
     } catch (fetchError) {
       console.error('❌ Erreur fetch détaillée:', {
         message: fetchError.message,
@@ -97,8 +104,18 @@ export default async function handler(req, res) {
         name: fetchError.name,
         cause: fetchError.cause,
         url: functionUrl,
-        fetchAvailable: typeof fetch !== 'undefined'
+        fetchAvailable: typeof fetch !== 'undefined',
+        isTimeout: fetchError.name === 'AbortError'
       });
+      
+      // Si c'est un timeout, retourner un message spécifique
+      if (fetchError.name === 'AbortError') {
+        return res.status(504).json({
+          error: 'La requête a pris trop de temps. Veuillez réessayer avec une question plus courte ou reformulée.',
+          timeout: true
+        });
+      }
+      
       return res.status(500).json({
         error: `Erreur réseau lors de l'appel à Supabase: ${fetchError.message}`,
         details: {
