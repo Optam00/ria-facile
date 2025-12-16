@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 // @ts-ignore
 import remarkBreaks from 'remark-breaks';
-import { supabase } from '../lib/supabase';
+import { supabasePublic } from '../lib/supabasePublic';
 
 const MAX_HISTORY = 5;
 
@@ -41,7 +41,7 @@ const AssistantRIAConversationPage = () => {
   const saveQuestionToSupabase = async (question: string) => {
     try {
       console.log('💾 Sauvegarde de la question dans Supabase');
-      const { error } = await supabase.from('assistant_ria').insert([{ question }]);
+      const { error } = await supabasePublic.from('assistant_ria').insert([{ question }]);
       if (error) {
         console.error('❌ Erreur sauvegarde question:', error);
       } else {
@@ -65,32 +65,32 @@ const AssistantRIAConversationPage = () => {
     try {
       // Appeler notre route API Vercel au lieu de Supabase directement
       const response = await fetch('/api/assistant-ria', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ question, history: recentHistory }),
-      });
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ question, history: recentHistory }),
+    });
       
       console.log('📥 Réponse reçue:', {
         status: response.status,
         ok: response.ok
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Erreur serveur' }));
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Erreur serveur' }));
         console.error('❌ Erreur HTTP:', errorData);
         throw new Error(errorData.error || `Erreur ${response.status}`);
-      }
-      
-      const data = await response.json();
+    }
+    
+    const data = await response.json();
       console.log('✅ Données reçues:', { hasAnswer: !!data.answer });
       
       if (!data || !data.answer) {
         throw new Error('Réponse invalide de la fonction');
-      }
+    }
       
-      return data.answer;
+    return data.answer;
     } catch (error) {
       console.error('❌ Erreur lors de l\'appel API:', error);
       throw error;
