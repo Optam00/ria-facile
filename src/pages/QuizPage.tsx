@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabasePublic } from '../lib/supabasePublic'
 
 interface Question {
   Id: number
@@ -41,7 +41,7 @@ export const QuizPage = () => {
 
   const fetchQuestions = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabasePublic
         .from('questions')
         .select('*')
 
