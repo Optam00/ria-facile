@@ -571,12 +571,18 @@ const AdminConsolePage: React.FC = () => {
       actu.media.toLowerCase().includes(searchLower) ||
       actu.lien.toLowerCase().includes(searchLower)
     
-    const matchesMedia = !actualitesMediaFilter || actu.media === actualitesMediaFilter
+    // Comparaison normalisée (trim) pour le filtre média
+    const matchesMedia = !actualitesMediaFilter || 
+      (actu.media && actu.media.trim() === actualitesMediaFilter.trim())
     
     return matchesSearch && matchesMedia
   })
 
-  const uniqueMedias = [...new Set(actualitesList.map(a => a.media))].sort()
+  // Générer la liste des médias uniques en normalisant (trim) et en filtrant les valeurs nulles/vides
+  const uniqueMedias = [...new Set(actualitesList
+    .map(a => a.media?.trim())
+    .filter((media): media is string => !!media)
+  )].sort()
 
   // Filtrer les docs selon la recherche et le filtre langue
   const filteredDocs = docsList.filter((doc) => {
