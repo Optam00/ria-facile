@@ -26,6 +26,7 @@ interface ArticleContent {
   chapitre_titre?: string
   section_titre?: string
   fiches?: string
+  doc_associee?: string
 }
 
 interface AnnexeSubdivision {
@@ -131,6 +132,56 @@ export const ConsulterPage = () => {
     'maitrise-ia': "La maîtrise de l'IA (Article 4)"
   }
 
+  // Fonction pour parser le document associé (format: "Titre|Lien" ou "Titre Lien" ou juste "Lien")
+  const parseDocAssociee = (docString?: string): { titre: string; lien: string } | null => {
+    if (!docString || docString.trim() === '') {
+      return null
+    }
+    
+    const trimmed = docString.trim()
+    
+    // Vérifier si le format est "Titre|Lien" (avec pipe)
+    if (trimmed.includes('|')) {
+      const [titre, ...lienParts] = trimmed.split('|')
+      return {
+        titre: titre.trim(),
+        lien: lienParts.join('|').trim()
+      }
+    }
+    
+    // Vérifier si c'est une URL (commence par http:// ou https://)
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      // Si c'est juste une URL, on l'utilise comme lien et on extrait un titre depuis l'URL
+      const urlParts = trimmed.split('/')
+      const lastPart = urlParts[urlParts.length - 1] || urlParts[urlParts.length - 2] || trimmed
+      return {
+        titre: lastPart.replace(/[?#].*$/, '').replace(/%20/g, ' ') || trimmed,
+        lien: trimmed
+      }
+    }
+    
+    // Si le format est "Titre Lien" (titre suivi d'un espace puis d'une URL)
+    // On cherche la première occurrence d'une URL dans la chaîne
+    const urlRegex = /(https?:\/\/[^\s]+)/
+    const urlMatch = trimmed.match(urlRegex)
+    
+    if (urlMatch && urlMatch.index !== undefined) {
+      // Il y a une URL dans la chaîne
+      const titre = trimmed.substring(0, urlMatch.index).trim()
+      const lien = urlMatch[1]
+      return {
+        titre: titre || lien, // Si pas de titre avant l'URL, on utilise l'URL comme titre
+        lien: lien
+      }
+    }
+    
+    // Si pas d'URL détectée, on considère que c'est juste un titre sans lien
+    return {
+      titre: trimmed,
+      lien: ''
+    }
+  }
+
   // Fonction pour obtenir les fiches pratiques avec titre et lien depuis le champ "fiches"
   const getFichesPratiques = (fichesString?: string): Array<{ titre: string; lien: string }> => {
     if (!fichesString || fichesString.trim() === '') {
@@ -203,6 +254,7 @@ export const ConsulterPage = () => {
   const [isSummaryOpen, setIsSummaryOpen] = useState(false)
   const [isArticleConsiderantsOpen, setIsArticleConsiderantsOpen] = useState(false)
   const [isArticleFichesOpen, setIsArticleFichesOpen] = useState(false)
+  const [isArticleDocOpen, setIsArticleDocOpen] = useState(false)
 
   // Sauvegarder les préférences quand elles changent
   useEffect(() => {
@@ -270,7 +322,7 @@ export const ConsulterPage = () => {
               // Recherche par numéro d'article
               const { data: articleData } = await supabasePublic
               .from('article')
-                .select('id_article, titre, numero, contenu, resume, recitals, fiches')
+                .select('id_article, titre, numero, contenu, resume, recitals, fiches, doc_associee')
                 .eq('numero', numero)
                 .single()
               article = articleData
@@ -278,7 +330,7 @@ export const ConsulterPage = () => {
               // Recherche par id_article (comportement existant)
               const { data: articleData } = await supabasePublic
                 .from('article')
-                .select('id_article, titre, numero, contenu, resume, recitals, fiches')
+                .select('id_article, titre, numero, contenu, resume, recitals, fiches, doc_associee')
               .eq('id_article', parseInt(id))
               .single()
               article = articleData
@@ -445,6 +497,7 @@ export const ConsulterPage = () => {
           resume: (data as any).resume,
           recitals: (data as any).recitals,
           fiches: (data as any).fiches,
+          doc_associee: (data as any).doc_associee,
           chapitre_titre: data.chapitre?.titre,
           section_titre: data.section?.titre
         })
@@ -487,6 +540,7 @@ export const ConsulterPage = () => {
           resume: (data as any).resume,
           recitals: (data as any).recitals,
           fiches: (data as any).fiches,
+          doc_associee: (data as any).doc_associee,
           chapitre_titre: data.chapitre?.titre,
           section_titre: data.section?.titre
         })
@@ -526,6 +580,7 @@ export const ConsulterPage = () => {
           resume: (data as any).resume,
           recitals: (data as any).recitals,
           fiches: (data as any).fiches,
+          doc_associee: (data as any).doc_associee,
           chapitre_titre: data.chapitre?.titre,
           section_titre: data.section?.titre
         })
@@ -640,6 +695,7 @@ export const ConsulterPage = () => {
           recitals,
           resume,
           fiches,
+          doc_associee,
           chapitre:id_chapitre(titre)
         `)
         .eq('id_section', section.id_section)
@@ -668,6 +724,7 @@ export const ConsulterPage = () => {
           resume: (firstArticle as any).resume,
           recitals: (firstArticle as any).recitals,
           fiches: (firstArticle as any).fiches,
+          doc_associee: (firstArticle as any).doc_associee,
           chapitre_titre: firstArticle.chapitre?.titre || '',
           section_titre: section.titre
         })
@@ -1221,6 +1278,44 @@ export const ConsulterPage = () => {
                                     )
                                   })}
                                 </ul>
+                              )
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Documentation officielle associée */}
+                      <div className="mt-6">
+                        <button
+                          type="button"
+                          onClick={() => setIsArticleDocOpen(!isArticleDocOpen)}
+                          className="w-full flex items-center justify-between px-3 py-2 bg-white border rounded-lg hover:bg-gray-50 transition-colors"
+                          aria-expanded={isArticleDocOpen}
+                        >
+                          <span className="text-sm font-medium">Documentation officielle</span>
+                          <svg className={`w-4 h-4 transition-transform ${isArticleDocOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {isArticleDocOpen && (
+                          <div className="mt-2 border rounded-lg p-3 text-sm text-gray-700" style={{ backgroundColor: '#f3f1ff', borderColor: '#f3f1ff' }}>
+                            {(() => {
+                              const doc = parseDocAssociee(selectedArticle.doc_associee)
+                              if (!doc || !doc.lien) {
+                                return 'Aucun document officiel associé pour le moment.'
+                              }
+                              return (
+                                <a
+                                  href={doc.lien}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[#774792] underline hover:text-violet-900 cursor-pointer inline-flex items-center gap-1"
+                                >
+                                  {doc.titre || doc.lien}
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                </a>
                               )
                             })()}
                           </div>
