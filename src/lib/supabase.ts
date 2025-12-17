@@ -28,7 +28,13 @@ const createSecureStorage = (): CustomStorage => {
     getItem: (key: string) => {
       // Vérifier le flag de déconnexion explicite AVANT de retourner la session
       const explicitLogout = baseStorage.getItem('explicit_logout') === 'true';
+      const explicitLogin = baseStorage.getItem('explicit_login') === 'true';
       const logoutTimestamp = baseStorage.getItem('explicit_logout_timestamp');
+      
+      // Si connexion explicite en cours, autoriser l'accès même si explicit_logout existe
+      if (explicitLogin) {
+        return baseStorage.getItem(key);
+      }
       
       if (explicitLogout && logoutTimestamp) {
         const logoutTime = parseInt(logoutTimestamp, 10);
@@ -50,10 +56,19 @@ const createSecureStorage = (): CustomStorage => {
     setItem: (key: string, value: string) => {
       // Vérifier le flag avant de sauvegarder
       const explicitLogout = baseStorage.getItem('explicit_logout') === 'true';
+      const explicitLogin = baseStorage.getItem('explicit_login') === 'true';
+      
+      // Si connexion explicite en cours, autoriser la sauvegarde
+      if (explicitLogin) {
+        baseStorage.setItem(key, value);
+        return;
+      }
+      
       if (explicitLogout) {
         console.log('🔒 Storage: Déconnexion explicite active, empêcher la sauvegarde de session');
         return; // Ne pas sauvegarder si déconnexion explicite
       }
+      
       baseStorage.setItem(key, value);
     },
     removeItem: (key: string) => {

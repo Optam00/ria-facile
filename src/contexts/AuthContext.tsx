@@ -173,6 +173,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await loadUserProfile(session.user.id)
         // Réinitialiser le timestamp d'activité lors de la connexion
         setLastActivity(Date.now())
+        // Supprimer le flag explicit_login après connexion réussie
+        localStorage.removeItem('explicit_login')
       } else {
         setProfile(null)
         setLoading(false)
