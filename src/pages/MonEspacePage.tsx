@@ -79,11 +79,15 @@ const MonEspacePage: React.FC = () => {
 
       // Aussi mettre à jour la table profiles (upsert pour créer si n'existe pas)
       const userId = currentSession.user.id
+      // Récupérer le rôle depuis le profil ou les métadonnées, avec 'adherent' par défaut
+      const userRole = profile?.role || currentSession.user.user_metadata?.role || 'adherent'
+      
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
           id: userId,
           email: currentSession.user.email,
+          role: userRole, // Inclure le rôle pour éviter les problèmes lors de l'insertion
           prenom: prenom.trim() || null,
           nom: nom.trim() || null,
           profession: profession.trim() || null,
