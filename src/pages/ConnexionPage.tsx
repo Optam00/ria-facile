@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 type UserType = 'adherent' | 'admin'
 
 const ConnexionPage: React.FC = () => {
-  const { isAdmin, isAdherent, loading, signOut } = useAuth()
+  const { isAdmin, isAdherent, loading, signOut, signIn } = useAuth()
   const navigate = useNavigate()
   const [userType, setUserType] = useState<UserType>('adherent')
   const [email, setEmail] = useState('')
@@ -68,10 +68,8 @@ const ConnexionPage: React.FC = () => {
     setError('')
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      // Utiliser la fonction signIn du contexte pour bénéficier de la gestion du flag explicit_logout
+      const { error } = await signIn(email, password, userType)
 
       if (error) {
         setError(error.message || 'Erreur lors de la connexion')
