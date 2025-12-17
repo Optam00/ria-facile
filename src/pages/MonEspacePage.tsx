@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
 const MonEspacePage: React.FC = () => {
-  const { signOut, isAdherent, profile, loading, session } = useAuth()
+  const { isAdherent, profile, loading, session } = useAuth()
   const navigate = useNavigate()
 
   // États pour le formulaire de modification des infos
@@ -42,9 +42,9 @@ const MonEspacePage: React.FC = () => {
     }
   }, [loading, isAdherent, navigate])
 
-  const handleSignOut = async () => {
-    await signOut()
-    window.location.assign('/connexion')
+  const handleSignOut = () => {
+    // On délègue le signOut à la page connexion via le paramètre logout=1
+    window.location.assign('/connexion?logout=1')
   }
 
   const handleSaveInfos = async () => {
