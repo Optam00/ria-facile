@@ -58,11 +58,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (daysSinceLogout < 7) {
         // Si déconnexion explicite récente, ne pas restaurer la session
-        console.log('Déconnexion explicite détectée, ne pas restaurer la session')
-        // Nettoyer la session si elle existe
+        console.log('🔒 Déconnexion explicite détectée, nettoyage complet...')
+        
+        // Nettoyer TOUT le localStorage Supabase immédiatement
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        if (supabaseUrl) {
+          const projectRef = supabaseUrl.split('//')[1]?.split('.')[0]
+          const allKeys = Object.keys(localStorage)
+          allKeys.forEach(key => {
+            if (key.startsWith('sb-') || 
+                key.startsWith('supabase.') ||
+                (key.includes('supabase') && !key.includes('explicit_logout')) ||
+                (key.includes('auth') && !key.includes('explicit_logout')) ||
+                key === 'ria_admin_session' ||
+                key === 'ria_public_read') {
+              localStorage.removeItem(key)
+            }
+          })
+        }
+        
+        // Forcer la déconnexion et NE PAS supprimer le flag (il doit persister)
         supabase.auth.signOut({ scope: 'local' }).finally(() => {
-          localStorage.removeItem('explicit_logout')
-          localStorage.removeItem('explicit_logout_timestamp')
+          setSession(null)
+          setUser(null)
+          setProfile(null)
           setLoading(false)
         })
         return
@@ -77,9 +96,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       // Vérifier à nouveau au cas où explicit_logout aurait été ajouté entre-temps
       if (localStorage.getItem('explicit_logout') === 'true') {
+        console.log('🔒 Flag de déconnexion détecté après getSession, nettoyage...')
         await supabase.auth.signOut({ scope: 'local' })
-        localStorage.removeItem('explicit_logout')
-        localStorage.removeItem('explicit_logout_timestamp')
+        setSession(null)
+        setUser(null)
+        setProfile(null)
         setLoading(false)
         return
       }
@@ -123,17 +144,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Ignorer la restauration automatique si déconnexion explicite
+      // Si connexion ET flag de déconnexion explicite présent
       if (event === 'SIGNED_IN' && localStorage.getItem('explicit_logout') === 'true') {
-        console.log('Ignorer la restauration automatique après déconnexion explicite')
-        localStorage.removeItem('explicit_logout')
-        localStorage.removeItem('explicit_logout_timestamp')
-        await supabase.auth.signOut({ scope: 'local' })
-        setSession(null)
-        setUser(null)
-        setProfile(null)
-        setLoading(false)
-        return
+        // Vérifier si c'est une connexion explicite (via formulaire) ou une restauration automatique
+        const explicitLogin = localStorage.getItem('explicit_login') === 'true'
+        
+        if (explicitLogin) {
+          // Connexion explicite : supprimer les flags et accepter la session
+          console.log('✅ Connexion explicite détectée, suppression des flags de déconnexion')
+          localStorage.removeItem('explicit_logout')
+          localStorage.removeItem('explicit_logout_timestamp')
+          localStorage.removeItem('explicit_login')
+        } else {
+          // Restauration automatique : ignorer et forcer la déconnexion
+          console.log('🔒 Restauration automatique bloquée (déconnexion explicite active)')
+          await supabase.auth.signOut({ scope: 'local' })
+          setSession(null)
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+          return
+        }
       }
       
       setSession(session)
@@ -142,9 +173,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await loadUserProfile(session.user.id)
         // Réinitialiser le timestamp d'activité lors de la connexion
         setLastActivity(Date.now())
-        // Supprimer le flag de déconnexion si on se reconnecte explicitement
-        localStorage.removeItem('explicit_logout')
-        localStorage.removeItem('explicit_logout_timestamp')
       } else {
         setProfile(null)
         setLoading(false)
@@ -271,14 +299,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string, role: UserRole) => {
     try {
+      // Marquer comme connexion explicite pour supprimer le flag de déconnexion
+      localStorage.setItem('explicit_login', 'true')
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) {
+        localStorage.removeItem('explicit_login')
         return { error }
       }
+
+      // Supprimer le flag de déconnexion car c'est une connexion explicite
+      localStorage.removeItem('explicit_logout')
+      localStorage.removeItem('explicit_logout_timestamp')
 
       // On ne refait pas de logique de rôle ici : 
       // - on laisse onAuthStateChange + loadUserProfile charger le profil
@@ -300,6 +336,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Utiliser localStorage pour que ça persiste même après fermeture du navigateur
       localStorage.setItem('explicit_logout', 'true')
       localStorage.setItem('explicit_logout_timestamp', Date.now().toString())
+      
+      // Nettoyer IMMÉDIATEMENT le localStorage AVANT la déconnexion
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      if (supabaseUrl) {
+        const projectRef = supabaseUrl.split('//')[1]?.split('.')[0]
+        const keysToRemove = [
+          'ria_admin_session',
+          `sb-${projectRef}-auth-token`,
+          `sb-${projectRef}-auth-token-code-verifier`,
+        ]
+        keysToRemove.forEach(key => localStorage.removeItem(key))
+      }
       
       // Scope 'global' invalide tous les tokens de cet utilisateur (toutes les sessions)
       await supabase.auth.signOut({ scope: 'global' })
