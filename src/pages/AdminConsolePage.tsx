@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { supabasePublic } from '../lib/supabasePublic'
 import AdminDashboard from '../components/AdminDashboard'
 
-type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | null
+type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-adherents' | 'supprimer-adherent' | null
 
 interface Actualite {
   id: number
@@ -220,6 +220,20 @@ const AdminConsolePage: React.FC = () => {
   const [isLoadingAssistantRIA, setIsLoadingAssistantRIA] = useState(false)
   const [deleteAssistantRIAConfirmId, setDeleteAssistantRIAConfirmId] = useState<number | null>(null)
 
+  // États pour la gestion des adhérents
+  interface Adherent {
+    id: string
+    email: string
+    prenom: string | null
+    nom: string | null
+    profession: string | null
+    created_at: string
+  }
+  const [adherentsList, setAdherentsList] = useState<Adherent[]>([])
+  const [adherentsSearch, setAdherentsSearch] = useState('')
+  const [isLoadingAdherents, setIsLoadingAdherents] = useState(false)
+  const [deleteAdherentConfirmId, setDeleteAdherentConfirmId] = useState<string | null>(null)
+
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
@@ -296,6 +310,15 @@ const AdminConsolePage: React.FC = () => {
       icon: '🤖',
       items: [
         { id: 'consulter-assistant-ria' as AdminAction, label: 'Consulter les questions', icon: '📋' },
+      ],
+    },
+    {
+      key: 'adherents',
+      label: 'Adhérents',
+      icon: '👥',
+      items: [
+        { id: 'consulter-adherents' as AdminAction, label: 'Liste des adhérents', icon: '📋' },
+        { id: 'supprimer-adherent' as AdminAction, label: 'Supprimer un adhérent', icon: '🗑️' },
       ],
     },
   ]
@@ -564,6 +587,35 @@ const AdminConsolePage: React.FC = () => {
     loadAssistantRIA()
   }, [selectedAction])
 
+  // Charger la liste des adhérents quand on arrive sur "consulter-adherents" ou "supprimer-adherent"
+  useEffect(() => {
+    if (selectedAction !== 'consulter-adherents' && selectedAction !== 'supprimer-adherent') return
+
+    const loadAdherents = async () => {
+      setIsLoadingAdherents(true)
+      try {
+        const { data, error } = await supabasePublic
+          .from('profiles')
+          .select('id, email, prenom, nom, profession, created_at')
+          .eq('role', 'adherent')
+          .order('created_at', { ascending: false })
+
+        if (error) throw error
+        setAdherentsList(data ?? [])
+      } catch (err) {
+        console.error('Erreur lors du chargement des adhérents:', err)
+        setFormStatus({
+          type: 'error',
+          message: "Impossible de charger la liste des adhérents. Réessayez plus tard.",
+        })
+      } finally {
+        setIsLoadingAdherents(false)
+      }
+    }
+
+    loadAdherents()
+  }, [selectedAction])
+
   // Filtrer les actualités selon la recherche et le filtre média
   const filteredActualites = actualitesList.filter((actu) => {
     const searchLower = actualitesSearch.trim().toLowerCase()
@@ -639,6 +691,58 @@ const AdminConsolePage: React.FC = () => {
     const searchLower = assistantRIASearch.trim().toLowerCase()
     return !searchLower || q.question.toLowerCase().includes(searchLower)
   })
+
+  // Filtrer les adhérents selon la recherche
+  const filteredAdherents = adherentsList.filter((a) => {
+    const searchLower = adherentsSearch.trim().toLowerCase()
+    return !searchLower || 
+      (a.email && a.email.toLowerCase().includes(searchLower)) ||
+      (a.prenom && a.prenom.toLowerCase().includes(searchLower)) ||
+      (a.nom && a.nom.toLowerCase().includes(searchLower)) ||
+      (a.profession && a.profession.toLowerCase().includes(searchLower))
+  })
+
+  // Supprimer un adhérent
+  const handleDeleteAdherent = async (id: string) => {
+    setIsSubmitting(true)
+    setFormStatus({ type: null, message: '' })
+
+    try {
+      const headers = getAuthHeaders()
+      
+      // Supprimer le profil (la suppression cascade sur auth.users si configuré)
+      const response = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${id}`, {
+        method: 'DELETE',
+        headers,
+      })
+
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `Erreur Supabase (${response.status})`)
+      }
+
+      // Recharger la liste
+      const { data, error: reloadError } = await supabasePublic
+        .from('profiles')
+        .select('id, email, prenom, nom, profession, created_at')
+        .eq('role', 'adherent')
+        .order('created_at', { ascending: false })
+
+      if (!reloadError && data) {
+        setAdherentsList(data)
+      }
+
+      setFormStatus({ type: 'success', message: 'Adhérent supprimé avec succès.' })
+      setDeleteAdherentConfirmId(null)
+    } catch (err) {
+      setFormStatus({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Une erreur est survenue.',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   // Ouvrir le modal de modification
   const handleEditActualite = (actu: Actualite) => {
@@ -2414,6 +2518,120 @@ const AdminConsolePage: React.FC = () => {
                 </div>
               )}
 
+              {/* Liste des adhérents */}
+              {(selectedAction === 'consulter-adherents' || selectedAction === 'supprimer-adherent') && (
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-800">
+                        {selectedAction === 'supprimer-adherent' ? 'Supprimer un adhérent' : 'Liste des adhérents'}
+                      </h2>
+                      <p className="text-gray-600 mt-2">
+                        {selectedAction === 'supprimer-adherent' 
+                          ? 'Sélectionnez un adhérent à supprimer. Cette action est irréversible.'
+                          : 'Consultez la liste de tous les adhérents inscrits.'}
+                      </p>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {filteredAdherents.length} adhérent{filteredAdherents.length > 1 ? 's' : ''}
+                    </div>
+                  </div>
+
+                  {formStatus.type && (
+                    <div
+                      className={`mb-4 rounded-xl px-4 py-3 ${
+                        formStatus.type === 'success'
+                          ? 'bg-green-50 text-green-800 border border-green-200'
+                          : 'bg-red-50 text-red-800 border border-red-200'
+                      }`}
+                    >
+                      {formStatus.message}
+                    </div>
+                  )}
+
+                  {/* Barre de recherche */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rechercher
+                    </label>
+                    <input
+                      type="text"
+                      value={adherentsSearch}
+                      onChange={(e) => setAdherentsSearch(e.target.value)}
+                      placeholder="Rechercher par email, nom, prénom ou profession..."
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                    />
+                  </div>
+
+                  {/* Liste des adhérents */}
+                  {isLoadingAdherents ? (
+                    <div className="text-center py-12">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#774792]"></div>
+                      <p className="mt-4 text-gray-600">Chargement des adhérents...</p>
+                    </div>
+                  ) : filteredAdherents.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-xl">
+                      <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                      <p className="text-gray-500">
+                        {adherentsSearch
+                          ? 'Aucun adhérent ne correspond à votre recherche.'
+                          : 'Aucun adhérent inscrit.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {filteredAdherents.map((adherent) => (
+                        <div
+                          key={adherent.id}
+                          className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                  {(adherent.prenom?.[0] || adherent.email[0]).toUpperCase()}
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-800">
+                                    {adherent.prenom || adherent.nom 
+                                      ? `${adherent.prenom || ''} ${adherent.nom || ''}`.trim()
+                                      : 'Nom non renseigné'}
+                                  </p>
+                                  <p className="text-sm text-gray-600">{adherent.email}</p>
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {adherent.profession && (
+                                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                                    {adherent.profession}
+                                  </span>
+                                )}
+                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                                  Inscrit le {new Date(adherent.created_at).toLocaleDateString('fr-FR')}
+                                </span>
+                              </div>
+                            </div>
+                            {selectedAction === 'supprimer-adherent' && (
+                              <button
+                                onClick={() => setDeleteAdherentConfirmId(adherent.id)}
+                                className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Supprimer
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {!selectedAction && (
                 <AdminDashboard onActionSelect={(action) => setSelectedAction(action as AdminAction)} />
               )}
@@ -3996,6 +4214,46 @@ const AdminConsolePage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => handleDeleteAssistantRIA(deleteAssistantRIAConfirmId)}
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Suppression...' : 'Supprimer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmation de suppression d'un adhérent */}
+      {deleteAdherentConfirmId !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800">Supprimer cet adhérent ?</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Cette action est irréversible. L'adhérent perdra son accès à tous les contenus réservés.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => setDeleteAdherentConfirmId(null)}
+                  className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                  disabled={isSubmitting}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => handleDeleteAdherent(deleteAdherentConfirmId)}
                   disabled={isSubmitting}
                   className="px-5 py-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >

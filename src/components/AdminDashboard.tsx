@@ -7,6 +7,8 @@ interface DashboardStats {
   totalDoctrine: number
   totalQuestions: number
   todayAssistantQuestions: number
+  totalAdherents: number
+  newAdherentsThisWeek: number
 }
 
 interface AdminDashboardProps {
@@ -20,6 +22,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onActionSelect }) => {
     totalDoctrine: 0,
     totalQuestions: 0,
     todayAssistantQuestions: 0,
+    totalAdherents: 0,
+    newAdherentsThisWeek: 0,
   })
   const [isLoading, setIsLoading] = useState(true)
 
@@ -31,14 +35,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onActionSelect }) => {
         today.setHours(0, 0, 0, 0)
         const todayISO = today.toISOString()
 
+        // Date d'il y a 7 jours
+        const oneWeekAgo = new Date()
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+        oneWeekAgo.setHours(0, 0, 0, 0)
+        const oneWeekAgoISO = oneWeekAgo.toISOString()
+
         // Récupérer les statistiques depuis Supabase
-        const [actusRes, docsRes, doctrineRes, questionsRes, assistantTodayRes] = await Promise.all([
+        const [actusRes, docsRes, doctrineRes, questionsRes, assistantTodayRes, totalAdherentsRes, newAdherentsRes] = await Promise.all([
           supabasePublic.from('Actu').select('id', { count: 'exact', head: true }),
           supabasePublic.from('docs').select('id', { count: 'exact', head: true }),
           supabasePublic.from('Doctrine').select('id', { count: 'exact', head: true }),
           supabasePublic.from('questions').select('Id', { count: 'exact', head: true }),
           // Questions posées aujourd'hui seulement
           supabasePublic.from('assistant_ria').select('id', { count: 'exact', head: true }).gte('created_at', todayISO),
+          // Total des adhérents
+          supabasePublic.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'adherent'),
+          // Nouveaux adhérents cette semaine
+          supabasePublic.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'adherent').gte('created_at', oneWeekAgoISO),
         ])
 
         setStats({
@@ -47,6 +61,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onActionSelect }) => {
           totalDoctrine: doctrineRes.count || 0,
           totalQuestions: questionsRes.count || 0,
           todayAssistantQuestions: assistantTodayRes.count || 0,
+          totalAdherents: totalAdherentsRes.count || 0,
+          newAdherentsThisWeek: newAdherentsRes.count || 0,
         })
       } catch (error) {
         console.error('Erreur lors du chargement des statistiques:', error)
@@ -74,7 +90,34 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onActionSelect }) => {
         <p className="text-gray-500 mt-1">Vue d'ensemble de votre contenu RIA Facile</p>
       </div>
 
-      {/* Cartes de statistiques */}
+      {/* Statistiques Adhérents */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Total adhérents */}
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white shadow-md">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-indigo-100 text-xs font-medium">Total adhérents</p>
+              <p className="text-3xl font-bold">{stats.totalAdherents}</p>
+              <p className="text-indigo-200 text-xs">Membres inscrits</p>
+            </div>
+            <div className="text-4xl opacity-30">👥</div>
+          </div>
+        </div>
+
+        {/* Nouveaux adhérents cette semaine */}
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-4 text-white shadow-md">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-emerald-100 text-xs font-medium">Nouveaux adhérents</p>
+              <p className="text-3xl font-bold">+{stats.newAdherentsThisWeek}</p>
+              <p className="text-emerald-200 text-xs">Cette semaine</p>
+            </div>
+            <div className="text-4xl opacity-30">📈</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Cartes de statistiques contenu */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
         {/* Actualités */}
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200 shadow-sm">
