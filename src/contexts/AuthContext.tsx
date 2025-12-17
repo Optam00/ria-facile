@@ -47,8 +47,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const WARNING_BEFORE_LOGOUT = 5 * 60 * 1000 // Avertir 5 minutes avant la déconnexion
 
   useEffect(() => {
+    // Vérifier si l'utilisateur s'est explicitement déconnecté
+    const explicitLogout = sessionStorage.getItem('explicit_logout') === 'true'
+    
+    if (explicitLogout) {
+      // Si déconnexion explicite, ne pas restaurer la session
+      console.log('Déconnexion explicite détectée, ne pas restaurer la session')
+      sessionStorage.removeItem('explicit_logout')
+      setLoading(false)
+      return
+    }
+
     // Vérifier la session actuelle
     supabase.auth.getSession().then(({ data: { session } }) => {
+      // Vérifier à nouveau au cas où explicit_logout aurait été ajouté entre-temps
+      if (sessionStorage.getItem('explicit_logout') === 'true') {
+        sessionStorage.removeItem('explicit_logout')
+        setLoading(false)
+        return
+      }
+      
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
@@ -61,7 +79,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Écouter les changements d'authentification
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Ignorer la restauration automatique si déconnexion explicite
+      if (event === 'SIGNED_IN' && sessionStorage.getItem('explicit_logout') === 'true') {
+        console.log('Ignorer la restauration automatique après déconnexion explicite')
+        sessionStorage.removeItem('explicit_logout')
+        await supabase.auth.signOut({ scope: 'global' })
+        setSession(null)
+        setUser(null)
+        setProfile(null)
+        setLoading(false)
+        return
+      }
+      
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
@@ -123,12 +153,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const timeoutLabel = isUserAdmin ? '2 heures' : '24 heures'
           console.log(`Déconnexion automatique : inactivité de ${timeoutLabel} détectée`)
           setShowInactivityWarning(false)
-          supabase.auth.signOut({ scope: 'global' })
-          setUser(null)
-          setProfile(null)
-          setSession(null)
-          // Nettoyer le localStorage
-          localStorage.removeItem('ria_admin_session')
+          // Déconnexion automatique (pas de flag explicit_logout car c'est automatique)
+          supabase.auth.signOut({ scope: 'global' }).finally(() => {
+            setUser(null)
+            setProfile(null)
+            setSession(null)
+            // Nettoyer le localStorage
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+            if (supabaseUrl) {
+              const projectRef = supabaseUrl.split('//')[1]?.split('.')[0]
+              localStorage.removeItem('ria_admin_session')
+              localStorage.removeItem(`sb-${projectRef}-auth-token`)
+              localStorage.removeItem(`sb-${projectRef}-auth-token-code-verifier`)
+            }
+          })
         }
       } else {
         setShowInactivityWarning(false)
@@ -211,6 +249,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      // Marquer la déconnexion comme explicite pour empêcher la restauration automatique
+      sessionStorage.setItem('explicit_logout', 'true')
+      
       // Scope 'global' invalide tous les tokens de cet utilisateur (toutes les sessions)
       await supabase.auth.signOut({ scope: 'global' })
     } catch (error) {
@@ -222,10 +263,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(null)
       setShowInactivityWarning(false)
       
-      // Nettoyer manuellement le localStorage pour être sûr
-      localStorage.removeItem('ria_admin_session')
-      // Nettoyer aussi l'ancienne clé par défaut de Supabase au cas où
-      localStorage.removeItem('sb-' + import.meta.env.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token')
+      // Nettoyer TOUTES les clés possibles de Supabase dans localStorage
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      if (supabaseUrl) {
+        const projectRef = supabaseUrl.split('//')[1]?.split('.')[0]
+        
+        // Nettoyer toutes les clés possibles
+        const keysToRemove = [
+          'ria_admin_session',
+          `sb-${projectRef}-auth-token`,
+          `sb-${projectRef}-auth-token-code-verifier`,
+          // Clés génériques Supabase
+          ...Object.keys(localStorage).filter(key => 
+            key.startsWith('sb-') || 
+            key.startsWith('supabase.') ||
+            key.includes('supabase') ||
+            key.includes('auth')
+          )
+        ]
+        
+        keysToRemove.forEach(key => {
+          try {
+            localStorage.removeItem(key)
+          } catch (e) {
+            console.warn(`Impossible de supprimer la clé ${key}:`, e)
+          }
+        })
+      }
+      
+      console.log('✅ Déconnexion complète effectuée')
     }
   }
 
