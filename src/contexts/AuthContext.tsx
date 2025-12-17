@@ -301,7 +301,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string, role: UserRole) => {
     try {
-      // Marquer comme connexion explicite pour supprimer le flag de déconnexion
+      // SUPPRIMER IMMÉDIATEMENT le flag de déconnexion car c'est une connexion explicite
+      // Cela permet de débloquer le storage avant même la tentative de connexion
+      localStorage.removeItem('explicit_logout')
+      localStorage.removeItem('explicit_logout_timestamp')
+      
+      // Marquer comme connexion explicite (pour le cas où le flag serait recréé)
       localStorage.setItem('explicit_login', 'true')
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -314,7 +319,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error }
       }
 
-      // Supprimer le flag de déconnexion car c'est une connexion explicite
+      // S'assurer que les flags sont bien supprimés après connexion réussie
       localStorage.removeItem('explicit_logout')
       localStorage.removeItem('explicit_logout_timestamp')
 
