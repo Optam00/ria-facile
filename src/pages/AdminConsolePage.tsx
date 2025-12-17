@@ -605,30 +605,14 @@ const AdminConsolePage: React.FC = () => {
       
       try {
         console.log('🔵 [ADHERENTS] Exécution de la requête Supabase...')
-        console.log('🔵 [ADHERENTS] Test 1: Requête simple avec id et email seulement...')
-        
-        // Test 1: Requête simple d'abord
-        const testQuery = supabase
-          .from('profiles')
-          .select('id, email')
-          .eq('role', 'adherent')
-          .limit(5)
-        
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout: La requête a pris plus de 10 secondes')), 10000)
-        )
-        
-        console.log('🔵 [ADHERENTS] Envoi de la requête test...')
-        const testResult = await Promise.race([testQuery, timeoutPromise]) as any
-        console.log('🟡 [ADHERENTS] Résultat test:', { 
-          hasData: !!testResult?.data, 
-          dataCount: testResult?.data?.length ?? 0,
-          hasError: !!testResult?.error,
-          error: testResult?.error 
+        console.log('🔵 [ADHERENTS] Contenu du JWT:', {
+          user_metadata: session?.user?.user_metadata,
+          raw_user_meta_data: (session as any)?.user?.raw_user_meta_data,
+          role_in_metadata: session?.user?.user_metadata?.role
         })
         
-        // Si le test fonctionne, faire la vraie requête
-        console.log('🔵 [ADHERENTS] Test réussi, exécution de la requête complète...')
+        // Requête directe sans test préalable
+        console.log('🔵 [ADHERENTS] Envoi de la requête complète...')
         const { data, error } = await supabase
           .from('profiles')
           .select('id, email, prenom, nom, profession, created_at')
