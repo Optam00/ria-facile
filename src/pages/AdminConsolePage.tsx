@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabasePublic } from '../lib/supabasePublic'
+import { supabase } from '../lib/supabase'
 import AdminDashboard from '../components/AdminDashboard'
 
 type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-adherents' | 'supprimer-adherent' | null
@@ -594,7 +595,7 @@ const AdminConsolePage: React.FC = () => {
     const loadAdherents = async () => {
       setIsLoadingAdherents(true)
       try {
-        const { data, error } = await supabasePublic
+        const { data, error } = await supabase
           .from('profiles')
           .select('id, email, prenom, nom, profession, created_at')
           .eq('role', 'adherent')
@@ -722,7 +723,7 @@ const AdminConsolePage: React.FC = () => {
       }
 
       // Recharger la liste
-      const { data, error: reloadError } = await supabasePublic
+      const { data, error: reloadError } = await supabase
         .from('profiles')
         .select('id, email, prenom, nom, profession, created_at')
         .eq('role', 'adherent')
