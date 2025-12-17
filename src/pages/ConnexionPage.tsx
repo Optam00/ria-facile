@@ -15,6 +15,24 @@ const ConnexionPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [emailConfirmed, setEmailConfirmed] = useState(false)
+
+  // Détecter si l'utilisateur vient de confirmer son email
+  useEffect(() => {
+    const hash = window.location.hash
+    if (hash) {
+      // Le hash contient les paramètres de Supabase après confirmation
+      // Format: #access_token=...&type=signup ou #type=signup
+      const hashParams = new URLSearchParams(hash.substring(1))
+      const type = hashParams.get('type')
+      
+      if (type === 'signup' || type === 'email_confirmation' || type === 'recovery') {
+        setEmailConfirmed(true)
+        // Nettoyer l'URL pour ne pas garder le hash
+        window.history.replaceState({}, '', window.location.pathname)
+      }
+    }
+  }, [])
 
   // Si on arrive avec ?logout=1, on déconnecte puis on nettoie l'URL
   useEffect(() => {
@@ -116,6 +134,23 @@ const ConnexionPage: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {/* Message de confirmation d'email */}
+          {emailConfirmed && (
+            <div className="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-green-800 font-medium">Email confirmé avec succès !</p>
+                  <p className="text-green-700 text-sm">Vous pouvez maintenant vous connecter à votre compte.</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Formulaire de connexion */}
           <form onSubmit={handleSubmit} className="space-y-6">

@@ -51,9 +51,18 @@ const MonEspacePage: React.FC = () => {
     setIsSavingInfos(true)
     setInfosMessage(null)
 
+    // Vérifier que l'utilisateur est connecté
+    const { data: { session: currentSession } } = await supabase.auth.getSession()
+    
+    if (!currentSession) {
+      setInfosMessage({ type: 'error', text: 'Session expirée. Veuillez vous reconnecter.' })
+      setIsSavingInfos(false)
+      return
+    }
+
     try {
-      // Mettre à jour les user_metadata uniquement
-      const { data, error: updateError } = await supabase.auth.updateUser({
+      // Mettre à jour les user_metadata
+      const { error: updateError } = await supabase.auth.updateUser({
         data: {
           prenom: prenom.trim() || null,
           nom: nom.trim() || null,
@@ -68,21 +77,21 @@ const MonEspacePage: React.FC = () => {
         return
       }
 
-      // Aussi mettre à jour la table profiles si possible (en arrière-plan, sans bloquer)
-      if (session?.user?.id) {
-        supabase
-          .from('profiles')
-          .update({
-            prenom: prenom.trim() || null,
-            nom: nom.trim() || null,
-            profession: profession.trim() || null,
-          })
-          .eq('id', session.user.id)
-          .then(({ error: profileError }) => {
-            if (profileError) {
-              console.error('Erreur mise à jour profile (non bloquante):', profileError)
-            }
-          })
+      // Aussi mettre à jour la table profiles (upsert pour créer si n'existe pas)
+      const userId = currentSession.user.id
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: userId,
+          email: currentSession.user.email,
+          prenom: prenom.trim() || null,
+          nom: nom.trim() || null,
+          profession: profession.trim() || null,
+        }, { onConflict: 'id' })
+
+      if (profileError) {
+        console.error('Erreur mise à jour profile:', profileError)
+        // On continue quand même car user_metadata a été mis à jour
       }
 
       setInfosMessage({ type: 'success', text: 'Vos informations ont été mises à jour !' })
