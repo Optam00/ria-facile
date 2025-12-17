@@ -74,21 +74,25 @@ const InscriptionPage: React.FC = () => {
             prenom: prenom.trim() || null,
             profession: profession.trim() || null,
           },
+          emailRedirectTo: `${window.location.origin}/connexion`,
         },
       })
 
       if (signUpError) {
+        console.error('Erreur signUp:', signUpError)
         if (signUpError.message.includes('already registered')) {
           setError('Un compte existe déjà avec cet email')
         } else {
           setError(signUpError.message || 'Erreur lors de l\'inscription')
         }
+        setIsLoading(false)
         return
       }
 
+      // Vérifier si l'utilisateur a été créé
       if (data.user) {
-        // Créer le profil dans la table profiles
-        const { error: profileError } = await supabase
+        // Créer le profil dans la table profiles (en arrière-plan, sans bloquer)
+        supabase
           .from('profiles')
           .insert({
             id: data.user.id,
@@ -98,17 +102,22 @@ const InscriptionPage: React.FC = () => {
             prenom: prenom.trim() || null,
             profession: profession.trim() || null,
           })
-
-        if (profileError) {
-          console.error('Erreur lors de la création du profil:', profileError)
-          // On continue quand même, le profil sera créé au prochain login si nécessaire
-        }
+          .then(({ error: profileError }) => {
+            if (profileError) {
+              console.error('Erreur création profil (non bloquante):', profileError)
+            }
+          })
 
         setSuccess(true)
+        setIsLoading(false)
+      } else {
+        // Cas rare : pas d'erreur mais pas d'utilisateur non plus
+        setError('Une erreur inattendue s\'est produite. Veuillez réessayer.')
+        setIsLoading(false)
       }
     } catch (err) {
+      console.error('Exception lors de l\'inscription:', err)
       setError(err instanceof Error ? err.message : 'Erreur lors de l\'inscription')
-    } finally {
       setIsLoading(false)
     }
   }
@@ -128,11 +137,22 @@ const InscriptionPage: React.FC = () => {
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-gray-800 mb-4">Inscription réussie !</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-4">
               Un email de confirmation vous a été envoyé à <strong>{email}</strong>.
-              <br />
-              Veuillez cliquer sur le lien dans l'email pour activer votre compte.
             </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-left">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">📧</span>
+                <div>
+                  <p className="text-amber-800 font-medium mb-1">Vérifiez votre boîte mail</p>
+                  <p className="text-amber-700 text-sm">
+                    Cliquez sur le lien dans l'email pour activer votre compte.
+                    <br />
+                    <strong>Pensez à vérifier vos spams / courriers indésirables</strong> si vous ne trouvez pas l'email.
+                  </p>
+                </div>
+              </div>
+            </div>
             <Link
               to="/connexion"
               className="inline-block py-3 px-6 rounded-xl bg-gradient-to-r from-indigo-500 to-[#774792] text-white font-medium shadow-md hover:shadow-lg transition-all duration-300"
