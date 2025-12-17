@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import logo from '../assets/logo.jpeg'
 
 export const Navigation = () => {
-  const { isAdmin } = useAuth()
+  const { isAdmin, isAdherent } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [showSearch, setShowSearch] = useState(false)
@@ -23,6 +23,7 @@ export const Navigation = () => {
 
   const isActive = (path: string) => location.pathname === path
   const isAdminUser = isAdmin()
+  const isAdherentUser = isAdherent() && !isAdminUser
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -242,6 +243,19 @@ export const Navigation = () => {
               Console Admin
             </Link>
           )}
+          {/* Bouton Mon Espace (si adhérent) */}
+          {isAdherentUser && (
+            <Link
+              to="/mon-espace"
+              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-none hover:from-indigo-700 hover:to-purple-700 transition-all text-sm"
+              style={{ minWidth: 120, justifyContent: 'center' }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Mon Espace
+            </Link>
+          )}
           {/* Bouton contact */}
           <Link
             to="/contact"
@@ -336,7 +350,7 @@ export const Navigation = () => {
                     </div>
                   )}
                 </div>
-                {isAdmin() && (
+                {isAdminUser && (
                   <Link to="/admin/console" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-indigo-50 transition bg-indigo-50 text-indigo-700 font-semibold" onClick={() => setIsOpen(false)}>
                     <span className="flex items-center gap-2">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,6 +358,16 @@ export const Navigation = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       Console d'administration
+                    </span>
+                  </Link>
+                )}
+                {isAdherentUser && (
+                  <Link to="/mon-espace" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-indigo-50 transition bg-indigo-50 text-indigo-700 font-semibold" onClick={() => setIsOpen(false)}>
+                    <span className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Mon Espace
                     </span>
                   </Link>
                 )}

@@ -39,7 +39,7 @@ const ConnexionPage: React.FC = () => {
     if (isAdmin()) {
       navigate('/admin/console', { replace: true })
     } else if (isAdherent()) {
-      navigate('/', { replace: true })
+      navigate('/mon-espace', { replace: true })
     }
   }, [loading, isAdmin, isAdherent, navigate])
 
@@ -63,7 +63,7 @@ const ConnexionPage: React.FC = () => {
       if (userType === 'admin') {
         window.location.assign('/admin/console')
       } else {
-        window.location.assign('/')
+        window.location.assign('/mon-espace')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors de la connexion')
