@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
@@ -214,16 +214,16 @@ const ConnexionPage: React.FC = () => {
               {userType === 'adherent' ? (
                 <>
                   Vous n&apos;avez pas encore de compte adhérent ?{' '}
-                  <a href="/contact" className="text-[#774792] hover:underline font-medium">
-                    Contactez-nous
-                  </a>
+                  <Link to="/inscription" className="text-[#774792] hover:underline font-medium">
+                    S&apos;inscrire
+                  </Link>
                 </>
               ) : (
                 <>
                   Accès réservé aux administrateurs. En cas de problème,{' '}
-                  <a href="/contact" className="text-[#774792] hover:underline font-medium">
+                  <Link to="/contact" className="text-[#774792] hover:underline font-medium">
                     contactez le support
-                  </a>
+                  </Link>
                 </>
               )}
             </p>

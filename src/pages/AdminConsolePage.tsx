@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabasePublic } from '../lib/supabasePublic'
+import AdminDashboard from '../components/AdminDashboard'
 
 type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | null
 
@@ -1187,6 +1188,19 @@ const AdminConsolePage: React.FC = () => {
               {!isSidebarCollapsed && (
                 <>
                   <nav className="space-y-2">
+                    {/* Bouton Dashboard */}
+                    <button
+                      onClick={() => setSelectedAction(null)}
+                      className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 ${
+                        selectedAction === null
+                          ? 'bg-gradient-to-r from-purple-500 to-[#774792] text-white shadow-md'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <span className="text-xl">📊</span>
+                      <span className="font-medium">Dashboard</span>
+                    </button>
+
                     {menuGroups.map((group) => {
                       const isExpanded = expandedGroups.has(group.key)
                       const hasActiveItem = group.items.some((item) => selectedAction === item.id)
@@ -1268,8 +1282,8 @@ const AdminConsolePage: React.FC = () => {
           </div>
 
           {/* Zone de contenu principale */}
-          <div className="flex-1">
-            <div className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white min-h-[500px]">
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <div className="bg-white bg-opacity-90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white min-h-[500px] overflow-hidden">
               {selectedAction === 'ajouter-actualite' && (
                 <div>
                   <h2 className="text-2xl font-semibold text-gray-800 mb-6">Ajouter une actualité</h2>
@@ -2401,15 +2415,7 @@ const AdminConsolePage: React.FC = () => {
               )}
 
               {!selectedAction && (
-                <div className="text-center py-12">
-                  <svg className="w-24 h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  <h2 className="text-2xl font-semibold text-gray-700 mb-2">Bienvenue dans la console d'administration</h2>
-                  <p className="text-gray-500">
-                    Sélectionnez une action dans le menu de gauche pour commencer.
-                  </p>
-                </div>
+                <AdminDashboard onActionSelect={(action) => setSelectedAction(action as AdminAction)} />
               )}
 
               {selectedAction === 'ajouter-question' && (
