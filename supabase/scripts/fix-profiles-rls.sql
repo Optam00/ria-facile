@@ -57,12 +57,18 @@ CREATE POLICY "profiles_select_own"
   USING (auth.uid() = id);
 
 -- Politique : Un admin peut lire tous les profils
--- (utilise la fonction is_admin() qui vérifie auth.users puis profiles)
+-- (vérifie UNIQUEMENT dans auth.users pour éviter toute boucle RLS)
 CREATE POLICY "profiles_select_admin"
   ON public.profiles
   FOR SELECT
   TO authenticated
-  USING (public.is_admin());
+  USING (
+    EXISTS (
+      SELECT 1 FROM auth.users 
+      WHERE auth.users.id = auth.uid() 
+      AND (auth.users.raw_user_meta_data->>'role')::text = 'admin'
+    )
+  );
 
 -- Politique : Un utilisateur peut créer son propre profil
 CREATE POLICY "profiles_insert"

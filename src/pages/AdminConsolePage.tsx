@@ -594,22 +594,54 @@ const AdminConsolePage: React.FC = () => {
 
     const loadAdherents = async () => {
       setIsLoadingAdherents(true)
+      console.log('🔵 [ADHERENTS] Début du chargement des adhérents...')
+      console.log('🔵 [ADHERENTS] Session:', { 
+        hasSession: !!session, 
+        userId: session?.user?.id,
+        userEmail: session?.user?.email,
+        userRole: session?.user?.user_metadata?.role,
+        accessToken: session?.access_token ? 'présent' : 'absent'
+      })
+      
       try {
+        console.log('🔵 [ADHERENTS] Exécution de la requête Supabase...')
         const { data, error } = await supabase
           .from('profiles')
           .select('id, email, prenom, nom, profession, created_at')
           .eq('role', 'adherent')
           .order('created_at', { ascending: false })
 
-        if (error) throw error
+        console.log('🟢 [ADHERENTS] Réponse Supabase reçue:', { 
+          dataCount: data?.length ?? 0, 
+          error: error ? {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          } : null
+        })
+        
+        if (error) {
+          console.error('🔴 [ADHERENTS] Erreur Supabase détaillée:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+            status: (error as any).status
+          })
+          throw error
+        }
+        
+        console.log('✅ [ADHERENTS] Données chargées avec succès:', data?.length ?? 0, 'adhérents')
         setAdherentsList(data ?? [])
       } catch (err) {
-        console.error('Erreur lors du chargement des adhérents:', err)
+        console.error('🔴 [ADHERENTS] Exception lors du chargement:', err)
         setFormStatus({
           type: 'error',
           message: "Impossible de charger la liste des adhérents. Réessayez plus tard.",
         })
       } finally {
+        console.log('🔵 [ADHERENTS] Fin du chargement')
         setIsLoadingAdherents(false)
       }
     }
