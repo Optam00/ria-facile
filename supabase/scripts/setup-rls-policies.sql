@@ -322,3 +322,56 @@ BEGIN
       WITH CHECK (public.is_admin())';
   END IF;
 END $$;
+
+-- Questions (quiz)
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'questions') THEN
+    ALTER TABLE "questions" ENABLE ROW LEVEL SECURITY;
+
+    DROP POLICY IF EXISTS "questions - Lecture publique" ON "questions";
+    EXECUTE 'CREATE POLICY "questions - Lecture publique"
+      ON "questions"
+      FOR SELECT
+      TO public
+      USING (true)';
+
+    DROP POLICY IF EXISTS "questions - Écriture admin" ON "questions";
+    EXECUTE 'CREATE POLICY "questions - Écriture admin"
+      ON "questions"
+      FOR ALL
+      TO authenticated
+      USING (public.is_admin())
+      WITH CHECK (public.is_admin())';
+  END IF;
+END $$;
+
+-- Assistant RIA
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'assistant_ria') THEN
+    ALTER TABLE "assistant_ria" ENABLE ROW LEVEL SECURITY;
+
+    DROP POLICY IF EXISTS "assistant_ria - Lecture publique" ON "assistant_ria";
+    EXECUTE 'CREATE POLICY "assistant_ria - Lecture publique"
+      ON "assistant_ria"
+      FOR SELECT
+      TO public
+      USING (true)';
+
+    DROP POLICY IF EXISTS "assistant_ria - Insertion publique" ON "assistant_ria";
+    EXECUTE 'CREATE POLICY "assistant_ria - Insertion publique"
+      ON "assistant_ria"
+      FOR INSERT
+      TO public
+      WITH CHECK (true)';
+
+    DROP POLICY IF EXISTS "assistant_ria - Écriture admin" ON "assistant_ria";
+    EXECUTE 'CREATE POLICY "assistant_ria - Écriture admin"
+      ON "assistant_ria"
+      FOR ALL
+      TO authenticated
+      USING (public.is_admin())
+      WITH CHECK (public.is_admin())';
+  END IF;
+END $$;

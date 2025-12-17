@@ -52,8 +52,8 @@ const MonEspacePage: React.FC = () => {
     setInfosMessage(null)
 
     try {
-      // Mettre à jour les user_metadata
-      const { error: updateError } = await supabase.auth.updateUser({
+      // Mettre à jour les user_metadata uniquement
+      const { data, error: updateError } = await supabase.auth.updateUser({
         data: {
           prenom: prenom.trim() || null,
           nom: nom.trim() || null,
@@ -62,13 +62,15 @@ const MonEspacePage: React.FC = () => {
       })
 
       if (updateError) {
+        console.error('Erreur updateUser:', updateError)
         setInfosMessage({ type: 'error', text: updateError.message })
+        setIsSavingInfos(false)
         return
       }
 
-      // Mettre à jour la table profiles
+      // Aussi mettre à jour la table profiles si possible (en arrière-plan, sans bloquer)
       if (session?.user?.id) {
-        const { error: profileError } = await supabase
+        supabase
           .from('profiles')
           .update({
             prenom: prenom.trim() || null,
@@ -76,15 +78,17 @@ const MonEspacePage: React.FC = () => {
             profession: profession.trim() || null,
           })
           .eq('id', session.user.id)
-
-        if (profileError) {
-          console.error('Erreur mise à jour profile:', profileError)
-        }
+          .then(({ error: profileError }) => {
+            if (profileError) {
+              console.error('Erreur mise à jour profile (non bloquante):', profileError)
+            }
+          })
       }
 
       setInfosMessage({ type: 'success', text: 'Vos informations ont été mises à jour !' })
       setIsEditingInfos(false)
     } catch (err) {
+      console.error('Exception lors de la mise à jour:', err)
       setInfosMessage({ type: 'error', text: 'Erreur lors de la mise à jour' })
     } finally {
       setIsSavingInfos(false)
@@ -111,6 +115,13 @@ const MonEspacePage: React.FC = () => {
     setIsSavingPassword(true)
     setPasswordMessage(null)
 
+    // Vérifier que le mot de passe actuel est renseigné
+    if (!currentPassword) {
+      setPasswordMessage({ type: 'error', text: 'Veuillez entrer votre mot de passe actuel' })
+      setIsSavingPassword(false)
+      return
+    }
+
     // Vérifications
     if (newPassword !== confirmNewPassword) {
       setPasswordMessage({ type: 'error', text: 'Les mots de passe ne correspondent pas' })
@@ -126,13 +137,33 @@ const MonEspacePage: React.FC = () => {
     }
 
     try {
-      // Mettre à jour le mot de passe
+      const userEmail = session?.user?.email
+      if (!userEmail) {
+        setPasswordMessage({ type: 'error', text: 'Erreur: email non trouvé' })
+        setIsSavingPassword(false)
+        return
+      }
+
+      // Vérifier le mot de passe actuel en ré-authentifiant l'utilisateur
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: currentPassword,
+      })
+
+      if (signInError) {
+        setPasswordMessage({ type: 'error', text: 'Le mot de passe actuel est incorrect' })
+        setIsSavingPassword(false)
+        return
+      }
+
+      // Maintenant mettre à jour le mot de passe
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
       })
 
       if (updateError) {
         setPasswordMessage({ type: 'error', text: updateError.message })
+        setIsSavingPassword(false)
         return
       }
 
@@ -142,6 +173,7 @@ const MonEspacePage: React.FC = () => {
       setNewPassword('')
       setConfirmNewPassword('')
     } catch (err) {
+      console.error('Exception lors du changement de mot de passe:', err)
       setPasswordMessage({ type: 'error', text: 'Erreur lors du changement de mot de passe' })
     } finally {
       setIsSavingPassword(false)
@@ -330,12 +362,12 @@ const MonEspacePage: React.FC = () => {
               {isEditingPassword ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe actuel</label>
                     <div className="relative">
                       <input
                         type={showPasswords ? 'text' : 'password'}
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
                         className="w-full px-4 py-2.5 pr-12 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
                         placeholder="••••••••"
                       />
@@ -357,6 +389,16 @@ const MonEspacePage: React.FC = () => {
                         )}
                       </button>
                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
+                    <input
+                      type={showPasswords ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                      placeholder="••••••••"
+                    />
                     <p className="mt-1 text-xs text-gray-500">
                       8 caractères minimum, avec majuscule, minuscule et chiffre
                     </p>

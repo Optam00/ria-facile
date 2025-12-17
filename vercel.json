@@ -8,10 +8,5 @@
       "source": "/(.*)", 
       "destination": "/" 
     }
-  ],
-  "functions": {
-    "api/assistant-ria.js": {
-      "maxDuration": 60
-    }
-  }
+  ]
 } 
