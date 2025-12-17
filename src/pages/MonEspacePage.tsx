@@ -91,7 +91,18 @@ const MonEspacePage: React.FC = () => {
 
       if (profileError) {
         console.error('Erreur mise à jour profile:', profileError)
-        // On continue quand même car user_metadata a été mis à jour
+        // Si l'erreur est liée aux RLS, donner un message plus clair
+        if (profileError.code === '42501' || profileError.message?.includes('permission') || profileError.message?.includes('policy')) {
+          setInfosMessage({ 
+            type: 'error', 
+            text: 'Erreur de permissions. Les user_metadata ont été mis à jour, mais la mise à jour du profil a échoué. Veuillez contacter le support.' 
+          })
+        } else {
+          // On continue quand même car user_metadata a été mis à jour
+          console.warn('Mise à jour du profil échouée, mais user_metadata mis à jour:', profileError.message)
+        }
+        setIsSavingInfos(false)
+        return
       }
 
       setInfosMessage({ type: 'success', text: 'Vos informations ont été mises à jour !' })
