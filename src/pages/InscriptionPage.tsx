@@ -10,6 +10,9 @@ const InscriptionPage: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [nom, setNom] = useState('')
+  const [prenom, setPrenom] = useState('')
+  const [profession, setProfession] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -67,6 +70,9 @@ const InscriptionPage: React.FC = () => {
         options: {
           data: {
             role: 'adherent',
+            nom: nom.trim() || null,
+            prenom: prenom.trim() || null,
+            profession: profession.trim() || null,
           },
         },
       })
@@ -88,6 +94,9 @@ const InscriptionPage: React.FC = () => {
             id: data.user.id,
             email: email,
             role: 'adherent',
+            nom: nom.trim() || null,
+            prenom: prenom.trim() || null,
+            profession: profession.trim() || null,
           })
 
         if (profileError) {
@@ -171,6 +180,53 @@ const InscriptionPage: React.FC = () => {
                 disabled={isLoading}
                 className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors shadow-sm"
                 placeholder="exemple@email.com"
+              />
+            </div>
+
+            {/* Champs optionnels */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="prenom" className="block text-sm font-medium text-gray-700 mb-2">
+                  Prénom <span className="text-gray-400 font-normal">(optionnel)</span>
+                </label>
+                <input
+                  type="text"
+                  id="prenom"
+                  value={prenom}
+                  onChange={(e) => setPrenom(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors shadow-sm"
+                  placeholder="Jean"
+                />
+              </div>
+              <div>
+                <label htmlFor="nom" className="block text-sm font-medium text-gray-700 mb-2">
+                  Nom <span className="text-gray-400 font-normal">(optionnel)</span>
+                </label>
+                <input
+                  type="text"
+                  id="nom"
+                  value={nom}
+                  onChange={(e) => setNom(e.target.value)}
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors shadow-sm"
+                  placeholder="Dupont"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="profession" className="block text-sm font-medium text-gray-700 mb-2">
+                Profession <span className="text-gray-400 font-normal">(optionnel)</span>
+              </label>
+              <input
+                type="text"
+                id="profession"
+                value={profession}
+                onChange={(e) => setProfession(e.target.value)}
+                disabled={isLoading}
+                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors shadow-sm"
+                placeholder="Ex: Juriste, DPO, Développeur..."
               />
             </div>
 

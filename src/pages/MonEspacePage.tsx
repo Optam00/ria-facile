@@ -1,11 +1,39 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 
 const MonEspacePage: React.FC = () => {
   const { signOut, isAdherent, profile, loading, session } = useAuth()
   const navigate = useNavigate()
+
+  // États pour le formulaire de modification des infos
+  const [prenom, setPrenom] = useState('')
+  const [nom, setNom] = useState('')
+  const [profession, setProfession] = useState('')
+  const [isEditingInfos, setIsEditingInfos] = useState(false)
+  const [isSavingInfos, setIsSavingInfos] = useState(false)
+  const [infosMessage, setInfosMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // États pour le changement de mot de passe
+  const [isEditingPassword, setIsEditingPassword] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [showPasswords, setShowPasswords] = useState(false)
+  const [isSavingPassword, setIsSavingPassword] = useState(false)
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // Charger les infos utilisateur
+  useEffect(() => {
+    if (session?.user) {
+      const metadata = session.user.user_metadata
+      setPrenom(metadata?.prenom || '')
+      setNom(metadata?.nom || '')
+      setProfession(metadata?.profession || '')
+    }
+  }, [session])
 
   // Rediriger si l'utilisateur n'est pas adhérent
   useEffect(() => {
@@ -16,7 +44,108 @@ const MonEspacePage: React.FC = () => {
 
   const handleSignOut = async () => {
     await signOut()
-    navigate('/connexion')
+    window.location.assign('/connexion')
+  }
+
+  const handleSaveInfos = async () => {
+    setIsSavingInfos(true)
+    setInfosMessage(null)
+
+    try {
+      // Mettre à jour les user_metadata
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          prenom: prenom.trim() || null,
+          nom: nom.trim() || null,
+          profession: profession.trim() || null,
+        },
+      })
+
+      if (updateError) {
+        setInfosMessage({ type: 'error', text: updateError.message })
+        return
+      }
+
+      // Mettre à jour la table profiles
+      if (session?.user?.id) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            prenom: prenom.trim() || null,
+            nom: nom.trim() || null,
+            profession: profession.trim() || null,
+          })
+          .eq('id', session.user.id)
+
+        if (profileError) {
+          console.error('Erreur mise à jour profile:', profileError)
+        }
+      }
+
+      setInfosMessage({ type: 'success', text: 'Vos informations ont été mises à jour !' })
+      setIsEditingInfos(false)
+    } catch (err) {
+      setInfosMessage({ type: 'error', text: 'Erreur lors de la mise à jour' })
+    } finally {
+      setIsSavingInfos(false)
+    }
+  }
+
+  const validatePassword = (pwd: string): string | null => {
+    if (pwd.length < 8) {
+      return 'Le mot de passe doit contenir au moins 8 caractères'
+    }
+    if (!/[A-Z]/.test(pwd)) {
+      return 'Le mot de passe doit contenir au moins une majuscule'
+    }
+    if (!/[a-z]/.test(pwd)) {
+      return 'Le mot de passe doit contenir au moins une minuscule'
+    }
+    if (!/[0-9]/.test(pwd)) {
+      return 'Le mot de passe doit contenir au moins un chiffre'
+    }
+    return null
+  }
+
+  const handleSavePassword = async () => {
+    setIsSavingPassword(true)
+    setPasswordMessage(null)
+
+    // Vérifications
+    if (newPassword !== confirmNewPassword) {
+      setPasswordMessage({ type: 'error', text: 'Les mots de passe ne correspondent pas' })
+      setIsSavingPassword(false)
+      return
+    }
+
+    const passwordError = validatePassword(newPassword)
+    if (passwordError) {
+      setPasswordMessage({ type: 'error', text: passwordError })
+      setIsSavingPassword(false)
+      return
+    }
+
+    try {
+      // Mettre à jour le mot de passe
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+
+      if (updateError) {
+        setPasswordMessage({ type: 'error', text: updateError.message })
+        return
+      }
+
+      setPasswordMessage({ type: 'success', text: 'Votre mot de passe a été modifié !' })
+      setIsEditingPassword(false)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmNewPassword('')
+    } catch (err) {
+      setPasswordMessage({ type: 'error', text: 'Erreur lors du changement de mot de passe' })
+    } finally {
+      setIsSavingPassword(false)
+    }
   }
 
   if (loading) {
@@ -26,6 +155,9 @@ const MonEspacePage: React.FC = () => {
       </div>
     )
   }
+
+  const userEmail = profile?.email ?? session?.user?.email
+  const displayName = prenom || nom ? `${prenom} ${nom}`.trim() : userEmail
 
   return (
     <div className="min-h-screen p-4">
@@ -42,7 +174,7 @@ const MonEspacePage: React.FC = () => {
               <div>
                 <h1 className="text-2xl font-bold">Mon Espace</h1>
                 <p className="text-indigo-100 mt-1">
-                  Bienvenue, {profile?.email ?? session?.user?.email ?? 'Adhérent'}
+                  Bienvenue, {displayName}
                 </p>
               </div>
               <div className="text-5xl opacity-30">👤</div>
@@ -50,46 +182,229 @@ const MonEspacePage: React.FC = () => {
           </div>
 
           {/* Contenu principal */}
-          <div className="p-6">
-            {/* Message de bienvenue */}
-            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-6 mb-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl">🎉</span>
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-indigo-800 mb-2">
-                    Bienvenue dans votre espace adhérent !
-                  </h2>
-                  <p className="text-indigo-700">
-                    Cet espace est en cours de construction. De nouvelles fonctionnalités seront bientôt disponibles.
-                  </p>
-                </div>
+          <div className="p-6 space-y-6">
+            
+            {/* Section Mes informations */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <span>👤</span> Mes informations
+                </h2>
+                {!isEditingInfos && (
+                  <button
+                    onClick={() => setIsEditingInfos(true)}
+                    className="text-sm text-[#774792] hover:underline font-medium"
+                  >
+                    Modifier
+                  </button>
+                )}
               </div>
+
+              {infosMessage && (
+                <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${
+                  infosMessage.type === 'success' 
+                    ? 'bg-green-50 text-green-700 border border-green-200' 
+                    : 'bg-red-50 text-red-700 border border-red-200'
+                }`}>
+                  {infosMessage.text}
+                </div>
+              )}
+
+              {isEditingInfos ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email <span className="text-gray-400 font-normal">(non modifiable)</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={userEmail || ''}
+                      disabled
+                      className="w-full px-4 py-2.5 rounded-lg bg-gray-100 border border-gray-200 text-gray-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+                      <input
+                        type="text"
+                        value={prenom}
+                        onChange={(e) => setPrenom(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                        placeholder="Jean"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                      <input
+                        type="text"
+                        value={nom}
+                        onChange={(e) => setNom(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                        placeholder="Dupont"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Profession</label>
+                    <input
+                      type="text"
+                      value={profession}
+                      onChange={(e) => setProfession(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                      placeholder="Ex: Juriste, DPO, Développeur..."
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={handleSaveInfos}
+                      disabled={isSavingInfos}
+                      className="px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-[#774792] text-white font-medium text-sm shadow-md hover:shadow-lg transition-all disabled:opacity-60"
+                    >
+                      {isSavingInfos ? 'Enregistrement...' : 'Enregistrer'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingInfos(false)
+                        setInfosMessage(null)
+                        // Réinitialiser avec les valeurs actuelles
+                        const metadata = session?.user?.user_metadata
+                        setPrenom(metadata?.prenom || '')
+                        setNom(metadata?.nom || '')
+                        setProfession(metadata?.profession || '')
+                      }}
+                      className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-all"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-500 text-sm">Email</span>
+                    <span className="text-gray-800 text-sm font-medium">{userEmail}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-500 text-sm">Prénom</span>
+                    <span className="text-gray-800 text-sm font-medium">{prenom || '—'}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-500 text-sm">Nom</span>
+                    <span className="text-gray-800 text-sm font-medium">{nom || '—'}</span>
+                  </div>
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-500 text-sm">Profession</span>
+                    <span className="text-gray-800 text-sm font-medium">{profession || '—'}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Section Mot de passe */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <span>🔒</span> Mot de passe
+                </h2>
+                {!isEditingPassword && (
+                  <button
+                    onClick={() => setIsEditingPassword(true)}
+                    className="text-sm text-[#774792] hover:underline font-medium"
+                  >
+                    Modifier
+                  </button>
+                )}
+              </div>
+
+              {passwordMessage && (
+                <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${
+                  passwordMessage.type === 'success' 
+                    ? 'bg-green-50 text-green-700 border border-green-200' 
+                    : 'bg-red-50 text-red-700 border border-red-200'
+                }`}>
+                  {passwordMessage.text}
+                </div>
+              )}
+
+              {isEditingPassword ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
+                    <div className="relative">
+                      <input
+                        type={showPasswords ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full px-4 py-2.5 pr-12 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswords((v) => !v)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                      >
+                        {showPasswords ? (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.58 10.58A3 3 0 0012 15a3 3 0 002.42-4.58" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.522 5 12 5c1.51 0 2.94.33 4.23.93M19.542 12A10.97 10.97 0 0112 19c-4.478 0-8.268-2.943-9.542-7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      8 caractères minimum, avec majuscule, minuscule et chiffre
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer le nouveau mot de passe</label>
+                    <input
+                      type={showPasswords ? 'text' : 'password'}
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={handleSavePassword}
+                      disabled={isSavingPassword}
+                      className="px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-[#774792] text-white font-medium text-sm shadow-md hover:shadow-lg transition-all disabled:opacity-60"
+                    >
+                      {isSavingPassword ? 'Modification...' : 'Changer le mot de passe'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingPassword(false)
+                        setPasswordMessage(null)
+                        setNewPassword('')
+                        setConfirmNewPassword('')
+                      }}
+                      className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-all"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">
+                  Votre mot de passe est sécurisé. Cliquez sur "Modifier" pour le changer.
+                </p>
+              )}
             </div>
 
             {/* Placeholder pour les futures fonctionnalités */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 opacity-60">
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-2xl">📚</span>
                   <h3 className="font-semibold text-gray-700">Mes ressources</h3>
-                </div>
-                <p className="text-gray-500 text-sm">Bientôt disponible</p>
-              </div>
-
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 opacity-60">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-2xl">📊</span>
-                  <h3 className="font-semibold text-gray-700">Mon activité</h3>
-                </div>
-                <p className="text-gray-500 text-sm">Bientôt disponible</p>
-              </div>
-
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 opacity-60">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-2xl">⚙️</span>
-                  <h3 className="font-semibold text-gray-700">Mes paramètres</h3>
                 </div>
                 <p className="text-gray-500 text-sm">Bientôt disponible</p>
               </div>
@@ -103,15 +418,12 @@ const MonEspacePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Informations du compte */}
+            {/* Déconnexion */}
             <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">Mon compte</h3>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Connecté en tant que</p>
-                  <p className="font-medium text-gray-800">
-                    {profile?.email ?? session?.user?.email}
-                  </p>
+                  <p className="font-medium text-gray-800">{userEmail}</p>
                 </div>
                 <button
                   onClick={handleSignOut}
@@ -132,4 +444,3 @@ const MonEspacePage: React.FC = () => {
 }
 
 export default MonEspacePage
-
