@@ -61,7 +61,12 @@ const MonEspacePage: React.FC = () => {
     }
 
     try {
+      console.log('🔵 [MON ESPACE] Début de la mise à jour des infos...')
+      console.log('🔵 [MON ESPACE] Données à sauvegarder:', { prenom, nom, profession })
+      console.log('🔵 [MON ESPACE] User ID:', currentSession.user.id)
+      
       // Mettre à jour les user_metadata
+      console.log('🔵 [MON ESPACE] Mise à jour des user_metadata...')
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           prenom: prenom.trim() || null,
@@ -71,30 +76,41 @@ const MonEspacePage: React.FC = () => {
       })
 
       if (updateError) {
-        console.error('Erreur updateUser:', updateError)
+        console.error('❌ [MON ESPACE] Erreur updateUser:', updateError)
         setInfosMessage({ type: 'error', text: updateError.message })
         setIsSavingInfos(false)
         return
       }
+      console.log('✅ [MON ESPACE] user_metadata mis à jour avec succès')
 
       // Aussi mettre à jour la table profiles (upsert pour créer si n'existe pas)
       const userId = currentSession.user.id
       // Récupérer le rôle depuis le profil ou les métadonnées, avec 'adherent' par défaut
       const userRole = profile?.role || currentSession.user.user_metadata?.role || 'adherent'
+      console.log('🔵 [MON ESPACE] Rôle utilisateur:', userRole)
       
-      const { error: profileError } = await supabase
+      const upsertData = {
+        id: userId,
+        email: currentSession.user.email,
+        role: userRole, // Inclure le rôle pour éviter les problèmes lors de l'insertion
+        prenom: prenom.trim() || null,
+        nom: nom.trim() || null,
+        profession: profession.trim() || null,
+      }
+      console.log('🔵 [MON ESPACE] Données pour upsert:', upsertData)
+      console.log('🔵 [MON ESPACE] Tentative d\'upsert dans profiles...')
+      
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .upsert({
-          id: userId,
-          email: currentSession.user.email,
-          role: userRole, // Inclure le rôle pour éviter les problèmes lors de l'insertion
-          prenom: prenom.trim() || null,
-          nom: nom.trim() || null,
-          profession: profession.trim() || null,
-        }, { onConflict: 'id' })
+        .upsert(upsertData, { onConflict: 'id' })
+        .select()
 
       if (profileError) {
-        console.error('Erreur mise à jour profile:', profileError)
+        console.error('❌ [MON ESPACE] Erreur mise à jour profile:', profileError)
+        console.error('❌ [MON ESPACE] Code erreur:', profileError.code)
+        console.error('❌ [MON ESPACE] Message erreur:', profileError.message)
+        console.error('❌ [MON ESPACE] Détails erreur:', profileError.details)
+        console.error('❌ [MON ESPACE] Hint erreur:', profileError.hint)
         // Si l'erreur est liée aux RLS, donner un message plus clair
         if (profileError.code === '42501' || profileError.message?.includes('permission') || profileError.message?.includes('policy')) {
           setInfosMessage({ 
