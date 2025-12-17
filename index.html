@@ -33,6 +33,57 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Script qui s'exécute AVANT React pour nettoyer la session si déconnexion explicite -->
+    <script>
+      // Vérifier le flag de déconnexion explicite AVANT que Supabase ne charge
+      (function() {
+        const explicitLogout = localStorage.getItem('explicit_logout') === 'true';
+        const logoutTimestamp = localStorage.getItem('explicit_logout_timestamp');
+        
+        if (explicitLogout && logoutTimestamp) {
+          const logoutTime = parseInt(logoutTimestamp, 10);
+          const daysSinceLogout = (Date.now() - logoutTime) / (1000 * 60 * 60 * 24);
+          
+          if (daysSinceLogout < 7) {
+            // Déconnexion explicite récente : nettoyer TOUTES les clés Supabase
+            console.log('🔒 Déconnexion explicite détectée, nettoyage de la session...');
+            
+            // Nettoyer toutes les clés possibles de Supabase
+            const keysToRemove = [
+              'ria_admin_session',
+              'ria_public_read',
+            ];
+            
+            // Trouver le projectRef depuis les clés existantes ou nettoyer toutes les clés sb-*
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith('sb-') || 
+                  key.startsWith('supabase.') ||
+                  (key.includes('supabase') && !key.includes('explicit_logout')) ||
+                  (key.includes('auth') && !key.includes('explicit_logout'))) {
+                keysToRemove.push(key);
+              }
+            });
+            
+            // Supprimer les doublons
+            const uniqueKeys = [...new Set(keysToRemove)];
+            
+            uniqueKeys.forEach(key => {
+              try {
+                localStorage.removeItem(key);
+              } catch (e) {
+                console.warn('Impossible de supprimer', key, e);
+              }
+            });
+            
+            console.log('✅ Session nettoyée,', uniqueKeys.length, 'clés supprimées');
+          } else {
+            // Flag trop ancien, le supprimer
+            localStorage.removeItem('explicit_logout');
+            localStorage.removeItem('explicit_logout_timestamp');
+          }
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html> 

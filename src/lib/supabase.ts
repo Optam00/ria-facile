@@ -4,6 +4,64 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
+// Type pour le storage personnalisé
+interface CustomStorage {
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
+  removeItem: (key: string) => void;
+}
+
+// Storage personnalisé qui vérifie le flag de déconnexion explicite
+const createSecureStorage = (): CustomStorage => {
+  const baseStorage = typeof window !== 'undefined' ? window.localStorage : null;
+  
+  if (!baseStorage) {
+    // Fallback pour les environnements sans localStorage
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    };
+  }
+
+  return {
+    getItem: (key: string) => {
+      // Vérifier le flag de déconnexion explicite AVANT de retourner la session
+      const explicitLogout = baseStorage.getItem('explicit_logout') === 'true';
+      const logoutTimestamp = baseStorage.getItem('explicit_logout_timestamp');
+      
+      if (explicitLogout && logoutTimestamp) {
+        const logoutTime = parseInt(logoutTimestamp, 10);
+        const daysSinceLogout = (Date.now() - logoutTime) / (1000 * 60 * 60 * 24);
+        
+        if (daysSinceLogout < 7) {
+          // Déconnexion explicite récente : ne PAS retourner la session
+          console.log('🔒 Storage: Déconnexion explicite détectée, session bloquée');
+          return null;
+        } else {
+          // Flag trop ancien, le supprimer
+          baseStorage.removeItem('explicit_logout');
+          baseStorage.removeItem('explicit_logout_timestamp');
+        }
+      }
+      
+      return baseStorage.getItem(key);
+    },
+    setItem: (key: string, value: string) => {
+      // Vérifier le flag avant de sauvegarder
+      const explicitLogout = baseStorage.getItem('explicit_logout') === 'true';
+      if (explicitLogout) {
+        console.log('🔒 Storage: Déconnexion explicite active, empêcher la sauvegarde de session');
+        return; // Ne pas sauvegarder si déconnexion explicite
+      }
+      baseStorage.setItem(key, value);
+    },
+    removeItem: (key: string) => {
+      baseStorage.removeItem(key);
+    },
+  };
+};
+
 console.log('Configuration Supabase:', {
   url: supabaseUrl,
   hasKey: !!supabaseAnonKey,
@@ -28,6 +86,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     // Utiliser une clé de stockage spécifique pour éviter les conflits
     storageKey: 'ria_admin_session',
+    // Utiliser un storage personnalisé qui vérifie le flag de déconnexion
+    storage: createSecureStorage(),
     // Rafraîchir automatiquement le token (on le garde pour une bonne UX)
     autoRefreshToken: true,
     // Détecter les tokens dans l'URL (pour les liens magiques, etc.)
