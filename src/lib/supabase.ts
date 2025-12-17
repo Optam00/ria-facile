@@ -26,47 +26,61 @@ const createSecureStorage = (): CustomStorage => {
 
   return {
     getItem: (key: string) => {
-      // Vérifier le flag de déconnexion explicite AVANT de retourner la session
-      const explicitLogout = baseStorage.getItem('explicit_logout') === 'true';
-      const explicitLogin = baseStorage.getItem('explicit_login') === 'true';
-      const logoutTimestamp = baseStorage.getItem('explicit_logout_timestamp');
+      // Si on demande la clé de session, vérifier le flag de déconnexion
+      const isSessionKey = key === 'ria_admin_session' || key.includes('auth-token');
       
-      // Si connexion explicite en cours, autoriser l'accès même si explicit_logout existe
-      if (explicitLogin) {
-        return baseStorage.getItem(key);
-      }
-      
-      if (explicitLogout && logoutTimestamp) {
-        const logoutTime = parseInt(logoutTimestamp, 10);
-        const daysSinceLogout = (Date.now() - logoutTime) / (1000 * 60 * 60 * 24);
+      if (isSessionKey) {
+        const explicitLogout = baseStorage.getItem('explicit_logout') === 'true';
+        const explicitLogin = baseStorage.getItem('explicit_login') === 'true';
+        const logoutTimestamp = baseStorage.getItem('explicit_logout_timestamp');
         
-        if (daysSinceLogout < 7) {
-          // Déconnexion explicite récente : ne PAS retourner la session
-          console.log('🔒 Storage: Déconnexion explicite détectée, session bloquée');
-          return null;
-        } else {
-          // Flag trop ancien, le supprimer
+        // Si connexion explicite en cours, supprimer le flag et autoriser
+        if (explicitLogin) {
+          console.log('🔓 Storage: Connexion explicite détectée, suppression du flag explicit_logout');
           baseStorage.removeItem('explicit_logout');
           baseStorage.removeItem('explicit_logout_timestamp');
+          return baseStorage.getItem(key);
+        }
+        
+        if (explicitLogout && logoutTimestamp) {
+          const logoutTime = parseInt(logoutTimestamp, 10);
+          const daysSinceLogout = (Date.now() - logoutTime) / (1000 * 60 * 60 * 24);
+          
+          if (daysSinceLogout < 7) {
+            // Déconnexion explicite récente : ne PAS retourner la session
+            console.log('🔒 Storage: Déconnexion explicite détectée, session bloquée');
+            return null;
+          } else {
+            // Flag trop ancien, le supprimer
+            baseStorage.removeItem('explicit_logout');
+            baseStorage.removeItem('explicit_logout_timestamp');
+          }
         }
       }
       
       return baseStorage.getItem(key);
     },
     setItem: (key: string, value: string) => {
-      // Vérifier le flag avant de sauvegarder
-      const explicitLogout = baseStorage.getItem('explicit_logout') === 'true';
-      const explicitLogin = baseStorage.getItem('explicit_login') === 'true';
+      // Si on sauvegarde la session, vérifier les flags
+      const isSessionKey = key === 'ria_admin_session' || key.includes('auth-token');
       
-      // Si connexion explicite en cours, autoriser la sauvegarde
-      if (explicitLogin) {
-        baseStorage.setItem(key, value);
-        return;
-      }
-      
-      if (explicitLogout) {
-        console.log('🔒 Storage: Déconnexion explicite active, empêcher la sauvegarde de session');
-        return; // Ne pas sauvegarder si déconnexion explicite
+      if (isSessionKey) {
+        const explicitLogout = baseStorage.getItem('explicit_logout') === 'true';
+        const explicitLogin = baseStorage.getItem('explicit_login') === 'true';
+        
+        // Si connexion explicite en cours, supprimer le flag et autoriser la sauvegarde
+        if (explicitLogin) {
+          console.log('🔓 Storage: Connexion explicite, suppression du flag explicit_logout');
+          baseStorage.removeItem('explicit_logout');
+          baseStorage.removeItem('explicit_logout_timestamp');
+          baseStorage.setItem(key, value);
+          return;
+        }
+        
+        if (explicitLogout) {
+          console.log('🔒 Storage: Déconnexion explicite active, empêcher la sauvegarde de session');
+          return; // Ne pas sauvegarder si déconnexion explicite
+        }
       }
       
       baseStorage.setItem(key, value);
