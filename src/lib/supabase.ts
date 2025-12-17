@@ -22,7 +22,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Les variables d\'environnement Supabase ne sont pas définies');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey); 
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    // Persister la session dans le localStorage
+    persistSession: true,
+    // Utiliser une clé de stockage spécifique pour éviter les conflits
+    storageKey: 'ria_admin_session',
+    // Rafraîchir automatiquement le token (on le garde pour une bonne UX)
+    autoRefreshToken: true,
+    // Détecter les tokens dans l'URL (pour les liens magiques, etc.)
+    detectSessionInUrl: true,
+  },
+}); 
 
 // Facilite le debug dans la console navigateur : window.supabase.from(...)
 if (typeof window !== 'undefined') {

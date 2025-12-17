@@ -41,9 +41,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [lastActivity, setLastActivity] = useState<number>(Date.now())
   const [showInactivityWarning, setShowInactivityWarning] = useState(false)
 
-  // Durée d'inactivité avant déconnexion automatique pour les administrateurs (2 heures)
-  const ADMIN_INACTIVITY_TIMEOUT = 2 * 60 * 60 * 1000 // 2 heures en millisecondes
-  const ADMIN_WARNING_TIME = ADMIN_INACTIVITY_TIMEOUT - 5 * 60 * 1000 // Avertir 5 minutes avant
+  // Durées d'inactivité avant déconnexion automatique
+  const ADMIN_INACTIVITY_TIMEOUT = 2 * 60 * 60 * 1000 // 2 heures pour les admins
+  const ADHERENT_INACTIVITY_TIMEOUT = 24 * 60 * 60 * 1000 // 24 heures pour les adhérents
+  const WARNING_BEFORE_LOGOUT = 5 * 60 * 1000 // Avertir 5 minutes avant la déconnexion
 
   useEffect(() => {
     // Vérifier la session actuelle
@@ -87,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => clearTimeout(timeout)
   }, [loading])
 
-  // Système de déconnexion automatique pour les administrateurs après inactivité
+  // Système de déconnexion automatique après inactivité (admin: 2h, adhérent: 24h)
   useEffect(() => {
     // Fonction pour mettre à jour le timestamp d'activité
     const updateActivity = () => {
@@ -100,26 +101,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.addEventListener(event, updateActivity, { passive: true })
     })
 
-    // Vérifier périodiquement si l'administrateur doit être déconnecté
+    // Vérifier périodiquement si l'utilisateur doit être déconnecté
     const checkInactivity = setInterval(() => {
-      if (profile?.role === 'admin' && user) {
+      if (user && profile) {
         const timeSinceLastActivity = Date.now() - lastActivity
+        const isUserAdmin = profile.role === 'admin'
+        
+        // Définir le timeout selon le rôle
+        const inactivityTimeout = isUserAdmin ? ADMIN_INACTIVITY_TIMEOUT : ADHERENT_INACTIVITY_TIMEOUT
+        const warningTime = inactivityTimeout - WARNING_BEFORE_LOGOUT
         
         // Afficher un avertissement 5 minutes avant la déconnexion
-        if (timeSinceLastActivity >= ADMIN_WARNING_TIME && timeSinceLastActivity < ADMIN_INACTIVITY_TIMEOUT) {
+        if (timeSinceLastActivity >= warningTime && timeSinceLastActivity < inactivityTimeout) {
           setShowInactivityWarning(true)
         } else {
           setShowInactivityWarning(false)
         }
         
-        // Déconnexion automatique après 2 heures d'inactivité
-        if (timeSinceLastActivity >= ADMIN_INACTIVITY_TIMEOUT) {
-          console.log('Déconnexion automatique : inactivité de 2 heures détectée')
+        // Déconnexion automatique après le timeout d'inactivité
+        if (timeSinceLastActivity >= inactivityTimeout) {
+          const timeoutLabel = isUserAdmin ? '2 heures' : '24 heures'
+          console.log(`Déconnexion automatique : inactivité de ${timeoutLabel} détectée`)
           setShowInactivityWarning(false)
-          supabase.auth.signOut()
+          supabase.auth.signOut({ scope: 'global' })
           setUser(null)
           setProfile(null)
           setSession(null)
+          // Nettoyer le localStorage
+          localStorage.removeItem('ria_admin_session')
         }
       } else {
         setShowInactivityWarning(false)
@@ -201,10 +210,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setProfile(null)
-    setSession(null)
+    try {
+      // Scope 'global' invalide tous les tokens de cet utilisateur (toutes les sessions)
+      await supabase.auth.signOut({ scope: 'global' })
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error)
+    } finally {
+      // Toujours nettoyer l'état local, même si signOut échoue
+      setUser(null)
+      setProfile(null)
+      setSession(null)
+      setShowInactivityWarning(false)
+      
+      // Nettoyer manuellement le localStorage pour être sûr
+      localStorage.removeItem('ria_admin_session')
+      // Nettoyer aussi l'ancienne clé par défaut de Supabase au cas où
+      localStorage.removeItem('sb-' + import.meta.env.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0] + '-auth-token')
+    }
   }
 
   const ADMIN_EMAILS = ['promenadedepensees@gmail.com']
