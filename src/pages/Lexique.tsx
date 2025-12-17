@@ -65,9 +65,9 @@ const LexiquePage = () => {
     <div className="max-w-7xl mx-auto px-4 pt-6 relative">
       {/* Overlay pour les non-adhérents */}
       {!loading && !hasAccess && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center" style={{ top: '120px' }}>
+        <div className="absolute inset-0 z-50 flex items-start justify-center pt-8">
           <div className="absolute inset-0 bg-gray-600 bg-opacity-70 backdrop-blur-sm rounded-3xl"></div>
-          <div className="relative z-10 bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center">
+          <div className="relative z-10 bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center mt-4">
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-[#774792]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
