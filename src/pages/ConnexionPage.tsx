@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 type UserType = 'adherent' | 'admin'
 
 const ConnexionPage: React.FC = () => {
-  const { isAdmin, isAdherent, loading } = useAuth()
+  const { isAdmin, isAdherent, loading, signOut } = useAuth()
   const navigate = useNavigate()
   const [userType, setUserType] = useState<UserType>('adherent')
   const [email, setEmail] = useState('')
@@ -41,14 +41,15 @@ const ConnexionPage: React.FC = () => {
 
     if (!shouldLogout) return
 
-    supabase.auth.signOut().finally(() => {
+    // Utiliser la fonction signOut du contexte qui crée le flag explicit_logout
+    signOut().finally(() => {
       params.delete('logout')
       const newUrl =
         window.location.pathname +
         (params.toString() ? `?${params.toString()}` : '')
       window.history.replaceState({}, '', newUrl)
     })
-  }, [])
+  }, [signOut])
 
   // Rediriger si l'utilisateur est déjà connecté
   useEffect(() => {
