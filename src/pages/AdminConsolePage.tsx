@@ -140,6 +140,14 @@ const AdminConsolePage: React.FC = () => {
     lien: '',
   })
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+  const [availableMedias, setAvailableMedias] = useState<string[]>([])
+  const [isMediaDropdownOpen, setIsMediaDropdownOpen] = useState(false)
+  const [availableAuteurs, setAvailableAuteurs] = useState<string[]>([])
+  const [isAuteurDropdownOpen, setIsAuteurDropdownOpen] = useState(false)
+  const [availableLangues, setAvailableLangues] = useState<string[]>([])
+  const [isLangueDropdownOpen, setIsLangueDropdownOpen] = useState(false)
+  const [availableThemes, setAvailableThemes] = useState<string[]>([])
+  const [isThemesDropdownOpen, setIsThemesDropdownOpen] = useState(false)
   
   // États pour la gestion des docs
   const [docsList, setDocsList] = useState<Doc[]>([])
@@ -476,6 +484,36 @@ const AdminConsolePage: React.FC = () => {
     loadActualites()
   }, [selectedAction])
 
+  // Charger la liste des médias disponibles quand on arrive sur "ajouter-actualite"
+  useEffect(() => {
+    if (selectedAction !== 'ajouter-actualite') return
+
+    const loadMedias = async () => {
+      try {
+        const { data, error } = await supabasePublic
+          .from('Actu')
+          .select('media')
+
+        if (error) throw error
+
+        // Extraire les médias uniques, normaliser (trim) et filtrer les valeurs nulles/vides
+        const medias = [...new Set(
+          (data ?? [])
+            .map(a => a.media?.trim())
+            .filter((media): media is string => !!media)
+        )].sort()
+
+        setAvailableMedias(medias)
+      } catch (err) {
+        console.error('Erreur lors du chargement des médias:', err)
+        // Ne pas afficher d'erreur à l'utilisateur, juste utiliser une liste vide
+        setAvailableMedias([])
+      }
+    }
+
+    loadMedias()
+  }, [selectedAction])
+
   // Charger la liste des docs quand on arrive sur "consulter-docs"
   useEffect(() => {
     if (selectedAction !== 'consulter-docs') return
@@ -502,6 +540,60 @@ const AdminConsolePage: React.FC = () => {
     }
 
     loadDocs()
+  }, [selectedAction])
+
+  // Charger les auteurs, langues et thèmes disponibles quand on arrive sur "ajouter-document"
+  useEffect(() => {
+    if (selectedAction !== 'ajouter-document') return
+
+    const loadDocOptions = async () => {
+      try {
+        const { data, error } = await supabasePublic
+          .from('docs')
+          .select('auteur, langue, themes')
+
+        if (error) throw error
+
+        // Extraire les auteurs uniques
+        const auteurs = [...new Set(
+          (data ?? [])
+            .map(d => d.auteur?.trim())
+            .filter((auteur): auteur is string => !!auteur)
+        )].sort()
+
+        // Extraire les langues uniques
+        const langues = [...new Set(
+          (data ?? [])
+            .map(d => d.langue?.trim())
+            .filter((langue): langue is string => !!langue)
+        )].sort()
+
+        // Extraire tous les thèmes individuels (séparés par des virgules)
+        const allThemes = new Set<string>()
+        ;(data ?? []).forEach(d => {
+          if (d.themes) {
+            d.themes.split(',').forEach(theme => {
+              const trimmed = theme.trim()
+              if (trimmed) {
+                allThemes.add(trimmed)
+              }
+            })
+          }
+        })
+        const themes = Array.from(allThemes).sort()
+
+        setAvailableAuteurs(auteurs)
+        setAvailableLangues(langues)
+        setAvailableThemes(themes)
+      } catch (err) {
+        console.error('Erreur lors du chargement des options de document:', err)
+        setAvailableAuteurs([])
+        setAvailableLangues([])
+        setAvailableThemes([])
+      }
+    }
+
+    loadDocOptions()
   }, [selectedAction])
 
   // Charger la liste de la doctrine quand on arrive sur "consulter-doctrine"
@@ -1270,6 +1362,114 @@ const AdminConsolePage: React.FC = () => {
     }
   }
 
+  // Gérer la touche Enter pour valider la suppression d'une actualité
+  useEffect(() => {
+    if (deleteConfirmId === null) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !isSubmitting) {
+        e.preventDefault()
+        handleDeleteActualite(deleteConfirmId)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteConfirmId, isSubmitting])
+
+  // Gérer la touche Enter pour valider la suppression d'un document
+  useEffect(() => {
+    if (deleteDocConfirmId === null) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !isSubmitting) {
+        e.preventDefault()
+        handleDeleteDoc(deleteDocConfirmId)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteDocConfirmId, isSubmitting])
+
+  // Gérer la touche Enter pour valider la suppression d'un article de doctrine
+  useEffect(() => {
+    if (deleteDoctrineConfirmId === null) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !isSubmitting) {
+        e.preventDefault()
+        handleDeleteDoctrine(deleteDoctrineConfirmId)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteDoctrineConfirmId, isSubmitting])
+
+  // Gérer la touche Enter pour valider la suppression d'une question de quiz
+  useEffect(() => {
+    if (deleteQuestionConfirmId === null) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !isSubmitting) {
+        e.preventDefault()
+        handleDeleteQuestion(deleteQuestionConfirmId)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteQuestionConfirmId, isSubmitting])
+
+  // Gérer la touche Enter pour valider la suppression d'une question de l'assistant RIA
+  useEffect(() => {
+    if (deleteAssistantRIAConfirmId === null) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !isSubmitting) {
+        e.preventDefault()
+        handleDeleteAssistantRIA(deleteAssistantRIAConfirmId)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteAssistantRIAConfirmId, isSubmitting])
+
+  // Gérer la touche Enter pour valider la suppression d'un adhérent
+  useEffect(() => {
+    if (deleteAdherentConfirmId === null) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !isSubmitting) {
+        e.preventDefault()
+        handleDeleteAdherent(deleteAdherentConfirmId)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteAdherentConfirmId, isSubmitting])
+
   const handleSignOut = () => {
     // On délègue le signOut à la page connexion via le paramètre logout=1
     window.location.assign('/connexion?logout=1')
@@ -1471,6 +1671,12 @@ const AdminConsolePage: React.FC = () => {
                           throw new Error(text || `Erreur Supabase (${response.status})`)
                         }
 
+                        // Ajouter le nouveau média à la liste s'il n'existe pas déjà
+                        const newMedia = actualiteForm.media.trim()
+                        if (newMedia && !availableMedias.includes(newMedia)) {
+                          setAvailableMedias((prev) => [...prev, newMedia].sort())
+                        }
+
                         setFormStatus({ type: 'success', message: 'Actualité ajoutée avec succès.' })
                         setActualiteForm({
                           Titre: '',
@@ -1515,18 +1721,50 @@ const AdminConsolePage: React.FC = () => {
                       />
                     </div>
 
-                    <div>
+                    <div className="relative">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Media*
                       </label>
-                      <input
-                        type="text"
-                        value={actualiteForm.media}
-                        onChange={(e) => setActualiteForm({ ...actualiteForm, media: e.target.value })}
-                        required
-                        className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                        placeholder="Ex : Le Monde, CNIL..."
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={actualiteForm.media}
+                          onChange={(e) => {
+                            setActualiteForm({ ...actualiteForm, media: e.target.value })
+                            setIsMediaDropdownOpen(true)
+                          }}
+                          onFocus={() => setIsMediaDropdownOpen(true)}
+                          onBlur={() => {
+                            // Délai pour permettre le clic sur une option
+                            setTimeout(() => setIsMediaDropdownOpen(false), 200)
+                          }}
+                          required
+                          className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                          placeholder="Ex : Le Monde, CNIL..."
+                        />
+                        {isMediaDropdownOpen && availableMedias.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                            {availableMedias
+                              .filter((media) =>
+                                actualiteForm.media === '' ||
+                                media.toLowerCase().includes(actualiteForm.media.toLowerCase())
+                              )
+                              .map((media) => (
+                                <button
+                                  key={media}
+                                  type="button"
+                                  onClick={() => {
+                                    setActualiteForm({ ...actualiteForm, media })
+                                    setIsMediaDropdownOpen(false)
+                                  }}
+                                  className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700 first:rounded-t-xl last:rounded-b-xl"
+                                >
+                                  {media}
+                                </button>
+                              ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="md:col-span-2">
@@ -2064,6 +2302,27 @@ const AdminConsolePage: React.FC = () => {
                           throw new Error(text || `Erreur Supabase (${response.status})`)
                         }
 
+                        // Ajouter le nouvel auteur à la liste s'il n'existe pas déjà
+                        const newAuteur = docForm.auteur.trim()
+                        if (newAuteur && !availableAuteurs.includes(newAuteur)) {
+                          setAvailableAuteurs((prev) => [...prev, newAuteur].sort())
+                        }
+
+                        // Ajouter la nouvelle langue à la liste si elle n'existe pas déjà
+                        const newLangue = docForm.langue.trim()
+                        if (newLangue && !availableLangues.includes(newLangue)) {
+                          setAvailableLangues((prev) => [...prev, newLangue].sort())
+                        }
+
+                        // Ajouter les nouveaux thèmes à la liste
+                        const newThemes = docForm.themes
+                          .split(',')
+                          .map(t => t.trim())
+                          .filter(t => t && !availableThemes.includes(t))
+                        if (newThemes.length > 0) {
+                          setAvailableThemes((prev) => [...prev, ...newThemes].sort())
+                        }
+
                         setFormStatus({ type: 'success', message: 'Document ajouté avec succès.' })
                         setDocForm({
                           titre: '',
@@ -2098,17 +2357,48 @@ const AdminConsolePage: React.FC = () => {
                       />
                     </div>
 
-                    <div>
+                    <div className="relative">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Auteur
                       </label>
-                      <input
-                        type="text"
-                        value={docForm.auteur}
-                        onChange={(e) => setDocForm({ ...docForm, auteur: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                        placeholder="Nom de l'auteur"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={docForm.auteur}
+                          onChange={(e) => {
+                            setDocForm({ ...docForm, auteur: e.target.value })
+                            setIsAuteurDropdownOpen(true)
+                          }}
+                          onFocus={() => setIsAuteurDropdownOpen(true)}
+                          onBlur={() => {
+                            setTimeout(() => setIsAuteurDropdownOpen(false), 200)
+                          }}
+                          className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                          placeholder="Nom de l'auteur"
+                        />
+                        {isAuteurDropdownOpen && availableAuteurs.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                            {availableAuteurs
+                              .filter((auteur) =>
+                                docForm.auteur === '' ||
+                                auteur.toLowerCase().includes(docForm.auteur.toLowerCase())
+                              )
+                              .map((auteur) => (
+                                <button
+                                  key={auteur}
+                                  type="button"
+                                  onClick={() => {
+                                    setDocForm({ ...docForm, auteur })
+                                    setIsAuteurDropdownOpen(false)
+                                  }}
+                                  className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700 first:rounded-t-xl last:rounded-b-xl"
+                                >
+                                  {auteur}
+                                </button>
+                              ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div>
@@ -2151,30 +2441,110 @@ const AdminConsolePage: React.FC = () => {
                       />
                     </div>
 
-                    <div>
+                    <div className="relative">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Thèmes (séparés par des virgules)
                       </label>
-                      <input
-                        type="text"
-                        value={docForm.themes}
-                        onChange={(e) => setDocForm({ ...docForm, themes: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                        placeholder="Ex : conformité, gouvernance, risques"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={docForm.themes}
+                          onChange={(e) => {
+                            setDocForm({ ...docForm, themes: e.target.value })
+                            setIsThemesDropdownOpen(true)
+                          }}
+                          onFocus={() => setIsThemesDropdownOpen(true)}
+                          onBlur={() => {
+                            setTimeout(() => setIsThemesDropdownOpen(false), 200)
+                          }}
+                          className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                          placeholder="Ex : conformité, gouvernance, risques"
+                        />
+                        {isThemesDropdownOpen && availableThemes.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                            {availableThemes
+                              .filter((theme) => {
+                                const currentThemes = docForm.themes.split(',').map(t => t.trim().toLowerCase())
+                                const isAlreadyAdded = currentThemes.includes(theme.toLowerCase())
+                                if (isAlreadyAdded) return false
+                                
+                                // Si le champ est vide ou se termine par une virgule, montrer tous les thèmes
+                                const trimmed = docForm.themes.trim()
+                                if (trimmed === '' || trimmed.endsWith(',')) return true
+                                
+                                // Sinon, filtrer selon le dernier terme après la dernière virgule
+                                const lastPart = trimmed.split(',').pop()?.trim().toLowerCase() || ''
+                                return lastPart === '' || theme.toLowerCase().includes(lastPart)
+                              })
+                              .map((theme) => (
+                                <button
+                                  key={theme}
+                                  type="button"
+                                  onClick={() => {
+                                    const trimmed = docForm.themes.trim()
+                                    if (trimmed === '' || trimmed.endsWith(',')) {
+                                      // Ajouter le thème à la fin
+                                      setDocForm({ ...docForm, themes: trimmed ? `${trimmed} ${theme}` : theme })
+                                    } else {
+                                      // Remplacer le dernier terme par le thème sélectionné
+                                      const parts = trimmed.split(',')
+                                      parts[parts.length - 1] = theme
+                                      setDocForm({ ...docForm, themes: parts.join(', ') })
+                                    }
+                                    setIsThemesDropdownOpen(false)
+                                  }}
+                                  className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700 first:rounded-t-xl last:rounded-b-xl"
+                                >
+                                  {theme}
+                                </button>
+                              ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    <div>
+                    <div className="relative">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Langue(s)
                       </label>
-                      <input
-                        type="text"
-                        value={docForm.langue}
-                        onChange={(e) => setDocForm({ ...docForm, langue: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                        placeholder="Ex : FR, EN"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={docForm.langue}
+                          onChange={(e) => {
+                            setDocForm({ ...docForm, langue: e.target.value })
+                            setIsLangueDropdownOpen(true)
+                          }}
+                          onFocus={() => setIsLangueDropdownOpen(true)}
+                          onBlur={() => {
+                            setTimeout(() => setIsLangueDropdownOpen(false), 200)
+                          }}
+                          className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                          placeholder="Ex : FR, EN"
+                        />
+                        {isLangueDropdownOpen && availableLangues.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                            {availableLangues
+                              .filter((langue) =>
+                                docForm.langue === '' ||
+                                langue.toLowerCase().includes(docForm.langue.toLowerCase())
+                              )
+                              .map((langue) => (
+                                <button
+                                  key={langue}
+                                  type="button"
+                                  onClick={() => {
+                                    setDocForm({ ...docForm, langue })
+                                    setIsLangueDropdownOpen(false)
+                                  }}
+                                  className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors text-sm text-gray-700 first:rounded-t-xl last:rounded-b-xl"
+                                >
+                                  {langue}
+                                </button>
+                              ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="md:col-span-2 flex justify-end gap-3">
