@@ -1,0 +1,66 @@
+-- ============================================
+-- CONFIGURATION DU BUCKET "admin-files" POUR STOCKER LES FICHIERS ADMIN
+-- ============================================
+-- 
+-- ⚠️ IMPORTANT : Ce fichier contient uniquement des INSTRUCTIONS
+-- Les buckets et politiques Storage doivent être créés via le Dashboard Supabase
+--
+-- ============================================
+-- ÉTAPE 1 : CRÉER LE BUCKET (Dashboard uniquement)
+-- ============================================
+--
+-- 1. Allez dans Supabase Dashboard > Storage
+-- 2. Cliquez sur "New bucket" ou "Create bucket"
+-- 3. Configurez :
+--    - Name: admin-files
+--    - Public bucket: ❌ DÉCOCHER (bucket privé)
+--    - File size limit: 50 MB (ou selon vos besoins)
+--    - Allowed MIME types: (optionnel, laissez vide pour tous les types)
+--      * application/vnd.openxmlformats-officedocument.spreadsheetml.sheet (.xlsx)
+--      * application/vnd.ms-excel (.xls)
+--      * application/msword (.doc)
+--      * application/vnd.openxmlformats-officedocument.wordprocessingml.document (.docx)
+--      * application/pdf (.pdf)
+-- 4. Cliquez sur "Create bucket"
+--
+-- ============================================
+-- ÉTAPE 2 : CRÉER LES POLITIQUES (Dashboard uniquement)
+-- ============================================
+--
+-- ⚠️ Les politiques Storage ne peuvent PAS être créées via SQL
+-- Vous DEVEZ les créer via le Dashboard :
+--
+-- 1. Allez dans Storage > admin-files > Policies
+-- 2. Cliquez sur "New Policy" pour chaque politique ci-dessous
+--
+-- POLITIQUE 1 : SELECT (Lecture)
+--   - Policy name: "Admins can read admin-files"
+--   - Allowed operation: SELECT
+--   - Policy definition: (auth.jwt() ->> 'role')::text = 'admin'
+--
+-- POLITIQUE 2 : INSERT (Upload)
+--   - Policy name: "Admins can upload to admin-files"
+--   - Allowed operation: INSERT
+--   - Policy definition: (auth.jwt() ->> 'role')::text = 'admin'
+--
+-- POLITIQUE 3 : DELETE (Suppression)
+--   - Policy name: "Admins can delete from admin-files"
+--   - Allowed operation: DELETE
+--   - Policy definition: (auth.jwt() ->> 'role')::text = 'admin'
+--
+-- ============================================
+-- NOTE IMPORTANTE SUR LES RÔLES
+-- ============================================
+--
+-- Si votre système utilise la table 'profiles' pour les rôles au lieu du JWT,
+-- vous devrez peut-être adapter les politiques pour utiliser :
+--
+--   EXISTS (
+--     SELECT 1 FROM profiles 
+--     WHERE profiles.id = auth.uid() 
+--     AND profiles.role = 'admin'
+--   )
+--
+-- au lieu de : (auth.jwt() ->> 'role')::text = 'admin'
+--
+-- ============================================

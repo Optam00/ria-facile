@@ -6,7 +6,7 @@ import { supabasePublic } from '../lib/supabasePublic'
 import { supabase } from '../lib/supabase'
 import AdminDashboard from '../components/AdminDashboard'
 
-type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-adherents' | 'supprimer-adherent' | null
+type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | null
 
 interface Actualite {
   id: number
@@ -243,6 +243,23 @@ const AdminConsolePage: React.FC = () => {
   const [isLoadingAdherents, setIsLoadingAdherents] = useState(false)
   const [deleteAdherentConfirmId, setDeleteAdherentConfirmId] = useState<string | null>(null)
 
+  // États pour la gestion des fichiers
+  interface FileItem {
+    name: string
+    id: string
+    created_at: string
+    updated_at: string
+    metadata: {
+      size?: number
+      mimetype?: string
+    }
+  }
+  const [filesList, setFilesList] = useState<FileItem[]>([])
+  const [isLoadingFiles, setIsLoadingFiles] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState(false)
+  const [deleteFileConfirmName, setDeleteFileConfirmName] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
@@ -328,6 +345,14 @@ const AdminConsolePage: React.FC = () => {
       items: [
         { id: 'consulter-adherents' as AdminAction, label: 'Liste des adhérents', icon: '📋' },
         { id: 'supprimer-adherent' as AdminAction, label: 'Supprimer un adhérent', icon: '🗑️' },
+      ],
+    },
+    {
+      key: 'fichiers',
+      label: 'Fichiers',
+      icon: '📁',
+      items: [
+        { id: 'gestion-fichiers' as AdminAction, label: 'Gérer les fichiers', icon: '📂' },
       ],
     },
   ]
@@ -876,6 +901,137 @@ const AdminConsolePage: React.FC = () => {
       setIsSubmitting(false)
     }
   }
+
+  // ============================================
+  // GESTION DES FICHIERS (Supabase Storage)
+  // ============================================
+
+  // Charger la liste des fichiers
+  const loadFiles = async () => {
+    setIsLoadingFiles(true)
+    try {
+      const { data, error } = await supabase.storage
+        .from('admin-files')
+        .list('', {
+          limit: 100,
+          offset: 0,
+          sortBy: { column: 'created_at', order: 'desc' }
+        })
+
+      if (error) throw error
+
+      setFilesList(data || [])
+    } catch (err) {
+      console.error('Erreur lors du chargement des fichiers:', err)
+      setFormStatus({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Erreur lors du chargement des fichiers.',
+      })
+    } finally {
+      setIsLoadingFiles(false)
+    }
+  }
+
+  // Uploader un fichier
+  const handleUploadFile = async () => {
+    if (!selectedFile) {
+      setFormStatus({ type: 'error', message: 'Veuillez sélectionner un fichier.' })
+      return
+    }
+
+    setUploadingFile(true)
+    setFormStatus({ type: null, message: '' })
+
+    try {
+      const fileName = `${Date.now()}-${selectedFile.name}`
+      const filePath = fileName
+
+      const { data, error } = await supabase.storage
+        .from('admin-files')
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (error) throw error
+
+      setFormStatus({ type: 'success', message: 'Fichier uploadé avec succès !' })
+      setSelectedFile(null)
+      
+      // Recharger la liste
+      await loadFiles()
+    } catch (err) {
+      console.error('Erreur lors de l\'upload:', err)
+      setFormStatus({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Erreur lors de l\'upload du fichier.',
+      })
+    } finally {
+      setUploadingFile(false)
+    }
+  }
+
+  // Télécharger un fichier
+  const handleDownloadFile = async (fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('admin-files')
+        .download(fileName)
+
+      if (error) throw error
+
+      // Créer un lien de téléchargement
+      const url = URL.createObjectURL(data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Erreur lors du téléchargement:', err)
+      setFormStatus({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Erreur lors du téléchargement du fichier.',
+      })
+    }
+  }
+
+  // Supprimer un fichier
+  const handleDeleteFile = async (fileName: string) => {
+    setIsSubmitting(true)
+    setFormStatus({ type: null, message: '' })
+
+    try {
+      const { error } = await supabase.storage
+        .from('admin-files')
+        .remove([fileName])
+
+      if (error) throw error
+
+      setFormStatus({ type: 'success', message: 'Fichier supprimé avec succès.' })
+      setDeleteFileConfirmName(null)
+      
+      // Recharger la liste
+      await loadFiles()
+    } catch (err) {
+      console.error('Erreur lors de la suppression:', err)
+      setFormStatus({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Erreur lors de la suppression du fichier.',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Charger les fichiers quand on arrive sur "gestion-fichiers"
+  useEffect(() => {
+    if (selectedAction === 'gestion-fichiers') {
+      loadFiles()
+    }
+  }, [selectedAction])
 
   // Ouvrir le modal de modification
   const handleEditActualite = (actu: Actualite) => {
@@ -1500,6 +1656,7 @@ const AdminConsolePage: React.FC = () => {
   })
 
   return (
+    <>
     <div className="min-h-screen p-4">
       <Helmet>
         <title>Console d'administration — RIA Facile</title>
@@ -4556,6 +4713,147 @@ const AdminConsolePage: React.FC = () => {
         </div>
       )}
 
+              {/* Gestion des fichiers */}
+              {selectedAction === 'gestion-fichiers' && (
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-800">Gestion des fichiers</h2>
+                      <p className="text-gray-600 mt-2">
+                        Upload, téléchargez et gérez vos fichiers (Excel, Word, PDF, etc.)
+                      </p>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {filesList.length} fichier{filesList.length > 1 ? 's' : ''}
+                    </div>
+                  </div>
+
+                  {formStatus.type && (
+                    <div
+                      className={`mb-4 rounded-xl px-4 py-3 ${
+                        formStatus.type === 'success'
+                          ? 'bg-green-50 text-green-800 border border-green-200'
+                          : 'bg-red-50 text-red-800 border border-red-200'
+                      }`}
+                    >
+                      {formStatus.message}
+                    </div>
+                  )}
+
+                  {/* Zone d'upload */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Uploader un fichier</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Sélectionner un fichier
+                        </label>
+                        <input
+                          type="file"
+                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                          accept=".xlsx,.xls,.doc,.docx,.pdf"
+                          className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                        />
+                        <p className="text-xs text-gray-500 mt-2">
+                          Formats acceptés : Excel (.xlsx, .xls), Word (.doc, .docx), PDF (.pdf)
+                        </p>
+                      </div>
+                      {selectedFile && (
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <span>📄</span>
+                          <span>{selectedFile.name}</span>
+                          <span className="text-gray-500">
+                            ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                          </span>
+                        </div>
+                      )}
+                      <button
+                        onClick={handleUploadFile}
+                        disabled={!selectedFile || uploadingFile}
+                        className="px-6 py-3 rounded-xl bg-[#774792] text-white font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {uploadingFile ? 'Upload en cours...' : 'Uploader le fichier'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Liste des fichiers */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Fichiers disponibles</h3>
+                    
+                    {isLoadingFiles ? (
+                      <div className="text-center py-8 text-gray-500">Chargement...</div>
+                    ) : filesList.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        Aucun fichier pour le moment. Uploadez votre premier fichier ci-dessus.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {filesList.map((file) => {
+                          const fileSize = file.metadata?.size 
+                            ? `${(file.metadata.size / 1024 / 1024).toFixed(2)} MB`
+                            : 'Taille inconnue'
+                          const fileType = file.metadata?.mimetype || 'Type inconnu'
+                          
+                          return (
+                            <div
+                              key={file.id}
+                              className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+                            >
+                              <div className="flex items-center gap-4 flex-1">
+                                <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                                  {fileType.includes('excel') || fileType.includes('spreadsheet') ? (
+                                    <span className="text-2xl">📊</span>
+                                  ) : fileType.includes('word') || fileType.includes('document') ? (
+                                    <span className="text-2xl">📝</span>
+                                  ) : fileType.includes('pdf') ? (
+                                    <span className="text-2xl">📄</span>
+                                  ) : (
+                                    <span className="text-2xl">📁</span>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-gray-800 truncate">{file.name}</p>
+                                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                    <span>{fileSize}</span>
+                                    <span>•</span>
+                                    <span>
+                                      {new Date(file.created_at).toLocaleDateString('fr-FR', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleDownloadFile(file.name)}
+                                  className="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm font-medium"
+                                >
+                                  Télécharger
+                                </button>
+                                <button
+                                  onClick={() => setDeleteFileConfirmName(file.name)}
+                                  className="px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-sm font-medium"
+                                >
+                                  Supprimer
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
       {/* Modal de confirmation de suppression d'une question de quiz */}
       {deleteQuestionConfirmId !== null && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -4675,7 +4973,48 @@ const AdminConsolePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de confirmation de suppression d'un fichier */}
+      {deleteFileConfirmName !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800">Supprimer ce fichier ?</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Êtes-vous sûr de vouloir supprimer "{deleteFileConfirmName}" ? Cette action est irréversible.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => setDeleteFileConfirmName(null)}
+                  className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                  disabled={isSubmitting}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => handleDeleteFile(deleteFileConfirmName)}
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Suppression...' : 'Supprimer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+    </>
   )
 }
 
