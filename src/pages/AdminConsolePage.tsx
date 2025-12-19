@@ -943,6 +943,12 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
+      // Vérifier que l'utilisateur est bien connecté
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Vous devez être connecté pour uploader un fichier.')
+      }
+
       const fileName = `${Date.now()}-${selectedFile.name}`
       const filePath = fileName
 
@@ -953,7 +959,15 @@ const AdminConsolePage: React.FC = () => {
           upsert: false
         })
 
-      if (error) throw error
+      if (error) {
+        console.error('Détails de l\'erreur upload:', {
+          error,
+          message: error.message,
+          statusCode: error.statusCode,
+          errorCode: error.error
+        })
+        throw error
+      }
 
       setFormStatus({ type: 'success', message: 'Fichier uploadé avec succès !' })
       setSelectedFile(null)
@@ -962,9 +976,17 @@ const AdminConsolePage: React.FC = () => {
       await loadFiles()
     } catch (err) {
       console.error('Erreur lors de l\'upload:', err)
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : typeof err === 'object' && err !== null && 'message' in err
+        ? String(err.message)
+        : 'Erreur lors de l\'upload du fichier.'
+      
       setFormStatus({
         type: 'error',
-        message: err instanceof Error ? err.message : 'Erreur lors de l\'upload du fichier.',
+        message: errorMessage.includes('row-level security') 
+          ? 'Erreur de permissions. Vérifiez que vous êtes connecté en tant qu\'admin et que les politiques RLS sont correctement configurées.'
+          : errorMessage,
       })
     } finally {
       setUploadingFile(false)
@@ -4755,10 +4777,12 @@ const AdminConsolePage: React.FC = () => {
                         </p>
                       </div>
                       {selectedFile && (
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                        <div className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-200">
                           <span>📄</span>
-                          <span>{selectedFile.name}</span>
-                          <span className="text-gray-500">
+                          <span className="flex-1 min-w-0 truncate" title={selectedFile.name}>
+                            {selectedFile.name}
+                          </span>
+                          <span className="text-gray-500 flex-shrink-0">
                             ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                           </span>
                         </div>
