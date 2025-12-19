@@ -63,6 +63,11 @@ export const Footer: React.FC = () => {
                   Le RIA en 5 minutes
                 </Link>
               </li>
+              <li>
+                <Link to="/contact" className="text-gray-600 hover:text-[#774792] text-sm">
+                  Contact
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

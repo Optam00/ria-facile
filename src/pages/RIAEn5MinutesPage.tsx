@@ -69,7 +69,7 @@ const RIAEn5MinutesPage = () => {
           { id: 0, level: "Risque inacceptable", color: "red", description: "Pratiques d'IA interdites car contraires aux valeurs de l'UE (Article 5)" },
           { id: 1, level: "Haut risque", color: "orange", description: "Systèmes d'IA soumis à des exigences strictes avant leur mise sur le marché et tout au long de leur cycle de vie (Articles 6 à 15)" },
           { id: 2, level: "Risque limité", color: "yellow", description: "Systèmes d'IA soumis à des obligations spécifiques de transparence (Article 50)" },
-          { id: 3, level: "Risque minimal", color: "green", description: "Majorité des systèmes d'IA. Le règlement n'impose pas d'obligations, mais encourage l'adhésion volontaire à des codes de conduite (considérant 28)" }
+          { id: 3, level: "Risque minimal", color: "green", description: "Majorité des systèmes d'IA. Le règlement n'impose pas d'obligations, mais encourage l'adhésion volontaire à des codes de conduite" }
         ]
       },
       unlocked: false,
@@ -99,7 +99,7 @@ const RIAEn5MinutesPage = () => {
         text: "Le Règlement introduit des règles spécifiques pour les modèles d'IA à usage général, capables d'accomplir une large gamme de tâches (Chapitre V) :",
         highlights: [
           "Tous les fournisseurs de modèles d'IA à usage général : obligations de transparence, documentation technique, politique de respect du droit d'auteur (Article 53)",
-          "Modèles d'IA à usage général à risque systémique (>10^25 FLOPS ou désignés) : évaluations, atténuation des risques systémiques, cybersécurité, signalement d'incidents (Articles 51, 55)",
+          "Modèles d'IA à usage général à risque systémique (>10^25 FLOPS ou désignés) : obligations renforcées",
           "Codes de bonne pratique encouragés pour détailler la mise en œuvre (Article 56)"
         ]
       },
@@ -115,8 +115,7 @@ const RIAEn5MinutesPage = () => {
         highlights: [
           "Jusqu'à 35 millions d'€ ou 7% du CA annuel mondial - pratiques interdites (Article 5)",
           "Jusqu'à 15 millions d'€ ou 3% du CA annuel mondial - autres obligations (systèmes à haut risque, modèles d'IA à usage général, transparence...)",
-          "Jusqu'à 7,5 millions d'€ ou 1,5% du CA annuel mondial - informations incorrectes aux autorités",
-          "Seuils réduits pour les PME et jeunes pousses"
+          "Jusqu'à 7,5 millions d'€ ou 1,5% du CA annuel mondial - informations incorrectes aux autorités"
         ]
       },
       unlocked: false,
@@ -318,7 +317,7 @@ const RIAEn5MinutesPage = () => {
                     <span>~5 min</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span>🤖</span>
+                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#774792] border border-white shadow-sm" />
                     <span>Guidé</span>
                   </div>
                 </div>
