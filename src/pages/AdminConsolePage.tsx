@@ -1628,7 +1628,7 @@ const AdminConsolePage: React.FC = () => {
 
           {/* Zone de contenu principale */}
           <div className="flex-1 min-w-0 overflow-hidden">
-            <div className="bg-white bg-opacity-90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white min-h-[500px] overflow-hidden">
+            <div className="bg-white bg-opacity-90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white min-h-[500px] overflow-visible">
               {selectedAction === 'ajouter-actualite' && (
                 <div>
                   <h2 className="text-2xl font-semibold text-gray-800 mb-6">Ajouter une actualité</h2>
@@ -1743,7 +1743,7 @@ const AdminConsolePage: React.FC = () => {
                           placeholder="Ex : Le Monde, CNIL..."
                         />
                         {isMediaDropdownOpen && availableMedias.length > 0 && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                          <div className="absolute z-50 top-full left-0 right-0 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                             {availableMedias
                               .filter((media) =>
                                 actualiteForm.media === '' ||
@@ -2377,7 +2377,7 @@ const AdminConsolePage: React.FC = () => {
                           placeholder="Nom de l'auteur"
                         />
                         {isAuteurDropdownOpen && availableAuteurs.length > 0 && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                          <div className="absolute z-50 top-full left-0 right-0 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                             {availableAuteurs
                               .filter((auteur) =>
                                 docForm.auteur === '' ||
@@ -2461,7 +2461,7 @@ const AdminConsolePage: React.FC = () => {
                           placeholder="Ex : conformité, gouvernance, risques"
                         />
                         {isThemesDropdownOpen && availableThemes.length > 0 && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                          <div className="absolute z-50 top-full left-0 right-0 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                             {availableThemes
                               .filter((theme) => {
                                 const currentThemes = docForm.themes.split(',').map(t => t.trim().toLowerCase())
@@ -2523,7 +2523,7 @@ const AdminConsolePage: React.FC = () => {
                           placeholder="Ex : FR, EN"
                         />
                         {isLangueDropdownOpen && availableLangues.length > 0 && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                          <div className="absolute z-50 top-full left-0 right-0 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                             {availableLangues
                               .filter((langue) =>
                                 docForm.langue === '' ||

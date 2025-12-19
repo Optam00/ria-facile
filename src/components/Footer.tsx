@@ -6,7 +6,7 @@ export const Footer: React.FC = () => {
   return (
     <footer className="bg-gray-50 border-t">
       <div className="max-w-7xl mx-auto py-6 px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
             <h3 className="text-base font-semibold mb-2">À propos</h3>
             <ul className="space-y-1">
@@ -51,6 +51,16 @@ export const Footer: React.FC = () => {
               <li>
                 <Link to="/politique-de-confidentialite" className="text-gray-600 hover:text-[#774792] text-sm">
                   Politique de confidentialité
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-base font-semibold mb-2">Autres liens</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link to="/ria-en-5-minutes" className="text-gray-600 hover:text-[#774792] text-sm">
+                  Le RIA en 5 minutes
                 </Link>
               </li>
             </ul>

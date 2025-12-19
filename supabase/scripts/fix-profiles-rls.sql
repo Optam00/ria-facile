@@ -57,17 +57,20 @@ CREATE POLICY "profiles_select_own"
   USING (auth.uid() = id);
 
 -- Politique : Un admin peut lire tous les profils
--- (vérifie UNIQUEMENT dans auth.users pour éviter toute boucle RLS)
+-- (vérifie le rôle depuis le JWT directement - plus rapide et évite les timeouts)
 CREATE POLICY "profiles_select_admin"
   ON public.profiles
   FOR SELECT
   TO authenticated
   USING (
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE auth.users.id = auth.uid() 
-      AND (auth.users.raw_user_meta_data->>'role')::text = 'admin'
-    )
+    -- Vérifier d'abord dans le JWT (user_metadata)
+    (auth.jwt() -> 'user_metadata' ->> 'role')::text = 'admin'
+    OR
+    -- Sinon vérifier dans raw_user_meta_data du JWT
+    (auth.jwt() -> 'raw_user_meta_data' ->> 'role')::text = 'admin'
+    OR
+    -- En dernier recours, utiliser la fonction is_admin() (qui lit auth.users avec SECURITY DEFINER)
+    public.is_admin()
   );
 
 -- Politique : Un utilisateur peut créer son propre profil

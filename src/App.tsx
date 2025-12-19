@@ -45,6 +45,7 @@ import FichePratiqueSecteurBancairePage from './pages/FichePratiqueSecteurBancai
 import FichePratiqueExceptionHautRisquePage from './pages/FichePratiqueExceptionHautRisquePage'
 import FichePratiqueMaitriseIAPage from './pages/FichePratiqueMaitriseIAPage'
 import AdminConsolePage from './pages/AdminConsolePage'
+import { RIAEn5MinutesPage } from './pages/RIAEn5MinutesPage'
 import { AuthProvider } from './contexts/AuthContext'
 import { InactivityWarning } from './components/InactivityWarning'
 
@@ -111,6 +112,7 @@ function App() {
               <Route path="/fiches-pratiques/secteur-bancaire" element={<FichePratiqueSecteurBancairePage />} />
               <Route path="/fiches-pratiques/exception-haut-risque" element={<FichePratiqueExceptionHautRisquePage />} />
               <Route path="/fiches-pratiques/maitrise-ia" element={<FichePratiqueMaitriseIAPage />} />
+              <Route path="/ria-en-5-minutes" element={<RIAEn5MinutesPage />} />
               </Routes>
             </div>
             <Footer />
