@@ -23,7 +23,6 @@ const RIAEn5MinutesPage = () => {
         highlights: [
           "Renforce la confiance dans l'IA",
           "Promouvoir l'innovation",
-          "Garantir le bon fonctionnement du marché intérieur",
           "Approche basée sur les risques"
         ]
       },
@@ -85,7 +84,6 @@ const RIAEn5MinutesPage = () => {
           "Systèmes manipulant le comportement humain de manière subliminale ou trompeuse causant un préjudice",
           "Exploitation des vulnérabilités de groupes spécifiques (âge, handicap, situation sociale/économique) causant un préjudice",
           "Moissonnage non ciblé d'images faciales sur internet ou via vidéosurveillance pour créer des bases de données de reconnaissance faciale",
-          "Notation sociale généralisée évaluant la fiabilité des personnes sur la base de leur comportement social ou de caractéristiques personnelles"
         ]
       },
       unlocked: false,
@@ -99,8 +97,7 @@ const RIAEn5MinutesPage = () => {
         text: "Le Règlement introduit des règles spécifiques pour les modèles d'IA à usage général, capables d'accomplir une large gamme de tâches (Chapitre V) :",
         highlights: [
           "Tous les fournisseurs de modèles d'IA à usage général : obligations de transparence, documentation technique, politique de respect du droit d'auteur (Article 53)",
-          "Modèles d'IA à usage général à risque systémique (>10^25 FLOPS ou désignés) : obligations renforcées",
-          "Codes de bonne pratique encouragés pour détailler la mise en œuvre (Article 56)"
+          "Modèles d'IA à usage général à risque systémique : obligations renforcées",
         ]
       },
       unlocked: false,
