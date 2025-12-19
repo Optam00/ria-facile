@@ -3917,10 +3917,6 @@ const AdminConsolePage: React.FC = () => {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Modal de modification d'actualité */}
       {isEditModalOpen && editingActualite && (
@@ -4713,7 +4709,7 @@ const AdminConsolePage: React.FC = () => {
         </div>
       )}
 
-              {/* Gestion des fichiers */}
+      {/* Gestion des fichiers */}
               {selectedAction === 'gestion-fichiers' && (
                 <div>
                   <div className="flex items-center justify-between mb-6">
