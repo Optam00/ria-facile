@@ -36,9 +36,9 @@ const RIAEn5MinutesPage = () => {
       type: 'avatars',
       content: {
         roles: [
-          { id: 0, name: "Fournisseur", description: "Développe un système d'IA en vue de le mettre sur le marché ou de le mettre en service sous son propre nom ou marque (Article 3, point 3)" },
-          { id: 1, name: "Déployeur", description: "Utilise un système d'IA sous son autorité, sauf si l'usage est purement personnel (Article 3, point 4)" },
-          { id: 2, name: "Autres", description: "Le règlement s'applique également aux importateurs (Article 3, point 6), distributeurs (Article 3, point 7) et mandataires (Article 3, point 5) de systèmes d'IA." }
+          { id: 0, name: "Fournisseur", description: "Développe un système d'IA en vue de le mettre sur le marché ou de le mettre en service sous son propre nom ou marque" },
+          { id: 1, name: "Déployeur", description: "Utilise un système d'IA sous son autorité, sauf si l'usage est purement personnel" },
+          { id: 2, name: "Autres", description: "Le règlement s'applique également aux importateurs, distributeurs et mandataires de systèmes d'IA." }
         ]
       },
       unlocked: false,
