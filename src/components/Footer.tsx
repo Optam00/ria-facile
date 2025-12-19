@@ -59,11 +59,6 @@ export const Footer: React.FC = () => {
             <h3 className="text-base font-semibold mb-2">Autres liens</h3>
             <ul className="space-y-1">
               <li>
-                <Link to="/ria-en-5-minutes" className="text-gray-600 hover:text-[#774792] text-sm">
-                  Le RIA en 5 minutes
-                </Link>
-              </li>
-              <li>
                 <Link to="/contact" className="text-gray-600 hover:text-[#774792] text-sm">
                   Contact
                 </Link>

@@ -122,6 +122,34 @@ export const HomePage = () => {
         </div>
       </div>
 
+      {/* Bandeau \"Le RIA en 5 minutes\" */}
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        <Link to="/ria-en-5-minutes">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gradient-to-r from-[#774792] to-indigo-600 rounded-2xl shadow-lg p-4 md:p-5 text-white hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
+          >
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex-1 text-center md:text-left">
+                <h3 className="text-xl md:text-2xl font-bold mb-1.5">
+                  📚 Découvrez le RIA en 5 minutes
+                </h3>
+                <p className="text-white/90 text-sm md:text-base">
+                  Un parcours interactif pour maîtriser les bases du Règlement sur l'Intelligence Artificielle
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-5 py-2.5 font-semibold text-base">
+                  Commencer →
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </Link>
+      </div>
+
       {/* Section des cartes */}
       <div className="py-8 px-4">
         <div className="max-w-5xl mx-auto">

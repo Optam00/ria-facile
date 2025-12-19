@@ -147,12 +147,13 @@ export const Navigation = () => {
                    Maîtriser le RIA
                    <svg className={`w-4 h-4 transition-transform ${openMaster ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
                  </button>
-                {openMaster && (
+                 {openMaster && (
                   <div
                     className="absolute mt-2 bg-white shadow-xl rounded-lg border p-2 min-w-[240px] z-50"
                     onMouseEnter={cancelMasterClose}
                     onMouseLeave={scheduleMasterClose}
                   >
+                    <Link to="/ria-en-5-minutes" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenMaster(false)}>Le RIA en 5 minutes</Link>
                     <Link to="/schemas" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenMaster(false)}>Le RIA en schémas</Link>
                     <Link to="/documentation" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenMaster(false)}>Documentation utile</Link>
                     <Link to="/doctrine" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenMaster(false)}>Doctrine</Link>
@@ -330,6 +331,7 @@ export const Navigation = () => {
                   </button>
                   {mOpenMaster && (
                     <div className="ml-1 flex flex-col gap-1 mt-1">
+                      <Link to="/ria-en-5-minutes" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Le RIA en 5 minutes</Link>
                       <Link to="/schemas" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Le RIA en schémas</Link>
                       <Link to="/documentation" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Documentation utile</Link>
                       <Link to="/doctrine" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Doctrine</Link>
