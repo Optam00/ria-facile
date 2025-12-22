@@ -221,29 +221,78 @@ const MonEspacePage: React.FC = () => {
         return
       }
 
-      // Vérifier le mot de passe actuel en ré-authentifiant l'utilisateur
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: userEmail,
-        password: currentPassword,
-      })
-
-      if (signInError) {
-        setPasswordMessage({ type: 'error', text: 'Le mot de passe actuel est incorrect' })
+      console.log('🔵 [MON ESPACE] Vérification du mot de passe actuel via API REST...')
+      // Vérifier le mot de passe actuel via l'API REST directe (contournement du timeout)
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.error('❌ [MON ESPACE] Configuration Supabase manquante')
+        setPasswordMessage({ type: 'error', text: 'Erreur de configuration' })
         setIsSavingPassword(false)
         return
       }
 
-      // Maintenant mettre à jour le mot de passe
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword,
+      // Vérifier le mot de passe actuel via l'endpoint token
+      console.log('🔵 [MON ESPACE] Appel API REST pour vérifier le mot de passe...')
+      const verifyResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseAnonKey,
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          password: currentPassword,
+        }),
       })
 
-      if (updateError) {
-        setPasswordMessage({ type: 'error', text: updateError.message })
+      if (!verifyResponse.ok) {
+        const errorData = await verifyResponse.json().catch(() => ({ message: 'Erreur inconnue' }))
+        console.error('❌ [MON ESPACE] Erreur lors de la vérification du mot de passe:', errorData)
+        if (errorData.error === 'invalid_grant' || errorData.message?.includes('Invalid login credentials') || errorData.error_description?.includes('Invalid login credentials')) {
+          setPasswordMessage({ type: 'error', text: 'Le mot de passe actuel est incorrect' })
+        } else {
+          setPasswordMessage({ type: 'error', text: errorData.message || errorData.error_description || 'Erreur lors de la vérification du mot de passe' })
+        }
         setIsSavingPassword(false)
         return
       }
 
+      const verifyData = await verifyResponse.json()
+      const accessToken = verifyData.access_token || session?.access_token
+      
+      if (!accessToken) {
+        console.error('❌ [MON ESPACE] Token non récupéré après vérification')
+        setPasswordMessage({ type: 'error', text: 'Erreur lors de la vérification du mot de passe' })
+        setIsSavingPassword(false)
+        return
+      }
+
+      console.log('✅ [MON ESPACE] Mot de passe actuel vérifié avec succès')
+      console.log('✅ [MON ESPACE] Mise à jour du mot de passe via API REST...')
+
+      const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+        },
+        body: JSON.stringify({
+          password: newPassword,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erreur inconnue' }))
+        console.error('❌ [MON ESPACE] Erreur API REST pour le mot de passe:', errorData)
+        setPasswordMessage({ type: 'error', text: errorData.message || 'Erreur lors du changement de mot de passe' })
+        setIsSavingPassword(false)
+        return
+      }
+
+      console.log('✅ [MON ESPACE] Mot de passe mis à jour avec succès via API REST')
       setPasswordMessage({ type: 'success', text: 'Votre mot de passe a été modifié !' })
       setIsEditingPassword(false)
       setCurrentPassword('')
