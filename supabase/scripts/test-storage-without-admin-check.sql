@@ -1,0 +1,34 @@
+-- =============================================================================
+-- TEST TEMPORAIRE : Politique Storage qui permet à TOUS les utilisateurs authentifiés
+-- =============================================================================
+-- ⚠️ ATTENTION : Cette politique est temporaire pour tester si l'upload fonctionne
+-- Elle DOIT être supprimée après les tests et remplacée par les politiques admin
+-- =============================================================================
+
+-- Cette politique permet à TOUS les utilisateurs authentifiés d'uploader
+-- Créez-la via le Dashboard : Storage > Files > Policies > New Policy
+--
+-- Policy name: "TEST - All authenticated users can upload"
+-- Allowed operation: INSERT
+-- WITH CHECK expression:
+--   (bucket_id = 'admin-files') AND (auth.uid() IS NOT NULL)
+--
+-- Policy name: "TEST - All authenticated users can read"
+-- Allowed operation: SELECT
+-- USING expression:
+--   (bucket_id = 'admin-files') AND (auth.uid() IS NOT NULL)
+--
+-- Policy name: "TEST - All authenticated users can delete"
+-- Allowed operation: DELETE
+-- USING expression:
+--   (bucket_id = 'admin-files') AND (auth.uid() IS NOT NULL)
+
+-- =============================================================================
+-- INSTRUCTIONS :
+-- =============================================================================
+-- 1. Créez ces 3 politiques temporaires dans le Dashboard
+-- 2. Testez l'upload
+-- 3. Si ça fonctionne, le problème vient de la fonction is_admin()
+-- 4. Si ça ne fonctionne pas, le problème est ailleurs (client, réseau, etc.)
+-- 5. SUPPRIMEZ ces politiques après le test et remettez les politiques admin
+

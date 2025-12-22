@@ -910,6 +910,22 @@ const AdminConsolePage: React.FC = () => {
   const loadFiles = async () => {
     setIsLoadingFiles(true)
     try {
+      console.log('📂 Tentative de chargement de la liste des fichiers...')
+      
+      // Vérifier la session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError) {
+        console.error('❌ Erreur de session:', sessionError)
+        throw new Error('Erreur de session. Veuillez vous reconnecter.')
+      }
+      
+      if (!session) {
+        console.error('❌ Aucune session trouvée')
+        throw new Error('Vous devez être connecté pour voir les fichiers.')
+      }
+      
+      console.log('✅ Session trouvée:', { userId: session.user.id, email: session.user.email })
+      
       const { data, error } = await supabase.storage
         .from('admin-files')
         .list('', {
@@ -918,49 +934,8 @@ const AdminConsolePage: React.FC = () => {
           sortBy: { column: 'created_at', order: 'desc' }
         })
 
-      if (error) throw error
-
-      setFilesList(data || [])
-    } catch (err) {
-      console.error('Erreur lors du chargement des fichiers:', err)
-      setFormStatus({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Erreur lors du chargement des fichiers.',
-      })
-    } finally {
-      setIsLoadingFiles(false)
-    }
-  }
-
-  // Uploader un fichier
-  const handleUploadFile = async () => {
-    if (!selectedFile) {
-      setFormStatus({ type: 'error', message: 'Veuillez sélectionner un fichier.' })
-      return
-    }
-
-    setUploadingFile(true)
-    setFormStatus({ type: null, message: '' })
-
-    try {
-      // Vérifier que l'utilisateur est bien connecté
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        throw new Error('Vous devez être connecté pour uploader un fichier.')
-      }
-
-      const fileName = `${Date.now()}-${selectedFile.name}`
-      const filePath = fileName
-
-      const { data, error } = await supabase.storage
-        .from('admin-files')
-        .upload(filePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: false
-        })
-
       if (error) {
-        console.error('Détails de l\'erreur upload:', {
+        console.error('❌ Erreur lors du list:', {
           error,
           message: error.message,
           statusCode: error.statusCode,
@@ -969,11 +944,162 @@ const AdminConsolePage: React.FC = () => {
         throw error
       }
 
+      console.log('✅ Liste des fichiers chargée:', data?.length || 0, 'fichier(s)')
+      setFilesList(data || [])
+    } catch (err) {
+      console.error('❌ Erreur complète lors du chargement des fichiers:', err)
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : typeof err === 'object' && err !== null && 'message' in err
+        ? String(err.message)
+        : 'Erreur lors du chargement des fichiers.'
+      
+      setFormStatus({
+        type: 'error',
+        message: errorMessage.includes('row-level security') || errorMessage.includes('RLS') || errorMessage.includes('policy')
+          ? '❌ Erreur de permissions. Vérifiez que les politiques RLS sont correctement configurées pour SELECT.'
+          : errorMessage,
+      })
+      setFilesList([]) // Vider la liste en cas d'erreur
+    } finally {
+      setIsLoadingFiles(false)
+    }
+  }
+
+  // Uploader un fichier
+  const handleUploadFile = async () => {
+    console.log('🔵 handleUploadFile appelé !', { selectedFile: selectedFile?.name, uploadingFile })
+    
+    if (!selectedFile) {
+      console.log('❌ Aucun fichier sélectionné')
+      setFormStatus({ type: 'error', message: 'Veuillez sélectionner un fichier.' })
+      return
+    }
+
+    console.log('✅ Fichier sélectionné, démarrage de l\'upload...')
+    setUploadingFile(true)
+    setFormStatus({ type: null, message: '' })
+
+    try {
+      console.log('🚀 Début de l\'upload, fichier:', selectedFile.name, 'taille:', selectedFile.size)
+      
+      // Utiliser la session depuis useAuth() au lieu de getSession()
+      if (!session) {
+        console.error('❌ Aucune session trouvée dans useAuth()')
+        throw new Error('Vous devez être connecté pour uploader un fichier.')
+      }
+
+      console.log('✅ Session trouvée depuis useAuth():', {
+        userId: session.user.id,
+        email: session.user.email
+      })
+
+      // Note: On ne vérifie pas le profil ici car les politiques RLS vont gérer la sécurité
+      // Si l'utilisateur n'est pas admin, l'upload sera rejeté par les politiques RLS
+      if (profile) {
+        console.log('👤 Profil depuis useAuth():', profile)
+      } else {
+        console.log('⚠️ Profil non disponible dans useAuth(), mais on continue (RLS va vérifier)')
+      }
+
+      const fileName = `${Date.now()}-${selectedFile.name}`
+      const filePath = fileName
+
+      console.log('📤 Tentative d\'upload vers:', filePath)
+      console.log('📤 Bucket: admin-files, File size:', selectedFile.size, 'bytes')
+      
+      // Vérifier le token d'authentification
+      const { data: { session: currentSession } } = await supabase.auth.getSession()
+      console.log('🔑 Token d\'authentification:', {
+        hasToken: !!currentSession?.access_token,
+        tokenPreview: currentSession?.access_token?.substring(0, 30) + '...',
+        expiresAt: currentSession?.expires_at
+      })
+      
+      if (!currentSession?.access_token) {
+        throw new Error('Aucun token d\'authentification trouvé. Veuillez vous reconnecter.')
+      }
+
+      console.log('⏳ Utilisation de l\'API REST directe pour contourner le client Supabase...')
+
+      // Utiliser l'API REST directement au lieu du client Supabase
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      const formData = new FormData()
+      formData.append('cacheControl', '3600')
+      formData.append('', selectedFile)
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      let response
+      try {
+        response = await fetch(`${supabaseUrl}/storage/v1/object/admin-files/${filePath}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${currentSession.access_token}`,
+            'apikey': supabaseKey
+          },
+          body: formData,
+          signal: controller.signal
+        })
+        clearTimeout(timeoutId)
+      } catch (fetchError) {
+        clearTimeout(timeoutId)
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Upload timeout après 15 secondes')
+        }
+        throw fetchError
+      }
+
+      const responseText = await response.text()
+      console.log('📥 Réponse API REST:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: responseText
+      })
+
+      let data = null
+      let error = null
+
+      if (response.ok) {
+        try {
+          data = JSON.parse(responseText)
+          console.log('✅ Upload réussi:', data)
+        } catch (e) {
+          data = { path: filePath }
+        }
+      } else {
+        try {
+          error = JSON.parse(responseText)
+        } catch (e) {
+          error = { message: responseText, statusCode: response.status }
+        }
+        console.error('❌ Erreur upload:', error)
+      }
+
+      if (error) {
+        console.error('❌ Détails de l\'erreur upload:', {
+          error,
+          message: error.message,
+          statusCode: error.statusCode,
+          errorCode: error.error,
+          name: error.name,
+          fullError: JSON.stringify(error, null, 2)
+        })
+        throw error
+      }
+
+      console.log('✅ Upload réussi:', data)
+
       setFormStatus({ type: 'success', message: 'Fichier uploadé avec succès !' })
       setSelectedFile(null)
       
-      // Recharger la liste
-      await loadFiles()
+      // Recharger la liste après un court délai pour laisser le temps au fichier d'être indexé
+      setTimeout(async () => {
+        await loadFiles()
+      }, 500)
     } catch (err) {
       console.error('Erreur lors de l\'upload:', err)
       const errorMessage = err instanceof Error 
@@ -1050,8 +1176,12 @@ const AdminConsolePage: React.FC = () => {
 
   // Charger les fichiers quand on arrive sur "gestion-fichiers"
   useEffect(() => {
+    console.log('🔄 useEffect déclenché, selectedAction:', selectedAction)
     if (selectedAction === 'gestion-fichiers') {
+      console.log('📁 Action "gestion-fichiers" détectée, chargement des fichiers...')
       loadFiles()
+    } else {
+      console.log('⏸️ Action différente, pas de chargement:', selectedAction)
     }
   }, [selectedAction])
 

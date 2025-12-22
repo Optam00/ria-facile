@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Upload Direct</title>
+</head>
+<body>
+    <h1>Test Upload Direct vers Supabase</h1>
+    <button id="testBtn">Tester l'upload</button>
+    <div id="result"></div>
+
+    <script type="module">
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Test en cours...</p>';
+            
+            try {
+                console.log('1. Début du test');
+                
+                // Créer un fichier de test
+                const testFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
+                console.log('2. Fichier créé:', testFile.name);
+                
+                // Récupérer la session depuis le localStorage (si disponible)
+                const sessionData = localStorage.getItem('ria_admin_session');
+                let session = null;
+                if (sessionData) {
+                    try {
+                        const parsed = JSON.parse(sessionData);
+                        session = parsed.currentSession || parsed;
+                    } catch (e) {
+                        console.error('Erreur parsing session:', e);
+                    }
+                }
+                
+                if (!session || !session.access_token) {
+                    resultDiv.innerHTML = '<p style="color: red;">❌ Pas de session trouvée. Connectez-vous d\'abord sur l\'application.</p>';
+                    return;
+                }
+                
+                console.log('3. Session trouvée');
+                
+                const supabaseUrl = 'https://jhrorcscubchlyxlcwns.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impocm9yY3NjdWJjaGx5eGxjd25zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ4MjY0MDAsImV4cCI6MjA1MDQwMjQwMH0.xxxxxxxxxxxxx';
+                
+                console.log('4. Préparation de la requête');
+                
+                const formData = new FormData();
+                formData.append('file', testFile);
+                
+                console.log('5. Envoi de la requête...');
+                resultDiv.innerHTML = '<p>Envoi de la requête...</p>';
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                
+                const response = await fetch(`${supabaseUrl}/storage/v1/object/admin-files/test-${Date.now()}.txt`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`,
+                        'apikey': supabaseKey
+                    },
+                    body: formData,
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                console.log('6. Réponse reçue:', response.status);
+                
+                const responseText = await response.text();
+                
+                resultDiv.innerHTML = `
+                    <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                    <p><strong>Réponse:</strong> ${responseText}</p>
+                `;
+                
+                console.log('7. Réponse complète:', { status: response.status, body: responseText });
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                resultDiv.innerHTML = `<p style="color: red;">❌ Erreur: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
+

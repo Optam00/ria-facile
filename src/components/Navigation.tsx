@@ -147,7 +147,7 @@ export const Navigation = () => {
                    Maîtriser le RIA
                    <svg className={`w-4 h-4 transition-transform ${openMaster ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
                  </button>
-                 {openMaster && (
+                {openMaster && (
                   <div
                     className="absolute mt-2 bg-white shadow-xl rounded-lg border p-2 min-w-[240px] z-50"
                     onMouseEnter={cancelMasterClose}
