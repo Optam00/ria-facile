@@ -966,10 +966,13 @@ const AdminConsolePage: React.FC = () => {
     }
   }
 
-  // Uploader un fichier
+  // Uploader un fichier (via API backend pour contourner les problèmes client/Supabase)
   const handleUploadFile = async () => {
-    console.log('🔵 handleUploadFile appelé !', { selectedFile: selectedFile?.name, uploadingFile })
-    
+    console.log('🔵 handleUploadFile appelé !', {
+      selectedFile: selectedFile?.name,
+      uploadingFile,
+    })
+
     if (!selectedFile) {
       console.log('❌ Aucun fichier sélectionné')
       setFormStatus({ type: 'error', message: 'Veuillez sélectionner un fichier.' })
@@ -981,117 +984,33 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      console.log('🚀 Début de l\'upload, fichier:', selectedFile.name, 'taille:', selectedFile.size)
-      
-      // Utiliser la session depuis useAuth() au lieu de getSession()
-      if (!session) {
-        console.error('❌ Aucune session trouvée dans useAuth()')
-        throw new Error('Vous devez être connecté pour uploader un fichier.')
-      }
+      console.log(
+        "🚀 Début de l'upload (API backend), fichier:",
+        selectedFile.name,
+        'taille:',
+        selectedFile.size
+      )
 
-      console.log('✅ Session trouvée depuis useAuth():', {
-        userId: session.user.id,
-        email: session.user.email
-      })
-
-      // Note: On ne vérifie pas le profil ici car les politiques RLS vont gérer la sécurité
-      // Si l'utilisateur n'est pas admin, l'upload sera rejeté par les politiques RLS
-      if (profile) {
-        console.log('👤 Profil depuis useAuth():', profile)
-      } else {
-        console.log('⚠️ Profil non disponible dans useAuth(), mais on continue (RLS va vérifier)')
-      }
-
-      const fileName = `${Date.now()}-${selectedFile.name}`
-      const filePath = fileName
-
-      console.log('📤 Tentative d\'upload vers:', filePath)
-      console.log('📤 Bucket: admin-files, File size:', selectedFile.size, 'bytes')
-      
-      // Vérifier le token d'authentification
-      const { data: { session: currentSession } } = await supabase.auth.getSession()
-      console.log('🔑 Token d\'authentification:', {
-        hasToken: !!currentSession?.access_token,
-        tokenPreview: currentSession?.access_token?.substring(0, 30) + '...',
-        expiresAt: currentSession?.expires_at
-      })
-      
-      if (!currentSession?.access_token) {
-        throw new Error('Aucun token d\'authentification trouvé. Veuillez vous reconnecter.')
-      }
-
-      console.log('⏳ Utilisation de l\'API REST directe pour contourner le client Supabase...')
-
-      // Utiliser l'API REST directement au lieu du client Supabase
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-      
+      // On envoie le fichier à notre route backend /api/admin-files
       const formData = new FormData()
-      formData.append('cacheControl', '3600')
-      formData.append('', selectedFile)
+      formData.append('file', selectedFile)
 
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 15000)
-
-      let response
-      try {
-        response = await fetch(`${supabaseUrl}/storage/v1/object/admin-files/${filePath}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${currentSession.access_token}`,
-            'apikey': supabaseKey
-          },
-          body: formData,
-          signal: controller.signal
-        })
-        clearTimeout(timeoutId)
-      } catch (fetchError) {
-        clearTimeout(timeoutId)
-        if (fetchError.name === 'AbortError') {
-          throw new Error('Upload timeout après 15 secondes')
-        }
-        throw fetchError
-      }
-
-      const responseText = await response.text()
-      console.log('📥 Réponse API REST:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: responseText
+      const response = await fetch('/api/admin-files', {
+        method: 'POST',
+        body: formData,
       })
 
-      let data = null
-      let error = null
+      const result = await response.json()
+      console.log('📥 Réponse API /api/admin-files:', { status: response.status, result })
 
-      if (response.ok) {
-        try {
-          data = JSON.parse(responseText)
-          console.log('✅ Upload réussi:', data)
-        } catch (e) {
-          data = { path: filePath }
-        }
-      } else {
-        try {
-          error = JSON.parse(responseText)
-        } catch (e) {
-          error = { message: responseText, statusCode: response.status }
-        }
-        console.error('❌ Erreur upload:', error)
+      if (!response.ok || !result?.success) {
+        const message =
+          result?.error ||
+          'Erreur lors de l’upload du fichier (API backend). Veuillez réessayer plus tard.'
+        throw new Error(message)
       }
 
-      if (error) {
-        console.error('❌ Détails de l\'erreur upload:', {
-          error,
-          message: error.message,
-          statusCode: error.statusCode,
-          errorCode: error.error,
-          name: error.name,
-          fullError: JSON.stringify(error, null, 2)
-        })
-        throw error
-      }
-
-      console.log('✅ Upload réussi:', data)
+      console.log('✅ Upload réussi via API backend, path:', result.path)
 
       setFormStatus({ type: 'success', message: 'Fichier uploadé avec succès !' })
       setSelectedFile(null)
