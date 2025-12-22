@@ -133,58 +133,37 @@ const MonEspacePage: React.FC = () => {
       setInfosMessage({ type: 'success', text: 'Vos informations ont été mises à jour !' })
       setIsEditingInfos(false)
       
-      // Attendre un peu pour que Supabase propage les changements, puis recharger l'utilisateur
+      // Attendre un peu pour que Supabase propage les changements
       console.log('🔵 [MON ESPACE] Attente de la propagation des changements...')
       await new Promise(resolve => setTimeout(resolve, 2000))
       
-      // Forcer un rechargement complet de l'utilisateur depuis Supabase
-      console.log('🔵 [MON ESPACE] Rechargement de l\'utilisateur depuis Supabase...')
-      let retries = 3
-      let success = false
-      
-      while (retries > 0 && !success) {
-        try {
-          const { data: { user: refreshedUser }, error: getUserError } = await supabase.auth.getUser()
-          if (getUserError) {
-            console.warn('⚠️ [MON ESPACE] Erreur lors du rechargement de l\'utilisateur:', getUserError)
-            retries--
-            if (retries > 0) {
-              await new Promise(resolve => setTimeout(resolve, 1000))
-            }
-          } else if (refreshedUser?.user_metadata) {
-            const refreshedMetadata = refreshedUser.user_metadata
-            console.log('✅ [MON ESPACE] Utilisateur rechargé avec succès')
-            console.log('🔵 [MON ESPACE] Métadonnées rechargées:', refreshedMetadata)
-            
-            // Vérifier que les métadonnées sont bien mises à jour
-            if (refreshedMetadata.profession === profession.trim() || 
-                refreshedMetadata.nom === nom.trim() || 
-                refreshedMetadata.prenom === prenom.trim()) {
-              console.log('✅ [MON ESPACE] Métadonnées confirmées, mise à jour de l\'affichage')
-              setPrenom(refreshedMetadata.prenom || '')
-              setNom(refreshedMetadata.nom || '')
-              setProfession(refreshedMetadata.profession || '')
-              success = true
-            } else {
-              console.log('⚠️ [MON ESPACE] Métadonnées pas encore propagées, nouvelle tentative...')
-              retries--
-              if (retries > 0) {
-                await new Promise(resolve => setTimeout(resolve, 1000))
-              }
-            }
-          }
-        } catch (getUserErr) {
-          console.warn('⚠️ [MON ESPACE] Exception lors du rechargement de l\'utilisateur:', getUserErr)
-          retries--
-          if (retries > 0) {
-            await new Promise(resolve => setTimeout(resolve, 1000))
-          }
+      // Forcer un rafraîchissement complet de la session depuis le serveur
+      // (en invalidant le cache du navigateur)
+      console.log('🔵 [MON ESPACE] Rafraîchissement forcé de la session...')
+      try {
+        // Forcer un refresh de la session qui va recharger depuis le serveur
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+        if (refreshError) {
+          console.warn('⚠️ [MON ESPACE] Erreur lors du rafraîchissement de session:', refreshError)
+        } else if (refreshedSession?.user?.user_metadata) {
+          const refreshedMetadata = refreshedSession.user.user_metadata
+          console.log('✅ [MON ESPACE] Session rafraîchie avec succès')
+          console.log('🔵 [MON ESPACE] Métadonnées depuis session rafraîchie:', refreshedMetadata)
+          
+          // Mettre à jour les états avec les nouvelles métadonnées
+          setPrenom(refreshedMetadata.prenom || '')
+          setNom(refreshedMetadata.nom || '')
+          setProfession(refreshedMetadata.profession || '')
         }
+      } catch (refreshErr) {
+        console.warn('⚠️ [MON ESPACE] Exception lors du rafraîchissement de session:', refreshErr)
       }
       
-      // Forcer un rechargement de la page pour s'assurer que tout est synchronisé
-      console.log('🔄 [MON ESPACE] Rechargement de la page...')
-      window.location.reload()
+      // Forcer un rechargement complet de la page avec cache-busting
+      // pour s'assurer que la session est bien rechargée depuis le serveur
+      console.log('🔄 [MON ESPACE] Rechargement de la page avec invalidation du cache...')
+      // Utiliser location.reload() avec un paramètre pour forcer le rechargement
+      window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now()
     } catch (err) {
       console.error('Exception lors de la mise à jour:', err)
       setInfosMessage({ type: 'error', text: 'Erreur lors de la mise à jour' })
