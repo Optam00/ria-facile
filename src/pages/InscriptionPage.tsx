@@ -13,6 +13,7 @@ const InscriptionPage: React.FC = () => {
   const [nom, setNom] = useState('')
   const [prenom, setPrenom] = useState('')
   const [profession, setProfession] = useState('')
+  const [consentementProspection, setConsentementProspection] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -73,6 +74,7 @@ const InscriptionPage: React.FC = () => {
             nom: nom.trim() || null,
             prenom: prenom.trim() || null,
             profession: profession.trim() || null,
+            consentement_prospection: consentementProspection,
           },
           emailRedirectTo: `${window.location.origin}/connexion`,
         },
@@ -91,22 +93,26 @@ const InscriptionPage: React.FC = () => {
 
       // Vérifier si l'utilisateur a été créé
       if (data.user) {
-        // Créer le profil dans la table profiles (en arrière-plan, sans bloquer)
-        supabase
+        // Créer ou mettre à jour le profil dans la table profiles (UPSERT)
+        // Le trigger peut avoir déjà créé le profil, donc on utilise UPSERT
+        const { error: profileError } = await supabase
           .from('profiles')
-          .insert({
+          .upsert({
             id: data.user.id,
             email: email,
             role: 'adherent',
             nom: nom.trim() || null,
             prenom: prenom.trim() || null,
             profession: profession.trim() || null,
+            consentement_prospection: consentementProspection,
+          }, {
+            onConflict: 'id'
           })
-          .then(({ error: profileError }) => {
-            if (profileError) {
-              console.error('Erreur création profil (non bloquante):', profileError)
-            }
-          })
+
+        if (profileError) {
+          console.error('Erreur création/mise à jour profil:', profileError)
+          // On continue quand même, car le trigger peut avoir créé le profil
+        }
 
         setSuccess(true)
         setIsLoading(false)
@@ -305,6 +311,28 @@ const InscriptionPage: React.FC = () => {
               />
             </div>
 
+            {/* Consentement prospection commerciale */}
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="consentementProspection"
+                  checked={consentementProspection}
+                  onChange={(e) => setConsentementProspection(e.target.checked)}
+                  disabled={isLoading}
+                  className="mt-1 w-4 h-4 text-[#774792] border-gray-300 rounded focus:ring-[#774792] focus:ring-2"
+                />
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-gray-800">
+                    J'accepte de recevoir des communications commerciales de RIA Facile
+                  </span>
+                  <p className="text-xs text-gray-600 mt-1">
+                    En cochant cette case, vous acceptez de recevoir des emails promotionnels, newsletters et autres communications commerciales de RIA Facile. Vous pourrez vous désabonner à tout moment depuis votre espace adhérent.
+                  </p>
+                </div>
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={isLoading}
@@ -323,6 +351,19 @@ const InscriptionPage: React.FC = () => {
               )}
             </button>
           </form>
+
+          <p className="mt-6 text-xs text-gray-500 text-justify italic">
+            RIA Facile traite vos données pour gérer votre adhésion. Pour en savoir plus sur vos droits et la façon dont nous traitons vos données, consultez notre{' '}
+            <a
+              href="/politique-de-confidentialite"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#774792] underline hover:no-underline"
+            >
+              Politique de confidentialité
+            </a>
+            .
+          </p>
 
           {/* Lien vers connexion */}
           <div className="mt-8 pt-6 border-t border-gray-200">

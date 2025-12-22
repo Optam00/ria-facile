@@ -84,6 +84,19 @@ export const AssistantRIAPage = () => {
                       </motion.svg>
                     </motion.button>
                   </div>
+
+                    <p className="mt-4 text-xs text-gray-500 text-justify italic">
+                      RIA Facile traite vos données pour répondre aux questions que vous posez à l’Assistant RIA. Pour en savoir plus sur vos droits et la façon dont nous traitons vos données, consultez notre{' '}
+                      <a
+                        href="/politique-de-confidentialite"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#774792] underline hover:no-underline"
+                      >
+                        Politique de confidentialité
+                      </a>
+                      .
+                    </p>
                 </motion.div>
               </motion.div>
 

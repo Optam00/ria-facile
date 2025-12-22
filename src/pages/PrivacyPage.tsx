@@ -68,6 +68,26 @@ export const PrivacyPage = () => {
                 </div>
 
                 <div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-800">Utilisation de l’assistant RIA</h3>
+                  <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                    <li><strong>Finalité :</strong> les données sont traitées pour apporter une réponse à votre question</li>
+                    <li><strong>Base légale :</strong> ce traitement de données est fondé sur l'intérêt légitime de RIA Facile, plus précisément d'apporter la plus grande satisfaction possible aux utilisateurs de sa plateforme</li>
+                    <li><strong>Durées de conservation :</strong> les données présentes dans vos questions sont conservées 24h. Les données présentes dans les réponses de l’assistant RIA ne sont pas conservées. Elles sont supprimées à chaque rafraîchissement de la page</li>
+                    <li><strong>Destinataires :</strong> les données sont accessibles par les administrateurs de RIA facile, l’hébergeur ainsi que par l’éditeur de Gemini.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-800">Adhésion à RIA Facile</h3>
+                  <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                    <li><strong>Finalité :</strong> les données sont traitées pour créer votre compte adhérent</li>
+                    <li><strong>Base légale :</strong> il n’existe pas aujourd’hui de contrat entre les adhérents et RIA Facile. Ce traitement repose sur l’intérêt légitime de RIA Facile, plus précisément de donner accès à davantage de fonctionnalités</li>
+                    <li><strong>Durées de conservation :</strong> les données sont conservées jusqu’à votre désinscription + 3 mois</li>
+                    <li><strong>Destinataires :</strong> les données sont accessibles par les administrateurs de RIA Facile et par l’hébergeur.</li>
+                  </ul>
+                </div>
+
+                <div>
                   <h3 className="text-xl font-semibold mb-3 text-gray-800">Éléments communs à l'ensemble des traitements de données</h3>
                   <p className="text-gray-700">
                     Dans la mesure du possible, vos données sont hébergées sur des serveurs situés dans l'Espace Economique Européen (EEE). Toutefois, si des données sont traitées en dehors de ce territoire, nous apportons une attention particulière à ce que ce transfert soit effectué en conformité avec le cadre juridique existant et mettons en place des garanties assurant un niveau de protection de votre vie privée et de vos droits fondamentaux équivalent à celui offert par l'Union Européenne (ex : utilisation des Clauses Contractuelles Types de la Commission européenne).

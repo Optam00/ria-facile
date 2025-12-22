@@ -30,7 +30,7 @@ export const HomePage = () => {
     },
     {
       question: "Comment le Règlement IA classe-t-il les systèmes d'IA ?",
-      answer: "Le Règlement adopte une approche basée sur les risques, classant les systèmes d'IA en quatre catégories principales :\n\n- <strong>Risque inacceptable</strong> : Pratiques d'IA interdites car contraires aux valeurs de l'UE (Article 5).\n- <strong>Haut risque</strong> : Systèmes d'IA soumis à des exigences strictes avant leur mise sur le marché et tout au long de leur cycle de vie (Articles 6 à 15 et obligations connexes).\n- <strong>Risque limité</strong> : Systèmes d'IA soumis à des obligations spécifiques de transparence (Article 50).\n- <strong>Risque minimal</strong> : Majorité des systèmes d'IA. Le règlement n'impose pas d'obligations, mais encourage l'adhésion volontaire à des codes de conduite (considérant 28)."
+      answer: "Le Règlement adopte une approche basée sur les risques, classant les systèmes d'IA en quatre catégories principales :\n\n- <strong>Risque inacceptable</strong> : Pratiques d'IA interdites car contraires aux valeurs de l'UE (Article 5).\n- <strong>Haut risque</strong> : Systèmes d'IA soumis à des exigences strictes avant leur mise sur le marché et tout au long de leur cycle de vie (Articles 6 à 15 et obligations connexes).\n- <strong>Risque limité</strong> : Systèmes d'IA soumis à des obligations spécifiques de transparence (Article 50).\n- <strong>Risque minimal</strong> : Majorité des systèmes d'IA. Le règlement n'impose pas d'obligations, mais encourage l'adhésion volontaire à des codes de conduite."
     },
     {
       question: "Quelles sont les pratiques d'IA interdites (risque inacceptable) ?",

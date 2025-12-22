@@ -6,7 +6,7 @@ import { supabasePublic } from '../lib/supabasePublic'
 import { supabase } from '../lib/supabase'
 import AdminDashboard from '../components/AdminDashboard'
 
-type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | null
+type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | null
 
 interface Actualite {
   id: number
@@ -123,7 +123,12 @@ const AdminConsolePage: React.FC = () => {
     doc_associee: '',
   })
   const [isLoadingArticle, setIsLoadingArticle] = useState(false)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  // Sidebar repliée par défaut sur mobile / petits écrans, ouverte sur desktop
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    // Même breakpoint que Tailwind "lg" (≈1024px)
+    return window.innerWidth < 1024
+  })
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['actus']))
   
   // États pour la gestion des actualités
@@ -243,6 +248,21 @@ const AdminConsolePage: React.FC = () => {
   const [isLoadingAdherents, setIsLoadingAdherents] = useState(false)
   const [deleteAdherentConfirmId, setDeleteAdherentConfirmId] = useState<string | null>(null)
 
+  // États pour les demandes de suppression
+  interface DeletionRequest {
+    id: string
+    user_id: string
+    email: string
+    reason: string | null
+    requested_at: string
+    status: 'pending' | 'processing' | 'completed' | 'cancelled'
+    processed_at: string | null
+    processed_by: string | null
+  }
+  const [deletionRequests, setDeletionRequests] = useState<DeletionRequest[]>([])
+  const [isLoadingDeletionRequests, setIsLoadingDeletionRequests] = useState(false)
+  const [deletionRequestFilter, setDeletionRequestFilter] = useState<'all' | 'pending' | 'processing' | 'completed' | 'cancelled'>('all')
+
   // États pour la gestion des fichiers
   interface FileItem {
     name: string
@@ -345,6 +365,7 @@ const AdminConsolePage: React.FC = () => {
       items: [
         { id: 'consulter-adherents' as AdminAction, label: 'Liste des adhérents', icon: '📋' },
         { id: 'supprimer-adherent' as AdminAction, label: 'Supprimer un adhérent', icon: '🗑️' },
+        { id: 'demandes-suppression' as AdminAction, label: 'Demandes de suppression', icon: '⚠️' },
       ],
     },
     {
@@ -773,6 +794,118 @@ const AdminConsolePage: React.FC = () => {
 
     loadAdherents()
   }, [selectedAction])
+
+  // Charger les demandes de suppression
+  useEffect(() => {
+    const loadDeletionRequests = async () => {
+      if (selectedAction !== 'demandes-suppression') return
+      
+      setIsLoadingDeletionRequests(true)
+      try {
+        const { data, error } = await supabase
+          .from('deletion_requests')
+          .select('*')
+          .order('requested_at', { ascending: false })
+
+        if (error) {
+          console.error('❌ [DEMANDES SUPPRESSION] Erreur:', error)
+          setFormStatus({ type: 'error', message: 'Erreur lors du chargement des demandes' })
+        } else {
+          console.log('✅ [DEMANDES SUPPRESSION] Demandes chargées:', data?.length)
+          setDeletionRequests(data || [])
+        }
+      } catch (err) {
+        console.error('❌ [DEMANDES SUPPRESSION] Exception:', err)
+        setFormStatus({ type: 'error', message: 'Erreur lors du chargement des demandes' })
+      } finally {
+        setIsLoadingDeletionRequests(false)
+      }
+    }
+
+    loadDeletionRequests()
+  }, [selectedAction])
+
+  // Traiter une demande de suppression (supprimer le compte)
+  const handleProcessDeletionRequest = async (requestId: string, userId: string) => {
+    if (!session?.user) {
+      setFormStatus({ type: 'error', message: 'Session expirée' })
+      return
+    }
+
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce compte ? Cette action est irréversible.')) {
+      return
+    }
+
+    try {
+      // Mettre à jour le statut de la demande
+      const { error: updateError } = await supabase
+        .from('deletion_requests')
+        .update({
+          status: 'processing',
+          processed_by: session.user.id,
+        })
+        .eq('id', requestId)
+
+      if (updateError) {
+        console.error('❌ [DEMANDES SUPPRESSION] Erreur mise à jour:', updateError)
+        setFormStatus({ type: 'error', message: 'Erreur lors de la mise à jour de la demande' })
+        return
+      }
+
+      // Supprimer l'utilisateur (cela supprimera aussi automatiquement le profil et la demande grâce aux CASCADE)
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const accessToken = session.access_token
+
+      if (!supabaseUrl || !accessToken) {
+        setFormStatus({ type: 'error', message: 'Erreur de configuration' })
+        return
+      }
+
+      // Utiliser l'API Admin de Supabase pour supprimer l'utilisateur
+      const response = await fetch(`${supabaseUrl}/auth/v1/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erreur inconnue' }))
+        console.error('❌ [DEMANDES SUPPRESSION] Erreur suppression utilisateur:', errorData)
+        setFormStatus({ type: 'error', message: 'Erreur lors de la suppression du compte' })
+        return
+      }
+
+      // Marquer la demande comme complétée
+      await supabase
+        .from('deletion_requests')
+        .update({
+          status: 'completed',
+          processed_at: new Date().toISOString(),
+        })
+        .eq('id', requestId)
+
+      setFormStatus({ type: 'success', message: 'Compte supprimé avec succès' })
+      
+      // Recharger les demandes
+      const { data } = await supabase
+        .from('deletion_requests')
+        .select('*')
+        .order('requested_at', { ascending: false })
+      setDeletionRequests(data || [])
+
+    } catch (err) {
+      console.error('❌ [DEMANDES SUPPRESSION] Exception:', err)
+      setFormStatus({ type: 'error', message: 'Erreur lors du traitement de la demande' })
+    }
+  }
+
+  // Filtrer les demandes selon le statut
+  const filteredDeletionRequests = deletionRequests.filter((req) => {
+    if (deletionRequestFilter === 'all') return true
+    return req.status === deletionRequestFilter
+  })
 
   // Filtrer les actualités selon la recherche et le filtre média
   const filteredActualites = actualitesList.filter((actu) => {
@@ -1744,7 +1877,7 @@ const AdminConsolePage: React.FC = () => {
           {/* Sidebar (en haut sur mobile, à gauche sur desktop) */}
           <div className={`w-full lg:w-64 flex-shrink-0 ${isSidebarCollapsed ? 'lg:max-w-[68px]' : ''}`}>
             <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl shadow-lg border border-white p-4 flex flex-col h-full">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center mb-4">
                 {!isSidebarCollapsed && (
                   <h2 className="text-lg font-semibold text-[#774792]">
                     Menu d’administration
@@ -1753,7 +1886,7 @@ const AdminConsolePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsSidebarCollapsed((v) => !v)}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm"
+                  className="ml-auto inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm"
                   aria-label={isSidebarCollapsed ? 'Déployer le menu admin' : 'Rétracter le menu admin'}
                 >
                   <span className="text-sm font-semibold">
@@ -3265,6 +3398,195 @@ const AdminConsolePage: React.FC = () => {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                                 Supprimer
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Section Demandes de suppression */}
+              {selectedAction === 'demandes-suppression' && (
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-800">
+                        Demandes de suppression de compte
+                      </h2>
+                      <p className="text-gray-600 mt-2">
+                        Gérez les demandes de suppression de compte des adhérents.
+                      </p>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {filteredDeletionRequests.length} demande{filteredDeletionRequests.length > 1 ? 's' : ''}
+                    </div>
+                  </div>
+
+                  {formStatus.type && (
+                    <div
+                      className={`mb-4 rounded-xl px-4 py-3 ${
+                        formStatus.type === 'success'
+                          ? 'bg-green-50 text-green-800 border border-green-200'
+                          : 'bg-red-50 text-red-800 border border-red-200'
+                      }`}
+                    >
+                      {formStatus.message}
+                    </div>
+                  )}
+
+                  {/* Filtres par statut */}
+                  <div className="mb-6 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setDeletionRequestFilter('all')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        deletionRequestFilter === 'all'
+                          ? 'bg-[#774792] text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Toutes
+                    </button>
+                    <button
+                      onClick={() => setDeletionRequestFilter('pending')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        deletionRequestFilter === 'pending'
+                          ? 'bg-yellow-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      En attente
+                    </button>
+                    <button
+                      onClick={() => setDeletionRequestFilter('processing')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        deletionRequestFilter === 'processing'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      En traitement
+                    </button>
+                    <button
+                      onClick={() => setDeletionRequestFilter('completed')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        deletionRequestFilter === 'completed'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Traitées
+                    </button>
+                    <button
+                      onClick={() => setDeletionRequestFilter('cancelled')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        deletionRequestFilter === 'cancelled'
+                          ? 'bg-gray-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      Annulées
+                    </button>
+                  </div>
+
+                  {/* Liste des demandes */}
+                  {isLoadingDeletionRequests ? (
+                    <div className="text-center py-12">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#774792]"></div>
+                      <p className="mt-4 text-gray-600">Chargement des demandes...</p>
+                    </div>
+                  ) : filteredDeletionRequests.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-xl">
+                      <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p className="text-gray-500">
+                        {deletionRequestFilter === 'all'
+                          ? 'Aucune demande de suppression.'
+                          : `Aucune demande avec le statut "${deletionRequestFilter}".`}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredDeletionRequests.map((request) => (
+                        <div
+                          key={request.id}
+                          className={`bg-white border rounded-xl p-5 ${
+                            request.status === 'pending'
+                              ? 'border-yellow-300 bg-yellow-50'
+                              : request.status === 'processing'
+                              ? 'border-blue-300 bg-blue-50'
+                              : request.status === 'completed'
+                              ? 'border-green-300 bg-green-50'
+                              : 'border-gray-200'
+                          }`}
+                        >
+                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                                  request.status === 'pending'
+                                    ? 'bg-yellow-500'
+                                    : request.status === 'processing'
+                                    ? 'bg-blue-500'
+                                    : request.status === 'completed'
+                                    ? 'bg-green-500'
+                                    : 'bg-gray-500'
+                                }`}>
+                                  {request.email[0].toUpperCase()}
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-gray-800">{request.email}</p>
+                                  <p className="text-sm text-gray-600">
+                                    Demandé le {new Date(request.requested_at).toLocaleDateString('fr-FR', {
+                                      year: 'numeric',
+                                      month: 'long',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </p>
+                                </div>
+                              </div>
+                              {request.reason && (
+                                <div className="mt-2 p-3 bg-white rounded-lg border border-gray-200">
+                                  <p className="text-xs text-gray-500 mb-1">Motif :</p>
+                                  <p className="text-sm text-gray-700">{request.reason}</p>
+                                </div>
+                              )}
+                              <div className="flex flex-wrap gap-2 mt-3">
+                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                  request.status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-700'
+                                    : request.status === 'processing'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : request.status === 'completed'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {request.status === 'pending' && 'En attente'}
+                                  {request.status === 'processing' && 'En traitement'}
+                                  {request.status === 'completed' && 'Traité'}
+                                  {request.status === 'cancelled' && 'Annulé'}
+                                </span>
+                                {request.processed_at && (
+                                  <span className="text-xs text-gray-500">
+                                    Traité le {new Date(request.processed_at).toLocaleDateString('fr-FR')}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {request.status === 'pending' && (
+                              <button
+                                onClick={() => handleProcessDeletionRequest(request.id, request.user_id)}
+                                className="px-4 py-2 text-sm text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Supprimer le compte
                               </button>
                             )}
                           </div>

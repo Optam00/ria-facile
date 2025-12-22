@@ -13,6 +13,7 @@ BEGIN
     nom = (NEW.raw_user_meta_data->>'nom')::text,
     prenom = (NEW.raw_user_meta_data->>'prenom')::text,
     profession = (NEW.raw_user_meta_data->>'profession')::text,
+    consentement_prospection = COALESCE((NEW.raw_user_meta_data->>'consentement_prospection')::boolean, false),
     updated_at = NOW()
   WHERE id = NEW.id;
 
@@ -42,6 +43,7 @@ SET
   nom = (u.raw_user_meta_data->>'nom')::text,
   prenom = (u.raw_user_meta_data->>'prenom')::text,
   profession = (u.raw_user_meta_data->>'profession')::text,
+  consentement_prospection = COALESCE((u.raw_user_meta_data->>'consentement_prospection')::boolean, false),
   updated_at = NOW()
 FROM auth.users u
 WHERE p.id = u.id
@@ -50,6 +52,7 @@ WHERE p.id = u.id
     p.nom IS DISTINCT FROM (u.raw_user_meta_data->>'nom')::text
     OR p.prenom IS DISTINCT FROM (u.raw_user_meta_data->>'prenom')::text
     OR p.profession IS DISTINCT FROM (u.raw_user_meta_data->>'profession')::text
+    OR p.consentement_prospection IS DISTINCT FROM COALESCE((u.raw_user_meta_data->>'consentement_prospection')::boolean, false)
   );
 
 -- 5. Vérification
