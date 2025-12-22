@@ -14,7 +14,7 @@ const MonEspacePage: React.FC = () => {
   const [profession, setProfession] = useState('')
   const [isEditingInfos, setIsEditingInfos] = useState(false)
   const [isSavingInfos, setIsSavingInfos] = useState(false)
-  const [infosMessage, setInfosMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [infosMessage, setInfosMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null)
 
   // États pour le changement de mot de passe
   const [isEditingPassword, setIsEditingPassword] = useState(false)
@@ -25,14 +25,19 @@ const MonEspacePage: React.FC = () => {
   const [isSavingPassword, setIsSavingPassword] = useState(false)
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  // Charger les infos utilisateur
+  // Charger les infos utilisateur uniquement depuis les métadonnées Supabase
+  // On évite d'appeler la table profiles côté client car les requêtes timeout / 500
   useEffect(() => {
-    if (session?.user) {
-      const metadata = session.user.user_metadata
-      setPrenom(metadata?.prenom || '')
-      setNom(metadata?.nom || '')
-      setProfession(metadata?.profession || '')
+    if (!session?.user) {
+      console.log('⚠️ [MON ESPACE] Pas de session, impossible de charger les infos')
+      return
     }
+
+    const metadata = session.user.user_metadata
+    console.log('🔵 [MON ESPACE] Chargement des infos depuis user_metadata:', metadata)
+    setPrenom(metadata?.prenom || '')
+    setNom(metadata?.nom || '')
+    setProfession(metadata?.profession || '')
   }, [session])
 
   // Rediriger si l'utilisateur n'est pas adhérent
@@ -51,10 +56,8 @@ const MonEspacePage: React.FC = () => {
     setIsSavingInfos(true)
     setInfosMessage(null)
 
-    // Vérifier que l'utilisateur est connecté
-    const { data: { session: currentSession } } = await supabase.auth.getSession()
-    
-    if (!currentSession) {
+    // Vérifier que l'utilisateur est connecté (via useAuth)
+    if (!session) {
       setInfosMessage({ type: 'error', text: 'Session expirée. Veuillez vous reconnecter.' })
       setIsSavingInfos(false)
       return
@@ -63,70 +66,125 @@ const MonEspacePage: React.FC = () => {
     try {
       console.log('🔵 [MON ESPACE] Début de la mise à jour des infos...')
       console.log('🔵 [MON ESPACE] Données à sauvegarder:', { prenom, nom, profession })
-      console.log('🔵 [MON ESPACE] User ID:', currentSession.user.id)
-      
-      // Mettre à jour les user_metadata
-      console.log('🔵 [MON ESPACE] Mise à jour des user_metadata...')
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          prenom: prenom.trim() || null,
-          nom: nom.trim() || null,
-          profession: profession.trim() || null,
-        },
-      })
+      console.log('🔵 [MON ESPACE] User ID:', session.user.id)
 
-      if (updateError) {
-        console.error('❌ [MON ESPACE] Erreur updateUser:', updateError)
-        setInfosMessage({ type: 'error', text: updateError.message })
+      // Mettre à jour UNIQUEMENT les user_metadata via l'API REST directe
+      // (contournement du client Supabase qui peut bloquer)
+      console.log('🔵 [MON ESPACE] Mise à jour des user_metadata via API REST...')
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const accessToken = session.access_token
+      
+      if (!supabaseUrl || !accessToken) {
+        console.error('❌ [MON ESPACE] URL Supabase ou token manquant')
+        setInfosMessage({ type: 'error', text: 'Erreur de configuration' })
         setIsSavingInfos(false)
         return
       }
-      console.log('✅ [MON ESPACE] user_metadata mis à jour avec succès')
 
-      // Aussi mettre à jour la table profiles (upsert pour créer si n'existe pas)
-      const userId = currentSession.user.id
-      // Récupérer le rôle depuis le profil ou les métadonnées, avec 'adherent' par défaut
-      const userRole = profile?.role || currentSession.user.user_metadata?.role || 'adherent'
-      console.log('🔵 [MON ESPACE] Rôle utilisateur:', userRole)
-      
-      const upsertData = {
-        id: userId,
-        email: currentSession.user.email,
-        role: userRole, // Inclure le rôle pour éviter les problèmes lors de l'insertion
+      // Préparer les nouvelles métadonnées (fusionner avec les existantes)
+      const currentMetadata = session.user.user_metadata || {}
+      const newMetadata = {
+        ...currentMetadata,
         prenom: prenom.trim() || null,
         nom: nom.trim() || null,
         profession: profession.trim() || null,
       }
-      console.log('🔵 [MON ESPACE] Données pour upsert:', upsertData)
-      console.log('🔵 [MON ESPACE] Tentative d\'upsert dans profiles...')
-      
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .upsert(upsertData, { onConflict: 'id' })
-        .select()
 
-      if (profileError) {
-        console.error('❌ [MON ESPACE] Erreur mise à jour profile:', profileError)
-        console.error('❌ [MON ESPACE] Code erreur:', profileError.code)
-        console.error('❌ [MON ESPACE] Message erreur:', profileError.message)
-        console.error('❌ [MON ESPACE] Détails erreur:', profileError.details)
-        console.error('❌ [MON ESPACE] Hint erreur:', profileError.hint)
-        // Si l'erreur est liée aux RLS, donner un message plus clair
-        if (profileError.code === '42501' || profileError.message?.includes('permission') || profileError.message?.includes('policy')) {
-          setInfosMessage({ 
-            type: 'error', 
-            text: 'Erreur de permissions. Les user_metadata ont été mis à jour, mais la mise à jour du profil a échoué. Veuillez contacter le support.' 
-          })
-        } else {
-          // On continue quand même car user_metadata a été mis à jour
-          console.warn('Mise à jour du profil échouée, mais user_metadata mis à jour:', profileError.message)
-        }
+      console.log('🔵 [MON ESPACE] Nouvelles métadonnées:', newMetadata)
+
+      // Appel direct à l'API REST de Supabase Auth
+      const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+        },
+        body: JSON.stringify({
+          data: newMetadata,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Erreur inconnue' }))
+        console.error('❌ [MON ESPACE] Erreur API REST:', errorData)
+        setInfosMessage({ type: 'error', text: errorData.message || 'Erreur lors de la mise à jour' })
         setIsSavingInfos(false)
         return
       }
 
+      const updatedUser = await response.json()
+      console.log('✅ [MON ESPACE] user_metadata mis à jour avec succès via API REST')
+      console.log('🔵 [MON ESPACE] Utilisateur mis à jour:', updatedUser)
+      
+      // Utiliser directement les métadonnées retournées par l'API pour mettre à jour l'affichage immédiatement
+      if (updatedUser?.user_metadata) {
+        const updatedMetadata = updatedUser.user_metadata
+        console.log('🔵 [MON ESPACE] Nouvelles métadonnées depuis API:', updatedMetadata)
+        setPrenom(updatedMetadata.prenom || '')
+        setNom(updatedMetadata.nom || '')
+        setProfession(updatedMetadata.profession || '')
+      }
+      
+      // Mettre à jour les états locaux directement avec les nouvelles métadonnées
+      console.log('✅ [MON ESPACE] Mise à jour des états locaux avec les nouvelles métadonnées')
+      
       setInfosMessage({ type: 'success', text: 'Vos informations ont été mises à jour !' })
       setIsEditingInfos(false)
+      
+      // Attendre un peu pour que Supabase propage les changements, puis recharger l'utilisateur
+      console.log('🔵 [MON ESPACE] Attente de la propagation des changements...')
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Forcer un rechargement complet de l'utilisateur depuis Supabase
+      console.log('🔵 [MON ESPACE] Rechargement de l\'utilisateur depuis Supabase...')
+      let retries = 3
+      let success = false
+      
+      while (retries > 0 && !success) {
+        try {
+          const { data: { user: refreshedUser }, error: getUserError } = await supabase.auth.getUser()
+          if (getUserError) {
+            console.warn('⚠️ [MON ESPACE] Erreur lors du rechargement de l\'utilisateur:', getUserError)
+            retries--
+            if (retries > 0) {
+              await new Promise(resolve => setTimeout(resolve, 1000))
+            }
+          } else if (refreshedUser?.user_metadata) {
+            const refreshedMetadata = refreshedUser.user_metadata
+            console.log('✅ [MON ESPACE] Utilisateur rechargé avec succès')
+            console.log('🔵 [MON ESPACE] Métadonnées rechargées:', refreshedMetadata)
+            
+            // Vérifier que les métadonnées sont bien mises à jour
+            if (refreshedMetadata.profession === profession.trim() || 
+                refreshedMetadata.nom === nom.trim() || 
+                refreshedMetadata.prenom === prenom.trim()) {
+              console.log('✅ [MON ESPACE] Métadonnées confirmées, mise à jour de l\'affichage')
+              setPrenom(refreshedMetadata.prenom || '')
+              setNom(refreshedMetadata.nom || '')
+              setProfession(refreshedMetadata.profession || '')
+              success = true
+            } else {
+              console.log('⚠️ [MON ESPACE] Métadonnées pas encore propagées, nouvelle tentative...')
+              retries--
+              if (retries > 0) {
+                await new Promise(resolve => setTimeout(resolve, 1000))
+              }
+            }
+          }
+        } catch (getUserErr) {
+          console.warn('⚠️ [MON ESPACE] Exception lors du rechargement de l\'utilisateur:', getUserErr)
+          retries--
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000))
+          }
+        }
+      }
+      
+      // Forcer un rechargement de la page pour s'assurer que tout est synchronisé
+      console.log('🔄 [MON ESPACE] Rechargement de la page...')
+      window.location.reload()
     } catch (err) {
       console.error('Exception lors de la mise à jour:', err)
       setInfosMessage({ type: 'error', text: 'Erreur lors de la mise à jour' })
