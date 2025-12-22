@@ -966,13 +966,10 @@ const AdminConsolePage: React.FC = () => {
     }
   }
 
-  // Uploader un fichier (via API backend pour contourner les problèmes client/Supabase)
+  // Uploader un fichier directement vers Supabase Storage
   const handleUploadFile = async () => {
-    console.log('🔵 handleUploadFile appelé !', {
-      selectedFile: selectedFile?.name,
-      uploadingFile,
-    })
-
+    console.log('🔵 handleUploadFile appelé !', { selectedFile: selectedFile?.name, uploadingFile })
+    
     if (!selectedFile) {
       console.log('❌ Aucun fichier sélectionné')
       setFormStatus({ type: 'error', message: 'Veuillez sélectionner un fichier.' })
@@ -984,33 +981,40 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      console.log(
-        "🚀 Début de l'upload (API backend), fichier:",
-        selectedFile.name,
-        'taille:',
-        selectedFile.size
-      )
-
-      // On envoie le fichier à notre route backend /api/admin-files
-      const formData = new FormData()
-      formData.append('file', selectedFile)
-
-      const response = await fetch('/api/admin-files', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const result = await response.json()
-      console.log('📥 Réponse API /api/admin-files:', { status: response.status, result })
-
-      if (!response.ok || !result?.success) {
-        const message =
-          result?.error ||
-          'Erreur lors de l’upload du fichier (API backend). Veuillez réessayer plus tard.'
-        throw new Error(message)
+      console.log('🚀 Début de l\'upload, fichier:', selectedFile.name, 'taille:', selectedFile.size)
+      
+      if (!session) {
+        console.error('❌ Aucune session trouvée dans useAuth()')
+        throw new Error('Vous devez être connecté pour uploader un fichier.')
       }
 
-      console.log('✅ Upload réussi via API backend, path:', result.path)
+      console.log('✅ Session trouvée depuis useAuth():', {
+        userId: session.user.id,
+        email: session.user.email,
+      })
+
+      const fileName = `${Date.now()}-${selectedFile.name}`
+      console.log('📤 Tentative d\'upload vers admin-files/', fileName)
+
+      const { data, error } = await supabase.storage
+        .from('admin-files')
+        .upload(fileName, selectedFile, {
+          cacheControl: '3600',
+          upsert: false,
+        })
+
+      if (error) {
+        console.error('❌ Détails de l\'erreur upload:', {
+          error,
+          message: error.message,
+          statusCode: (error as any).statusCode,
+          errorCode: (error as any).error,
+          name: error.name,
+        })
+        throw error
+      }
+
+      console.log('✅ Upload réussi via supabase.storage:', data)
 
       setFormStatus({ type: 'success', message: 'Fichier uploadé avec succès !' })
       setSelectedFile(null)
