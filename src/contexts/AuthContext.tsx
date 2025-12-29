@@ -167,6 +167,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
       
+      // Gérer le rafraîchissement du token : vérifier que le rôle admin est présent
+      if (event === 'TOKEN_REFRESHED' && session?.user) {
+        const jwtRole = session.user.user_metadata?.role || (session.user as any).raw_user_meta_data?.role
+        const profileRole = profile?.role
+        
+        // Si l'utilisateur est admin dans le profil mais pas dans le JWT, forcer un nouveau rafraîchissement
+        if (profileRole === 'admin' && jwtRole !== 'admin') {
+          console.warn('⚠️ [AUTH] Rôle admin manquant dans le JWT rafraîchi, resynchronisation...')
+          try {
+            // Recharger le profil pour forcer la mise à jour
+            await loadUserProfile(session.user.id)
+            // Forcer un nouveau rafraîchissement du token
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession(session)
+            if (refreshError) {
+              console.error('❌ [AUTH] Erreur lors de la resynchronisation du token:', refreshError)
+            } else if (refreshData.session) {
+              console.log('✅ [AUTH] Token resynchronisé avec le rôle admin')
+              setSession(refreshData.session)
+              setUser(refreshData.session.user)
+            }
+          } catch (err) {
+            console.error('❌ [AUTH] Exception lors de la resynchronisation:', err)
+          }
+        }
+      }
+      
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
@@ -301,6 +327,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string, role: UserRole) => {
     try {
+      // NETTOYER COMPLÈTEMENT LE LOCALSTORAGE AVANT LA CONNEXION
+      // Cela évite que Chrome garde l'ancien JWT en cache
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      if (supabaseUrl) {
+        const projectRef = supabaseUrl.split('//')[1]?.split('.')[0]
+        const keysToRemove = [
+          'ria_admin_session',
+          `sb-${projectRef}-auth-token`,
+          `sb-${projectRef}-auth-token-code-verifier`,
+        ]
+        // Nettoyer toutes les clés Supabase
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-') || 
+              key.startsWith('supabase.') ||
+              (key.includes('supabase') && !key.includes('explicit')) ||
+              (key.includes('auth') && !key.includes('explicit'))) {
+            keysToRemove.push(key)
+          }
+        })
+        keysToRemove.forEach(key => {
+          try {
+            localStorage.removeItem(key)
+          } catch (e) {
+            console.warn(`Impossible de supprimer ${key}:`, e)
+          }
+        })
+        console.log('🧹 [AUTH] localStorage nettoyé avant connexion,', keysToRemove.length, 'clés supprimées')
+      }
+      
       // SUPPRIMER IMMÉDIATEMENT le flag de déconnexion car c'est une connexion explicite
       // Cela permet de débloquer le storage avant même la tentative de connexion
       localStorage.removeItem('explicit_logout')
@@ -322,6 +377,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // S'assurer que les flags sont bien supprimés après connexion réussie
       localStorage.removeItem('explicit_logout')
       localStorage.removeItem('explicit_logout_timestamp')
+
+      // FORCER LE RAFRAÎCHISSEMENT DU TOKEN pour obtenir le nouveau JWT avec le rôle admin
+      // Cela résout le problème où Chrome garde l'ancien JWT en cache
+      if (data.session) {
+        try {
+          console.log('🔄 [AUTH] Rafraîchissement forcé du token après connexion...')
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession(data.session)
+          if (refreshError) {
+            console.warn('⚠️ [AUTH] Erreur lors du rafraîchissement du token:', refreshError)
+          } else if (refreshData.session) {
+            console.log('✅ [AUTH] Token rafraîchi avec succès, nouveau JWT:', {
+              hasRole: !!(refreshData.session.user.user_metadata?.role || refreshData.session.user.raw_user_meta_data?.role),
+              role: refreshData.session.user.user_metadata?.role || refreshData.session.user.raw_user_meta_data?.role
+            })
+          }
+        } catch (refreshErr) {
+          console.warn('⚠️ [AUTH] Exception lors du rafraîchissement du token:', refreshErr)
+        }
+      }
 
       // On ne refait pas de logique de rôle ici : 
       // - on laisse onAuthStateChange + loadUserProfile charger le profil

@@ -731,6 +731,12 @@ const AdminConsolePage: React.FC = () => {
     if (selectedAction !== 'consulter-adherents' && selectedAction !== 'supprimer-adherent') return
 
     const loadAdherents = async () => {
+      // Filet de sécurité : ne jamais laisser le loader bloqué plus de 15s
+      const safetyTimeout = setTimeout(() => {
+        console.warn('⚠️ [ADHERENTS] Timeout de sécurité atteint, arrêt du chargement forcé.')
+        setIsLoadingAdherents(false)
+      }, 15000)
+
       setIsLoadingAdherents(true)
       console.log('🔵 [ADHERENTS] Début du chargement des adhérents...')
       console.log('🔵 [ADHERENTS] Session:', { 
@@ -742,20 +748,55 @@ const AdminConsolePage: React.FC = () => {
       })
       
       try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+        console.log('🔵 [ADHERENTS] Vérification configuration Supabase côté client:', {
+          hasUrl: !!supabaseUrl,
+          hasAnonKey: !!supabaseAnonKey,
+        })
+
         console.log('🔵 [ADHERENTS] Exécution de la requête Supabase...')
         console.log('🔵 [ADHERENTS] Contenu du JWT:', {
           user_metadata: session?.user?.user_metadata,
           raw_user_meta_data: (session as any)?.user?.raw_user_meta_data,
           role_in_metadata: session?.user?.user_metadata?.role
         })
-        
-        // Requête directe sans test préalable
-        console.log('🔵 [ADHERENTS] Envoi de la requête complète...')
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, email, prenom, nom, profession, created_at')
-          .eq('role', 'adherent')
-          .order('created_at', { ascending: false })
+
+        // Requête directe via l'endpoint REST de Supabase pour éviter tout blocage du client JS
+        console.log('🔵 [ADHERENTS] Envoi de la requête complète (REST direct)...')
+
+        if (!supabaseUrl || !session?.access_token || !supabaseAnonKey) {
+          console.error('❌ [ADHERENTS] Configuration Supabase incomplète pour la requête REST.', {
+            hasUrl: !!supabaseUrl,
+            hasToken: !!session?.access_token,
+            hasAnonKey: !!supabaseAnonKey,
+          })
+          throw new Error('Configuration Supabase incomplète côté client.')
+        }
+
+        const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,prenom,nom,profession,created_at&role=eq.adherent&order=created_at.desc`
+
+        const response = await fetch(url, {
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${session.access_token}`,
+            'Accept': 'application/json',
+          },
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => '')
+          console.error('🔴 [ADHERENTS] Erreur HTTP REST:', {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorText,
+          })
+          throw new Error(`Erreur HTTP ${response.status} lors du chargement des adhérents`)
+        }
+
+        const data = await response.json()
+        const error = null as any
 
         console.log('🟢 [ADHERENTS] Réponse Supabase reçue:', { 
           dataCount: data?.length ?? 0, 
