@@ -280,6 +280,7 @@ const AdminConsolePage: React.FC = () => {
   const [isLoadingFiles, setIsLoadingFiles] = useState(false)
   const [uploadingFile, setUploadingFile] = useState(false)
   const [deleteFileConfirmName, setDeleteFileConfirmName] = useState<string | null>(null)
+  const [renameFileData, setRenameFileData] = useState<{ oldName: string; newName: string } | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -1380,6 +1381,102 @@ const AdminConsolePage: React.FC = () => {
       setFormStatus({
         type: 'error',
         message: err instanceof Error ? err.message : 'Erreur lors de la suppression du fichier.',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Renommer un fichier (utilise copy + remove car move n'est pas toujours fiable)
+  const handleRenameFile = async (oldName: string, newName: string) => {
+    if (!newName || newName.trim() === '') {
+      setFormStatus({ type: 'error', message: 'Le nom du fichier ne peut pas être vide.' })
+      return
+    }
+
+    if (newName === oldName) {
+      setRenameFileData(null)
+      return
+    }
+
+    setIsSubmitting(true)
+    setFormStatus({ type: null, message: '' })
+
+    try {
+      if (!session) {
+        throw new Error('Vous devez être connecté pour renommer un fichier.')
+      }
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Configuration Supabase manquante')
+      }
+      
+      // Étape 1: Copier le fichier avec le nouveau nom
+      const copyUrl = `${supabaseUrl}/storage/v1/object/copy`
+      
+      const copyResponse = await fetch(copyUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          bucketId: 'admin-files',
+          sourceKey: oldName,
+          destinationKey: newName
+        })
+      })
+      
+      if (!copyResponse.ok) {
+        const errorText = await copyResponse.text()
+        let errorData
+        try {
+          errorData = JSON.parse(errorText)
+        } catch {
+          errorData = { message: errorText }
+        }
+        throw new Error(errorData.message || `Erreur lors de la copie: ${copyResponse.status}`)
+      }
+
+      // Étape 2: Supprimer l'ancien fichier
+      const deleteUrl = `${supabaseUrl}/storage/v1/object/admin-files/${oldName}`
+      
+      const deleteResponse = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey
+        }
+      })
+      
+      if (!deleteResponse.ok) {
+        // Si la suppression échoue, on essaie de supprimer le nouveau fichier pour éviter les doublons
+        const cleanupUrl = `${supabaseUrl}/storage/v1/object/admin-files/${newName}`
+        await fetch(cleanupUrl, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': supabaseAnonKey
+          }
+        })
+        
+        const errorText = await deleteResponse.text()
+        throw new Error(`Erreur lors de la suppression de l'ancien fichier: ${errorText || deleteResponse.status}`)
+      }
+
+      setFormStatus({ type: 'success', message: 'Fichier renommé avec succès.' })
+      setRenameFileData(null)
+      
+      // Recharger la liste
+      await loadFiles()
+    } catch (err) {
+      setFormStatus({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Erreur lors du renommage du fichier.',
       })
     } finally {
       setIsSubmitting(false)
@@ -5432,6 +5529,12 @@ const AdminConsolePage: React.FC = () => {
                                   Télécharger
                                 </button>
                                 <button
+                                  onClick={() => setRenameFileData({ oldName: file.name, newName: file.name })}
+                                  className="px-3 sm:px-4 py-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
+                                >
+                                  Renommer
+                                </button>
+                                <button
                                   onClick={() => setDeleteFileConfirmName(file.name)}
                                   className="px-3 sm:px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
                                 >
@@ -5564,6 +5667,60 @@ const AdminConsolePage: React.FC = () => {
                   className="px-5 py-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Suppression...' : 'Supprimer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de renommage d'un fichier */}
+      {renameFileData !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800">Renommer le fichier</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Renommez "{renameFileData.oldName}"
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nouveau nom
+                </label>
+                <input
+                  type="text"
+                  value={renameFileData.newName}
+                  onChange={(e) => setRenameFileData({ ...renameFileData, newName: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Nom du fichier"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => setRenameFileData(null)}
+                  className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                  disabled={isSubmitting}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => handleRenameFile(renameFileData.oldName, renameFileData.newName)}
+                  disabled={isSubmitting || !renameFileData.newName.trim()}
+                  className="px-5 py-2.5 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Renommage...' : 'Renommer'}
                 </button>
               </div>
             </div>
