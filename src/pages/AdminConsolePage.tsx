@@ -242,9 +242,11 @@ const AdminConsolePage: React.FC = () => {
     nom: string | null
     profession: string | null
     created_at: string
+    consentement_prospection: boolean | null
   }
   const [adherentsList, setAdherentsList] = useState<Adherent[]>([])
   const [adherentsSearch, setAdherentsSearch] = useState('')
+  const [adherentsFilter, setAdherentsFilter] = useState<'all' | 'with-consent'>('all')
   const [isLoadingAdherents, setIsLoadingAdherents] = useState(false)
   const [deleteAdherentConfirmId, setDeleteAdherentConfirmId] = useState<string | null>(null)
 
@@ -775,7 +777,7 @@ const AdminConsolePage: React.FC = () => {
           throw new Error('Configuration Supabase incomplète côté client.')
         }
 
-        const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,prenom,nom,profession,created_at&role=eq.adherent&order=created_at.desc`
+        const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,prenom,nom,profession,created_at,consentement_prospection&role=eq.adherent&order=created_at.desc`
 
         const response = await fetch(url, {
           headers: {
@@ -1024,8 +1026,14 @@ const AdminConsolePage: React.FC = () => {
     return !searchLower || q.question.toLowerCase().includes(searchLower)
   })
 
-  // Filtrer les adhérents selon la recherche
+  // Filtrer les adhérents selon la recherche et le filtre de consentement
   const filteredAdherents = adherentsList.filter((a) => {
+    // Filtre par consentement
+    if (adherentsFilter === 'with-consent' && a.consentement_prospection !== true) {
+      return false
+    }
+    
+    // Filtre par recherche
     const searchLower = adherentsSearch.trim().toLowerCase()
     return !searchLower || 
       (a.email && a.email.toLowerCase().includes(searchLower)) ||
@@ -1033,6 +1041,53 @@ const AdminConsolePage: React.FC = () => {
       (a.nom && a.nom.toLowerCase().includes(searchLower)) ||
       (a.profession && a.profession.toLowerCase().includes(searchLower))
   })
+
+  // Fonction pour exporter les adhérents avec consentement en Excel (CSV)
+  const exportAdherentsWithConsentToExcel = () => {
+    const adherentsWithConsent = adherentsList.filter(a => a.consentement_prospection === true)
+    
+    if (adherentsWithConsent.length === 0) {
+      setFormStatus({ type: 'error', message: 'Aucun adhérent avec consentement à la prospection commerciale.' })
+      return
+    }
+
+    // Créer les en-têtes CSV
+    const headers = ['Email', 'Prénom', 'Nom', 'Profession', 'Date d\'inscription', 'Consentement prospection']
+    
+    // Créer les lignes de données
+    const rows = adherentsWithConsent.map(a => [
+      a.email || '',
+      a.prenom || '',
+      a.nom || '',
+      a.profession || '',
+      new Date(a.created_at).toLocaleDateString('fr-FR'),
+      'Oui'
+    ])
+
+    // Créer le contenu CSV avec BOM UTF-8 pour Excel
+    const csvContent = [
+      '\uFEFF', // BOM UTF-8 pour Excel
+      headers.join(';'),
+      ...rows.map(row => row.map(cell => {
+        // Échapper les guillemets et les points-virgules
+        const cellStr = String(cell).replace(/"/g, '""')
+        return `"${cellStr}"`
+      }).join(';'))
+    ].join('\n')
+
+    // Créer un blob et télécharger
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `adherents-consentement-prospection-${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    setFormStatus({ type: 'success', message: `${adherentsWithConsent.length} adhérent(s) exporté(s) avec succès.` })
+  }
 
   // Supprimer un adhérent
   const handleDeleteAdherent = async (id: string) => {
@@ -1056,7 +1111,7 @@ const AdminConsolePage: React.FC = () => {
       // Recharger la liste
       const { data, error: reloadError } = await supabase
         .from('profiles')
-        .select('id, email, prenom, nom, profession, created_at')
+        .select('id, email, prenom, nom, profession, created_at, consentement_prospection')
         .eq('role', 'adherent')
         .order('created_at', { ascending: false })
 
@@ -1084,57 +1139,69 @@ const AdminConsolePage: React.FC = () => {
   const loadFiles = async () => {
     setIsLoadingFiles(true)
     try {
-      console.log('📂 Tentative de chargement de la liste des fichiers...')
-      
-      // Vérifier la session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      if (sessionError) {
-        console.error('❌ Erreur de session:', sessionError)
-        throw new Error('Erreur de session. Veuillez vous reconnecter.')
-      }
-      
+      // Utiliser la session depuis useAuth() au lieu de refaire getSession()
       if (!session) {
-        console.error('❌ Aucune session trouvée')
         throw new Error('Vous devez être connecté pour voir les fichiers.')
       }
       
-      console.log('✅ Session trouvée:', { userId: session.user.id, email: session.user.email })
+      // Utiliser l'API REST directement
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
       
-      const { data, error } = await supabase.storage
-        .from('admin-files')
-        .list('', {
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Configuration Supabase manquante')
+      }
+      
+      const listUrl = `${supabaseUrl}/storage/v1/object/list/admin-files`
+      
+      const response = await fetch(listUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          prefix: '',
           limit: 100,
           offset: 0,
           sortBy: { column: 'created_at', order: 'desc' }
         })
+      })
 
-      if (error) {
-        console.error('❌ Erreur lors du list:', {
-          error,
-          message: error.message,
-          statusCode: error.statusCode,
-          errorCode: error.error
+      if (!response.ok) {
+        const errorText = await response.text()
+        let errorData
+        try {
+          errorData = JSON.parse(errorText)
+        } catch {
+          errorData = { message: errorText }
+        }
+        console.error('❌ Erreur lors du chargement des fichiers:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
         })
-        throw error
+        throw new Error(errorData.message || `Erreur ${response.status}: ${response.statusText}`)
       }
 
-      console.log('✅ Liste des fichiers chargée:', data?.length || 0, 'fichier(s)')
-      setFilesList(data || [])
+      const data = await response.json()
+      
+      // La réponse peut être un tableau directement ou un objet avec une propriété data
+      const files = Array.isArray(data) ? data : (data?.data || data?.files || [])
+      setFilesList(files)
     } catch (err) {
-      console.error('❌ Erreur complète lors du chargement des fichiers:', err)
       const errorMessage = err instanceof Error 
         ? err.message 
-        : typeof err === 'object' && err !== null && 'message' in err
-        ? String(err.message)
         : 'Erreur lors du chargement des fichiers.'
       
       setFormStatus({
         type: 'error',
         message: errorMessage.includes('row-level security') || errorMessage.includes('RLS') || errorMessage.includes('policy')
-          ? '❌ Erreur de permissions. Vérifiez que les politiques RLS sont correctement configurées pour SELECT.'
+          ? 'Erreur de permissions. Vérifiez que les politiques RLS sont correctement configurées.'
           : errorMessage,
       })
-      setFilesList([]) // Vider la liste en cas d'erreur
+      setFilesList([])
     } finally {
       setIsLoadingFiles(false)
     }
@@ -1142,53 +1209,60 @@ const AdminConsolePage: React.FC = () => {
 
   // Uploader un fichier directement vers Supabase Storage
   const handleUploadFile = async () => {
-    console.log('🔵 handleUploadFile appelé !', { selectedFile: selectedFile?.name, uploadingFile })
-    
     if (!selectedFile) {
-      console.log('❌ Aucun fichier sélectionné')
       setFormStatus({ type: 'error', message: 'Veuillez sélectionner un fichier.' })
       return
     }
 
-    console.log('✅ Fichier sélectionné, démarrage de l\'upload...')
     setUploadingFile(true)
     setFormStatus({ type: null, message: '' })
 
     try {
-      console.log('🚀 Début de l\'upload, fichier:', selectedFile.name, 'taille:', selectedFile.size)
-      
       if (!session) {
-        console.error('❌ Aucune session trouvée dans useAuth()')
         throw new Error('Vous devez être connecté pour uploader un fichier.')
       }
 
-      console.log('✅ Session trouvée depuis useAuth():', {
-        userId: session.user.id,
-        email: session.user.email,
-      })
-
       const fileName = `${Date.now()}-${selectedFile.name}`
-      console.log('📤 Tentative d\'upload vers admin-files/', fileName)
 
-      const { data, error } = await supabase.storage
-        .from('admin-files')
-        .upload(fileName, selectedFile, {
-          cacheControl: '3600',
-          upsert: false,
-        })
-
-      if (error) {
-        console.error('❌ Détails de l\'erreur upload:', {
-          error,
-          message: error.message,
-          statusCode: (error as any).statusCode,
-          errorCode: (error as any).error,
-          name: error.name,
-        })
-        throw error
+      // Utiliser l'API REST directement au lieu du client Supabase
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Configuration Supabase manquante')
       }
-
-      console.log('✅ Upload réussi via supabase.storage:', data)
+      
+      const uploadUrl = `${supabaseUrl}/storage/v1/object/admin-files/${fileName}`
+      
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': selectedFile.type || 'application/octet-stream',
+          'x-upsert': 'false',
+          'cache-control': '3600'
+        },
+        body: selectedFile
+      })
+      
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text()
+        let errorData
+        try {
+          errorData = JSON.parse(errorText)
+        } catch {
+          errorData = { message: errorText }
+        }
+        
+        throw new Error(
+          errorData.message || 
+          errorData.error_description || 
+          `Erreur ${uploadResponse.status}: ${uploadResponse.statusText}`
+        )
+      }
+      
+      const data = await uploadResponse.json()
 
       setFormStatus({ type: 'success', message: 'Fichier uploadé avec succès !' })
       setSelectedFile(null)
@@ -1219,11 +1293,33 @@ const AdminConsolePage: React.FC = () => {
   // Télécharger un fichier
   const handleDownloadFile = async (fileName: string) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('admin-files')
-        .download(fileName)
-
-      if (error) throw error
+      if (!session) {
+        throw new Error('Vous devez être connecté pour télécharger un fichier.')
+      }
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Configuration Supabase manquante')
+      }
+      
+      const downloadUrl = `${supabaseUrl}/storage/v1/object/admin-files/${fileName}`
+      
+      const response = await fetch(downloadUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey
+        }
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || `Erreur ${response.status}: ${response.statusText}`)
+      }
+      
+      const data = await response.blob()
 
       // Créer un lien de téléchargement
       const url = URL.createObjectURL(data)
@@ -1249,11 +1345,31 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      const { error } = await supabase.storage
-        .from('admin-files')
-        .remove([fileName])
-
-      if (error) throw error
+      if (!session) {
+        throw new Error('Vous devez être connecté pour supprimer un fichier.')
+      }
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Configuration Supabase manquante')
+      }
+      
+      const deleteUrl = `${supabaseUrl}/storage/v1/object/admin-files/${fileName}`
+      
+      const response = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey
+        }
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || `Erreur ${response.status}: ${response.statusText}`)
+      }
 
       setFormStatus({ type: 'success', message: 'Fichier supprimé avec succès.' })
       setDeleteFileConfirmName(null)
@@ -1261,7 +1377,6 @@ const AdminConsolePage: React.FC = () => {
       // Recharger la liste
       await loadFiles()
     } catch (err) {
-      console.error('Erreur lors de la suppression:', err)
       setFormStatus({
         type: 'error',
         message: err instanceof Error ? err.message : 'Erreur lors de la suppression du fichier.',
@@ -1273,14 +1388,10 @@ const AdminConsolePage: React.FC = () => {
 
   // Charger les fichiers quand on arrive sur "gestion-fichiers"
   useEffect(() => {
-    console.log('🔄 useEffect déclenché, selectedAction:', selectedAction)
     if (selectedAction === 'gestion-fichiers') {
-      console.log('📁 Action "gestion-fichiers" détectée, chargement des fichiers...')
       loadFiles()
-    } else {
-      console.log('⏸️ Action différente, pas de chargement:', selectedAction)
     }
-  }, [selectedAction])
+  }, [selectedAction, session])
 
   // Ouvrir le modal de modification
   const handleEditActualite = (actu: Actualite) => {
@@ -3366,18 +3477,58 @@ const AdminConsolePage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Barre de recherche */}
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Rechercher
-                    </label>
-                    <input
-                      type="text"
-                      value={adherentsSearch}
-                      onChange={(e) => setAdherentsSearch(e.target.value)}
-                      placeholder="Rechercher par email, nom, prénom ou profession..."
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                    />
+                  {/* Barre de recherche et filtres */}
+                  <div className="mb-6 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Rechercher
+                      </label>
+                      <input
+                        type="text"
+                        value={adherentsSearch}
+                        onChange={(e) => setAdherentsSearch(e.target.value)}
+                        placeholder="Rechercher par email, nom, prénom ou profession..."
+                        className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                      />
+                    </div>
+                    
+                    {/* Filtres et export */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setAdherentsFilter('all')}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            adherentsFilter === 'all'
+                              ? 'bg-[#774792] text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          Tous les adhérents
+                        </button>
+                        <button
+                          onClick={() => setAdherentsFilter('with-consent')}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            adherentsFilter === 'with-consent'
+                              ? 'bg-green-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          Avec consentement prospection
+                        </button>
+                      </div>
+                      
+                      {adherentsFilter === 'with-consent' && (
+                        <button
+                          onClick={exportAdherentsWithConsentToExcel}
+                          className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Exporter en Excel
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Liste des adhérents */}
@@ -3423,6 +3574,14 @@ const AdminConsolePage: React.FC = () => {
                                 {adherent.profession && (
                                   <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
                                     {adherent.profession}
+                                  </span>
+                                )}
+                                {adherent.consentement_prospection === true && (
+                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center gap-1">
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                    Consentement prospection
                                   </span>
                                 )}
                                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
@@ -5234,9 +5393,9 @@ const AdminConsolePage: React.FC = () => {
                           return (
                             <div
                               key={file.id}
-                              className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+                              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
                             >
-                              <div className="flex items-center gap-4 flex-1">
+                              <div className="flex items-center gap-4 flex-1 min-w-0">
                                 <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
                                   {fileType.includes('excel') || fileType.includes('spreadsheet') ? (
                                     <span className="text-2xl">📊</span>
@@ -5250,10 +5409,10 @@ const AdminConsolePage: React.FC = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="font-medium text-gray-800 truncate">{file.name}</p>
-                                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-xs text-gray-500">
                                     <span>{fileSize}</span>
-                                    <span>•</span>
-                                    <span>
+                                    <span className="hidden sm:inline">•</span>
+                                    <span className="break-all sm:break-normal">
                                       {new Date(file.created_at).toLocaleDateString('fr-FR', {
                                         day: 'numeric',
                                         month: 'short',
@@ -5265,16 +5424,16 @@ const AdminConsolePage: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-shrink-0">
                                 <button
                                   onClick={() => handleDownloadFile(file.name)}
-                                  className="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm font-medium"
+                                  className="px-3 sm:px-4 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
                                 >
                                   Télécharger
                                 </button>
                                 <button
                                   onClick={() => setDeleteFileConfirmName(file.name)}
-                                  className="px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-sm font-medium"
+                                  className="px-3 sm:px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
                                 >
                                   Supprimer
                                 </button>
