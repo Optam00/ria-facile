@@ -36,6 +36,10 @@ const MonEspacePage: React.FC = () => {
   const [deletionMessage, setDeletionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [existingDeletionRequest, setExistingDeletionRequest] = useState<any>(null)
 
+  // États pour les fichiers disponibles
+  const [availableFiles, setAvailableFiles] = useState<Array<{ file_name: string; created_at: string; description?: string }>>([])
+  const [isLoadingFiles, setIsLoadingFiles] = useState(false)
+
   // Charger les infos utilisateur uniquement depuis les métadonnées Supabase
   // On évite d'appeler la table profiles côté client car les requêtes timeout / 500
   useEffect(() => {
@@ -58,6 +62,129 @@ const MonEspacePage: React.FC = () => {
       navigate('/connexion')
     }
   }, [loading, isAdherent, navigate])
+
+  // Charger les fichiers disponibles
+  const loadAvailableFiles = async () => {
+    setIsLoadingFiles(true)
+    try {
+      if (!session) {
+        console.warn('Pas de session pour charger les fichiers')
+        setAvailableFiles([])
+        return
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.error('Configuration Supabase manquante')
+        setAvailableFiles([])
+        return
+      }
+
+      // Utiliser l'API REST directement
+      // Filtrer uniquement les fichiers avec is_available = true (booléen)
+      const url = `${supabaseUrl}/rest/v1/adherent_files?is_available=eq.true&select=file_name,created_at,description&order=created_at.desc`
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Erreur lors du chargement des fichiers:', errorText)
+        setAvailableFiles([])
+        return
+      }
+
+      const data = await response.json()
+      // Filtrer une deuxième fois côté client pour être sûr (au cas où)
+      const filteredData = (data || []).filter((file: { is_available?: boolean }) => file.is_available === true)
+      setAvailableFiles(filteredData)
+    } catch (err) {
+      console.error('Exception lors du chargement des fichiers:', err)
+      setAvailableFiles([])
+    } finally {
+      setIsLoadingFiles(false)
+    }
+  }
+
+  // Charger les fichiers au montage du composant et quand la page redevient visible
+  useEffect(() => {
+    // Utiliser session?.user?.id comme dépendance stable au lieu de session complète
+    // et vérifier isAdherent() dans la condition mais ne pas l'inclure dans les dépendances
+    if (!loading && isAdherent() && session?.user?.id) {
+      loadAvailableFiles()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, session?.user?.id])
+
+  // Rafraîchir la liste quand la page redevient visible (pour détecter les changements depuis l'admin)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && !loading && isAdherent() && session?.user?.id) {
+        loadAvailableFiles()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, session?.user?.id])
+
+  // Télécharger un fichier
+  const handleDownloadFile = async (fileName: string) => {
+    try {
+      if (!session) {
+        throw new Error('Vous devez être connecté pour télécharger un fichier.')
+      }
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Configuration Supabase manquante')
+      }
+      
+      // Utiliser le même endpoint que dans AdminConsolePage (sans /download/)
+      const downloadUrl = `${supabaseUrl}/storage/v1/object/admin-files/${encodeURIComponent(fileName)}`
+      
+      const response = await fetch(downloadUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey
+        }
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || `Erreur ${response.status}: ${response.statusText}`)
+      }
+      
+      const data = await response.blob()
+
+      // Créer un lien de téléchargement
+      const url = URL.createObjectURL(data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Erreur lors du téléchargement:', err)
+      alert(err instanceof Error ? err.message : 'Erreur lors du téléchargement du fichier.')
+    }
+  }
 
   const handleSignOut = () => {
     // On délègue le signOut à la page connexion via le paramètre logout=1
@@ -1177,23 +1304,75 @@ const MonEspacePage: React.FC = () => {
               )}
             </div>
 
-            {/* Placeholder pour les futures fonctionnalités */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 opacity-60">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-2xl">📚</span>
-                  <h3 className="font-semibold text-gray-700">Mes ressources</h3>
-                </div>
-                <p className="text-gray-500 text-sm">Bientôt disponible</p>
+            {/* Section Fichiers disponibles */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <span>📚</span> Fichiers disponibles
+                </h2>
+                <button
+                  onClick={loadAvailableFiles}
+                  disabled={isLoadingFiles}
+                  className="px-3 py-1.5 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors text-sm font-medium disabled:opacity-50"
+                  title="Rafraîchir la liste"
+                >
+                  {isLoadingFiles ? '⏳' : '🔄'}
+                </button>
               </div>
+              
+              {isLoadingFiles ? (
+                <div className="text-center py-8 text-gray-500">Chargement...</div>
+              ) : availableFiles.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-sm">Aucun fichier disponible pour le moment.</p>
+                  <p className="text-xs text-gray-400 mt-2">Les administrateurs peuvent rendre des fichiers disponibles ici.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {availableFiles.map((file) => (
+                    <div
+                      key={file.file_name}
+                      className="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                          <span className="text-2xl">📄</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-800 truncate">{file.file_name}</p>
+                          {file.description && (
+                            <p className="text-sm text-gray-600 mt-1 italic">
+                              {file.description}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-1">
+                            Ajouté le {new Date(file.created_at).toLocaleDateString('fr-FR', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDownloadFile(file.file_name)}
+                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-[#774792] text-white font-medium text-sm shadow-md hover:shadow-lg transition-all whitespace-nowrap"
+                      >
+                        Télécharger
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 opacity-60">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-2xl">💬</span>
-                  <h3 className="font-semibold text-gray-700">Mes conversations</h3>
-                </div>
-                <p className="text-gray-500 text-sm">Bientôt disponible</p>
+            {/* Placeholder pour les futures fonctionnalités */}
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 opacity-60">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-2xl">💬</span>
+                <h3 className="font-semibold text-gray-700">Mes conversations</h3>
               </div>
+              <p className="text-gray-500 text-sm">Bientôt disponible</p>
             </div>
 
             {/* Déconnexion */}

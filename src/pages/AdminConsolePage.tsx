@@ -275,12 +275,15 @@ const AdminConsolePage: React.FC = () => {
       size?: number
       mimetype?: string
     }
+    is_available?: boolean
+    description?: string
   }
   const [filesList, setFilesList] = useState<FileItem[]>([])
   const [isLoadingFiles, setIsLoadingFiles] = useState(false)
   const [uploadingFile, setUploadingFile] = useState(false)
   const [deleteFileConfirmName, setDeleteFileConfirmName] = useState<string | null>(null)
   const [renameFileData, setRenameFileData] = useState<{ oldName: string; newName: string } | null>(null)
+  const [editDescriptionData, setEditDescriptionData] = useState<{ fileName: string; description: string } | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -1190,7 +1193,52 @@ const AdminConsolePage: React.FC = () => {
       
       // La réponse peut être un tableau directement ou un objet avec une propriété data
       const files = Array.isArray(data) ? data : (data?.data || data?.files || [])
-      setFilesList(files)
+      
+      // Charger les informations de disponibilité et description depuis la table adherent_files
+      try {
+        const { data: adherentFilesData, error: adherentFilesError } = await supabasePublic
+          .from('adherent_files')
+          .select('file_name, is_available, description')
+        
+        if (!adherentFilesError && adherentFilesData) {
+          // Créer un map pour un accès rapide
+          const fileDataMap = new Map<string, { is_available: boolean; description?: string }>()
+          adherentFilesData.forEach(item => {
+            fileDataMap.set(item.file_name, {
+              is_available: item.is_available || false,
+              description: item.description || undefined
+            })
+          })
+          
+          // Enrichir les fichiers avec les informations de disponibilité et description
+          const enrichedFiles = files.map((file: FileItem) => {
+            const fileData = fileDataMap.get(file.name)
+            return {
+              ...file,
+              is_available: fileData?.is_available || false,
+              description: fileData?.description
+            }
+          })
+          setFilesList(enrichedFiles)
+        } else {
+          // Si erreur ou pas de données, mettre is_available à false par défaut
+          const enrichedFiles = files.map((file: FileItem) => ({
+            ...file,
+            is_available: false,
+            description: undefined
+          }))
+          setFilesList(enrichedFiles)
+        }
+      } catch (err) {
+        console.error('Erreur lors du chargement de la disponibilité des fichiers:', err)
+        // En cas d'erreur, mettre is_available à false par défaut
+        const enrichedFiles = files.map((file: FileItem) => ({
+          ...file,
+          is_available: false,
+          description: undefined
+        }))
+        setFilesList(enrichedFiles)
+      }
     } catch (err) {
       const errorMessage = err instanceof Error 
         ? err.message 
@@ -1267,6 +1315,26 @@ const AdminConsolePage: React.FC = () => {
 
       setFormStatus({ type: 'success', message: 'Fichier uploadé avec succès !' })
       setSelectedFile(null)
+      
+      // Créer une entrée dans adherent_files avec is_available = false par défaut
+      try {
+        const { error: insertError } = await supabasePublic
+          .from('adherent_files')
+          .insert({
+            file_name: fileName,
+            is_available: false
+          })
+          .select()
+          .single()
+
+        // Ignorer l'erreur si l'entrée existe déjà (cas où on ré-upload un fichier)
+        if (insertError && insertError.code !== '23505') { // 23505 = unique violation
+          console.warn('Erreur lors de la création de l\'entrée dans adherent_files:', insertError)
+        }
+      } catch (err) {
+        console.warn('Exception lors de la création de l\'entrée dans adherent_files:', err)
+        // Ne pas bloquer si cette création échoue
+      }
       
       // Recharger la liste après un court délai pour laisser le temps au fichier d'être indexé
       setTimeout(async () => {
@@ -1375,6 +1443,17 @@ const AdminConsolePage: React.FC = () => {
       setFormStatus({ type: 'success', message: 'Fichier supprimé avec succès.' })
       setDeleteFileConfirmName(null)
       
+      // Supprimer l'entrée dans adherent_files si elle existe
+      try {
+        await supabasePublic
+          .from('adherent_files')
+          .delete()
+          .eq('file_name', fileName)
+      } catch (err) {
+        console.warn('Erreur lors de la suppression dans adherent_files:', err)
+        // Ne pas bloquer si cette suppression échoue
+      }
+      
       // Recharger la liste
       await loadFiles()
     } catch (err) {
@@ -1471,6 +1550,26 @@ const AdminConsolePage: React.FC = () => {
       setFormStatus({ type: 'success', message: 'Fichier renommé avec succès.' })
       setRenameFileData(null)
       
+      // Mettre à jour le nom dans adherent_files si l'entrée existe
+      try {
+        const { data: existing } = await supabasePublic
+          .from('adherent_files')
+          .select('id')
+          .eq('file_name', oldName)
+          .single()
+
+        if (existing) {
+          // Mettre à jour le nom
+          await supabasePublic
+            .from('adherent_files')
+            .update({ file_name: newName })
+            .eq('file_name', oldName)
+        }
+      } catch (err) {
+        console.warn('Erreur lors de la mise à jour du nom dans adherent_files:', err)
+        // Ne pas bloquer si cette mise à jour échoue
+      }
+      
       // Recharger la liste
       await loadFiles()
     } catch (err) {
@@ -1480,6 +1579,219 @@ const AdminConsolePage: React.FC = () => {
       })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // Mettre à jour la disponibilité d'un fichier pour les adhérents
+  const handleToggleFileAvailability = async (fileName: string, isAvailable: boolean) => {
+    try {
+      if (!session) {
+        throw new Error('Vous devez être connecté pour modifier la disponibilité.')
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Configuration Supabase manquante')
+      }
+
+      // Vérifier si l'entrée existe déjà via API REST
+      const checkUrl = `${supabaseUrl}/rest/v1/adherent_files?file_name=eq.${encodeURIComponent(fileName)}&select=id`
+      const checkResponse = await fetch(checkUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        }
+      })
+
+      if (!checkResponse.ok) {
+        const errorText = await checkResponse.text()
+        console.error('Erreur lors de la vérification:', errorText)
+        throw new Error(`Erreur lors de la vérification: ${errorText || checkResponse.status}`)
+      }
+
+      const existingData = await checkResponse.json()
+      const existing = existingData && existingData.length > 0 ? existingData[0] : null
+
+      if (existing) {
+        // Mettre à jour l'entrée existante via API REST
+        const updateUrl = `${supabaseUrl}/rest/v1/adherent_files?file_name=eq.${encodeURIComponent(fileName)}`
+        const updateResponse = await fetch(updateUrl, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': supabaseAnonKey,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ is_available: Boolean(isAvailable) })
+        })
+
+        if (!updateResponse.ok) {
+          const errorText = await updateResponse.text()
+          console.error('Erreur lors de la mise à jour:', errorText)
+          throw new Error(`Erreur lors de la mise à jour: ${errorText || updateResponse.status}`)
+        }
+      } else {
+        // Créer une nouvelle entrée via API REST
+        const insertUrl = `${supabaseUrl}/rest/v1/adherent_files`
+        const insertResponse = await fetch(insertUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': supabaseAnonKey,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            file_name: fileName,
+            is_available: Boolean(isAvailable)
+          })
+        })
+
+        if (!insertResponse.ok) {
+          const errorText = await insertResponse.text()
+          console.error('Erreur lors de l\'insertion:', errorText)
+          throw new Error(`Erreur lors de l'insertion: ${errorText || insertResponse.status}`)
+        }
+      }
+
+      // Mettre à jour l'état local
+      setFilesList(prevFiles => 
+        prevFiles.map(file => 
+          file.name === fileName 
+            ? { ...file, is_available: isAvailable }
+            : file
+        )
+      )
+
+      setFormStatus({ 
+        type: 'success', 
+        message: `Le fichier est maintenant ${isAvailable ? 'disponible' : 'indisponible'} pour les adhérents.` 
+      })
+    } catch (err) {
+      console.error('Erreur lors de la mise à jour de la disponibilité:', err)
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : 'Erreur lors de la mise à jour de la disponibilité.'
+      
+      // Afficher un message plus détaillé si c'est une erreur RLS
+      if (errorMessage.includes('permission') || errorMessage.includes('RLS') || errorMessage.includes('policy')) {
+        setFormStatus({
+          type: 'error',
+          message: 'Erreur de permissions. Vérifiez que vous êtes bien connecté en tant qu\'admin et que les politiques RLS sont correctement configurées.'
+        })
+      } else {
+        setFormStatus({
+          type: 'error',
+          message: errorMessage
+        })
+      }
+    }
+  }
+
+  // Mettre à jour la description d'un fichier
+  const handleSaveDescription = async (fileName: string, description: string) => {
+    try {
+      if (!session) {
+        throw new Error('Vous devez être connecté pour modifier la description.')
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Configuration Supabase manquante')
+      }
+
+      // Vérifier si l'entrée existe déjà via API REST
+      const checkUrl = `${supabaseUrl}/rest/v1/adherent_files?file_name=eq.${encodeURIComponent(fileName)}&select=id`
+      const checkResponse = await fetch(checkUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': supabaseAnonKey,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        }
+      })
+
+      if (!checkResponse.ok) {
+        const errorText = await checkResponse.text()
+        throw new Error(`Erreur lors de la vérification: ${errorText || checkResponse.status}`)
+      }
+
+      const existingData = await checkResponse.json()
+      const existing = existingData && existingData.length > 0 ? existingData[0] : null
+
+      const descriptionToSave = description.trim() || null
+
+      if (existing) {
+        // Mettre à jour l'entrée existante via API REST
+        const updateUrl = `${supabaseUrl}/rest/v1/adherent_files?file_name=eq.${encodeURIComponent(fileName)}`
+        const updateResponse = await fetch(updateUrl, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': supabaseAnonKey,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ description: descriptionToSave })
+        })
+
+        if (!updateResponse.ok) {
+          const errorText = await updateResponse.text()
+          throw new Error(`Erreur lors de la mise à jour: ${errorText || updateResponse.status}`)
+        }
+      } else {
+        // Créer une nouvelle entrée via API REST
+        const insertUrl = `${supabaseUrl}/rest/v1/adherent_files`
+        const insertResponse = await fetch(insertUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': supabaseAnonKey,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            file_name: fileName,
+            is_available: false,
+            description: descriptionToSave
+          })
+        })
+
+        if (!insertResponse.ok) {
+          const errorText = await insertResponse.text()
+          throw new Error(`Erreur lors de l'insertion: ${errorText || insertResponse.status}`)
+        }
+      }
+
+      // Mettre à jour l'état local
+      setFilesList(prevFiles => 
+        prevFiles.map(file => 
+          file.name === fileName 
+            ? { ...file, description: descriptionToSave || undefined }
+            : file
+        )
+      )
+
+      setEditDescriptionData(null)
+      setFormStatus({ 
+        type: 'success', 
+        message: 'Description mise à jour avec succès.' 
+      })
+    } catch (err) {
+      console.error('Erreur lors de la mise à jour de la description:', err)
+      setFormStatus({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Erreur lors de la mise à jour de la description.'
+      })
     }
   }
 
@@ -5406,15 +5718,53 @@ const AdminConsolePage: React.FC = () => {
       {/* Gestion des fichiers */}
               {selectedAction === 'gestion-fichiers' && (
                 <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-semibold text-gray-800">Gestion des fichiers</h2>
-                      <p className="text-gray-600 mt-2">
-                        Upload, téléchargez et gérez vos fichiers (Excel, Word, PDF, etc.)
-                      </p>
+                  {/* En-tête avec statistiques */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                          <span className="text-4xl">📁</span>
+                          Gestion des fichiers
+                        </h2>
+                        <p className="text-gray-600 mt-2 ml-11">
+                          Upload, téléchargez et gérez vos fichiers (Excel, Word, PDF, etc.)
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {filesList.length} fichier{filesList.length > 1 ? 's' : ''}
+                    
+                    {/* Statistiques */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-purple-700">Total fichiers</p>
+                            <p className="text-2xl font-bold text-purple-900 mt-1">{filesList.length}</p>
+                          </div>
+                          <span className="text-3xl opacity-50">📊</span>
+                        </div>
+                      </div>
+                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-green-700">Disponibles adhérents</p>
+                            <p className="text-2xl font-bold text-green-900 mt-1">
+                              {filesList.filter(f => f.is_available).length}
+                            </p>
+                          </div>
+                          <span className="text-3xl opacity-50">✅</span>
+                        </div>
+                      </div>
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-blue-700">Avec description</p>
+                            <p className="text-2xl font-bold text-blue-900 mt-1">
+                              {filesList.filter(f => f.description).length}
+                            </p>
+                          </div>
+                          <span className="text-3xl opacity-50">📝</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -5431,53 +5781,125 @@ const AdminConsolePage: React.FC = () => {
                   )}
 
                   {/* Zone d'upload */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Uploader un fichier</h3>
+                  <div className="bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-lg border-2 border-purple-200 p-6 mb-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                        <span className="text-xl">📤</span>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-800">Uploader un fichier</h3>
+                    </div>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Sélectionner un fichier
                         </label>
-                        <input
-                          type="file"
-                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                          accept=".xlsx,.xls,.doc,.docx,.pdf"
-                          className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                        />
-                        <p className="text-xs text-gray-500 mt-2">
+                        <div className="relative">
+                          <input
+                            type="file"
+                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                            accept=".xlsx,.xls,.doc,.docx,.pdf"
+                            className="w-full px-4 py-3 rounded-xl bg-white border-2 border-dashed border-gray-300 hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 file:cursor-pointer"
+                          />
+                          {!selectedFile && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none pl-32">
+                              <span className="text-sm text-gray-400">ou glissez-déposez un fichier ici</span>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                          <span>📋</span>
                           Formats acceptés : Excel (.xlsx, .xls), Word (.doc, .docx), PDF (.pdf)
                         </p>
                       </div>
                       {selectedFile && (
-                        <div className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <span>📄</span>
-                          <span className="flex-1 min-w-0 truncate" title={selectedFile.name}>
-                            {selectedFile.name}
-                          </span>
-                          <span className="text-gray-500 flex-shrink-0">
-                            ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                          </span>
+                        <div className="flex items-center gap-3 text-sm bg-white rounded-xl p-4 border-2 border-purple-200 shadow-sm">
+                          <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                            <span className="text-xl">📄</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-800 truncate" title={selectedFile.name}>
+                              {selectedFile.name}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => setSelectedFile(null)}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                            title="Retirer le fichier"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
                         </div>
                       )}
                       <button
                         onClick={handleUploadFile}
                         disabled={!selectedFile || uploadingFile}
-                        className="px-6 py-3 rounded-xl bg-[#774792] text-white font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        {uploadingFile ? 'Upload en cours...' : 'Uploader le fichier'}
+                        {uploadingFile ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 4.627 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Upload en cours...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>📤</span>
+                            <span>Uploader le fichier</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
 
                   {/* Liste des fichiers */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Fichiers disponibles</h3>
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                        <span>📂</span>
+                        Fichiers disponibles
+                      </h3>
+                      {filesList.length > 0 && (
+                        <button
+                          onClick={loadFiles}
+                          disabled={isLoadingFiles}
+                          className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+                          title="Rafraîchir la liste"
+                        >
+                          {isLoadingFiles ? (
+                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 4.627 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          ) : (
+                            <span>🔄</span>
+                          )}
+                          <span>Rafraîchir</span>
+                        </button>
+                      )}
+                    </div>
                     
                     {isLoadingFiles ? (
-                      <div className="text-center py-8 text-gray-500">Chargement...</div>
+                      <div className="text-center py-12 text-gray-500">
+                        <svg className="animate-spin h-8 w-8 mx-auto mb-3 text-purple-600" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 4.627 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p>Chargement des fichiers...</p>
+                      </div>
                     ) : filesList.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        Aucun fichier pour le moment. Uploadez votre premier fichier ci-dessus.
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                          <span className="text-3xl">📁</span>
+                        </div>
+                        <p className="text-gray-600 font-medium mb-2">Aucun fichier pour le moment</p>
+                        <p className="text-sm text-gray-500">Uploadez votre premier fichier ci-dessus</p>
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -5486,60 +5908,130 @@ const AdminConsolePage: React.FC = () => {
                             ? `${(file.metadata.size / 1024 / 1024).toFixed(2)} MB`
                             : 'Taille inconnue'
                           const fileType = file.metadata?.mimetype || 'Type inconnu'
+                          const isAvailable = file.is_available || false
                           
                           return (
                             <div
                               key={file.id}
-                              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+                              className="group relative bg-gradient-to-r from-white to-gray-50 rounded-xl border-2 border-gray-200 hover:border-purple-300 hover:shadow-md transition-all p-5"
                             >
-                              <div className="flex items-center gap-4 flex-1 min-w-0">
-                                <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-                                  {fileType.includes('excel') || fileType.includes('spreadsheet') ? (
-                                    <span className="text-2xl">📊</span>
-                                  ) : fileType.includes('word') || fileType.includes('document') ? (
-                                    <span className="text-2xl">📝</span>
-                                  ) : fileType.includes('pdf') ? (
-                                    <span className="text-2xl">📄</span>
-                                  ) : (
-                                    <span className="text-2xl">📁</span>
-                                  )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-gray-800 truncate">{file.name}</p>
-                                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-xs text-gray-500">
-                                    <span>{fileSize}</span>
-                                    <span className="hidden sm:inline">•</span>
-                                    <span className="break-all sm:break-normal">
-                                      {new Date(file.created_at).toLocaleDateString('fr-FR', {
-                                        day: 'numeric',
-                                        month: 'short',
-                                        year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}
-                                    </span>
+                              <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                                {/* Icône et infos du fichier */}
+                                <div className="flex items-start gap-4 flex-1 min-w-0">
+                                  <div className={`flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center shadow-sm ${
+                                    fileType.includes('excel') || fileType.includes('spreadsheet') 
+                                      ? 'bg-green-100' 
+                                      : fileType.includes('word') || fileType.includes('document')
+                                      ? 'bg-blue-100'
+                                      : fileType.includes('pdf')
+                                      ? 'bg-red-100'
+                                      : 'bg-purple-100'
+                                  }`}>
+                                    {fileType.includes('excel') || fileType.includes('spreadsheet') ? (
+                                      <span className="text-3xl">📊</span>
+                                    ) : fileType.includes('word') || fileType.includes('document') ? (
+                                      <span className="text-3xl">📝</span>
+                                    ) : fileType.includes('pdf') ? (
+                                      <span className="text-3xl">📄</span>
+                                    ) : (
+                                      <span className="text-3xl">📁</span>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-gray-900 truncate text-base">{file.name}</p>
+                                        {file.description && (
+                                          <p className="text-sm text-gray-600 mt-1.5 italic line-clamp-2" title={file.description}>
+                                            {file.description}
+                                          </p>
+                                        )}
+                                      </div>
+                                      {isAvailable && (
+                                        <span className="flex-shrink-0 px-2 py-1 rounded-lg bg-green-100 text-green-700 text-xs font-medium">
+                                          ✓ Disponible
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500">
+                                      <span className="flex items-center gap-1">
+                                        <span>📏</span>
+                                        {fileSize}
+                                      </span>
+                                      <span className="hidden sm:inline">•</span>
+                                      <span className="flex items-center gap-1">
+                                        <span>📅</span>
+                                        {new Date(file.created_at).toLocaleDateString('fr-FR', {
+                                          day: 'numeric',
+                                          month: 'short',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <button
-                                  onClick={() => handleDownloadFile(file.name)}
-                                  className="px-3 sm:px-4 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
-                                >
-                                  Télécharger
-                                </button>
-                                <button
-                                  onClick={() => setRenameFileData({ oldName: file.name, newName: file.name })}
-                                  className="px-3 sm:px-4 py-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
-                                >
-                                  Renommer
-                                </button>
-                                <button
-                                  onClick={() => setDeleteFileConfirmName(file.name)}
-                                  className="px-3 sm:px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
-                                >
-                                  Supprimer
-                                </button>
+                                
+                                {/* Actions */}
+                                <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">
+                                  <label className={`flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all text-sm font-medium whitespace-nowrap ${
+                                    isAvailable
+                                      ? 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+                                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                  }`}>
+                                    <input
+                                      type="checkbox"
+                                      checked={isAvailable}
+                                      onChange={(e) => handleToggleFileAvailability(file.name, e.target.checked)}
+                                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                    />
+                                    <span>Dispo. adhérents</span>
+                                  </label>
+                                  
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      onClick={() => handleDownloadFile(file.name)}
+                                      className="px-3 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm font-medium"
+                                      title="Télécharger le fichier"
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => setEditDescriptionData({ fileName: file.name, description: file.description || '' })}
+                                      className={`px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
+                                        file.description
+                                          ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+                                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                      }`}
+                                      title={file.description ? "Modifier la description" : "Ajouter une description"}
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => setRenameFileData({ oldName: file.name, newName: file.name })}
+                                      className="px-3 py-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors text-sm font-medium"
+                                      title="Renommer le fichier"
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => setDeleteFileConfirmName(file.name)}
+                                      className="px-3 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-sm font-medium"
+                                      title="Supprimer le fichier"
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           )
@@ -5667,6 +6159,63 @@ const AdminConsolePage: React.FC = () => {
                   className="px-5 py-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Suppression...' : 'Supprimer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal d'édition de la description d'un fichier */}
+      {editDescriptionData !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800">Éditer la description</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Fichier : "{editDescriptionData.fileName}"
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description <span className="text-gray-400 font-normal">(optionnel)</span>
+                </label>
+                <textarea
+                  value={editDescriptionData.description}
+                  onChange={(e) => setEditDescriptionData({ ...editDescriptionData, description: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Ajoutez une description pour ce fichier..."
+                  rows={4}
+                  autoFocus
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Cette description sera visible par les adhérents pour les fichiers disponibles.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => setEditDescriptionData(null)}
+                  className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                  disabled={isSubmitting}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => handleSaveDescription(editDescriptionData.fileName, editDescriptionData.description)}
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 rounded-xl bg-yellow-500 text-white hover:bg-yellow-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
               </div>
             </div>
