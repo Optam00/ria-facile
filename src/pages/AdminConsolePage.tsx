@@ -849,28 +849,109 @@ const AdminConsolePage: React.FC = () => {
       
       setIsLoadingDeletionRequests(true)
       try {
-        const { data, error } = await supabase
-          .from('deletion_requests')
-          .select('*')
-          .order('requested_at', { ascending: false })
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-        if (error) {
-          console.error('❌ [DEMANDES SUPPRESSION] Erreur:', error)
-          setFormStatus({ type: 'error', message: 'Erreur lors du chargement des demandes' })
-        } else {
-          console.log('✅ [DEMANDES SUPPRESSION] Demandes chargées:', data?.length)
-          setDeletionRequests(data || [])
+        if (!session?.access_token || !supabaseUrl || !supabaseAnonKey) {
+          throw new Error('Configuration Supabase manquante ou session invalide')
         }
+
+        const url = `${supabaseUrl}/rest/v1/deletion_requests?select=*&order=requested_at.desc`
+        const response = await fetch(url, {
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${session.access_token}`,
+            'Accept': 'application/json',
+          },
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => '')
+          console.error('❌ [DEMANDES SUPPRESSION] Erreur HTTP:', response.status, errorText)
+          throw new Error(`Erreur HTTP ${response.status} lors du chargement des demandes`)
+        }
+
+        const data = await response.json()
+        console.log('✅ [DEMANDES SUPPRESSION] Demandes chargées:', data?.length)
+        setDeletionRequests(Array.isArray(data) ? data : [])
       } catch (err) {
         console.error('❌ [DEMANDES SUPPRESSION] Exception:', err)
-        setFormStatus({ type: 'error', message: 'Erreur lors du chargement des demandes' })
+        setFormStatus({ 
+          type: 'error', 
+          message: err instanceof Error ? err.message : 'Erreur lors du chargement des demandes' 
+        })
       } finally {
         setIsLoadingDeletionRequests(false)
       }
     }
 
     loadDeletionRequests()
-  }, [selectedAction])
+  }, [selectedAction, session])
+
+  // Annuler une demande de suppression (sans supprimer le compte)
+  const handleCancelDeletionRequest = async (requestId: string) => {
+    if (!session?.user) {
+      setFormStatus({ type: 'error', message: 'Session expirée' })
+      return
+    }
+
+    if (!confirm('Êtes-vous sûr de vouloir annuler cette demande de suppression ?')) {
+      return
+    }
+
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+      if (!supabaseUrl || !supabaseAnonKey || !session?.access_token) {
+        setFormStatus({ type: 'error', message: 'Configuration Supabase manquante' })
+        return
+      }
+
+      // Marquer la demande comme annulée
+      const cancelUrl = `${supabaseUrl}/rest/v1/deletion_requests?id=eq.${requestId}`
+      const cancelResponse = await fetch(cancelUrl, {
+        method: 'PATCH',
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
+          status: 'cancelled',
+          processed_at: new Date().toISOString(),
+          processed_by: session.user.id,
+        }),
+      })
+
+      if (!cancelResponse.ok) {
+        const errorText = await cancelResponse.text().catch(() => '')
+        console.error('❌ [DEMANDES SUPPRESSION] Erreur annulation:', cancelResponse.status, errorText)
+        setFormStatus({ type: 'error', message: 'Erreur lors de l\'annulation de la demande' })
+        return
+      }
+
+      setFormStatus({ type: 'success', message: 'Demande annulée avec succès' })
+      
+      // Recharger les demandes
+      const reloadUrl = `${supabaseUrl}/rest/v1/deletion_requests?select=*&order=requested_at.desc`
+      const reloadResponse = await fetch(reloadUrl, {
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Accept': 'application/json',
+        },
+      })
+      if (reloadResponse.ok) {
+        const data = await reloadResponse.json()
+        setDeletionRequests(Array.isArray(data) ? data : [])
+      }
+    } catch (err) {
+      console.error('❌ [DEMANDES SUPPRESSION] Exception lors de l\'annulation:', err)
+      setFormStatus({ type: 'error', message: 'Erreur lors de l\'annulation de la demande' })
+    }
+  }
 
   // Traiter une demande de suppression (supprimer le compte)
   const handleProcessDeletionRequest = async (requestId: string, userId: string) => {
@@ -884,63 +965,79 @@ const AdminConsolePage: React.FC = () => {
     }
 
     try {
-      // Mettre à jour le statut de la demande
-      const { error: updateError } = await supabase
-        .from('deletion_requests')
-        .update({
-          status: 'processing',
-          processed_by: session.user.id,
-        })
-        .eq('id', requestId)
-
-      if (updateError) {
-        console.error('❌ [DEMANDES SUPPRESSION] Erreur mise à jour:', updateError)
-        setFormStatus({ type: 'error', message: 'Erreur lors de la mise à jour de la demande' })
-        return
-      }
-
-      // Supprimer l'utilisateur (cela supprimera aussi automatiquement le profil et la demande grâce aux CASCADE)
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-      const accessToken = session.access_token
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-      if (!supabaseUrl || !accessToken) {
-        setFormStatus({ type: 'error', message: 'Erreur de configuration' })
+      if (!supabaseUrl || !supabaseAnonKey || !session?.access_token) {
+        setFormStatus({ type: 'error', message: 'Configuration Supabase manquante' })
         return
       }
 
-      // Utiliser l'API Admin de Supabase pour supprimer l'utilisateur
-      const response = await fetch(`${supabaseUrl}/auth/v1/admin/users/${userId}`, {
-        method: 'DELETE',
+      // Supprimer l'utilisateur via une fonction SQL (SECURITY DEFINER)
+      // On passe directement à "completed" après suppression réussie
+      const deleteUserUrl = `${supabaseUrl}/rest/v1/rpc/delete_user_account`
+      const deleteResponse = await fetch(deleteUserUrl, {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
         },
+        body: JSON.stringify({ user_id_to_delete: userId }),
       })
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Erreur inconnue' }))
-        console.error('❌ [DEMANDES SUPPRESSION] Erreur suppression utilisateur:', errorData)
-        setFormStatus({ type: 'error', message: 'Erreur lors de la suppression du compte' })
+      if (!deleteResponse.ok) {
+        const errorData = await deleteResponse.json().catch(() => ({ message: 'Erreur inconnue' }))
+        console.error('❌ [DEMANDES SUPPRESSION] Erreur suppression utilisateur:', deleteResponse.status, errorData)
+        
+        // Pas besoin de remettre à "pending" car on ne passe plus par "processing"
+        
+        const errorMessage = errorData?.message || errorData?.error || 'Erreur lors de la suppression du compte'
+        setFormStatus({ type: 'error', message: errorMessage })
         return
       }
 
-      // Marquer la demande comme complétée
-      await supabase
-        .from('deletion_requests')
-        .update({
+      const deleteResult = await deleteResponse.json()
+      console.log('✅ [DEMANDES SUPPRESSION] Utilisateur supprimé:', deleteResult)
+
+      // Marquer la demande comme complétée directement (pas besoin de statut "processing")
+      const completeUrl = `${supabaseUrl}/rest/v1/deletion_requests?id=eq.${requestId}`
+      const completeResponse = await fetch(completeUrl, {
+        method: 'PATCH',
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
           status: 'completed',
           processed_at: new Date().toISOString(),
-        })
-        .eq('id', requestId)
+          processed_by: session.user.id,
+        }),
+      })
+
+      if (!completeResponse.ok) {
+        console.error('❌ [DEMANDES SUPPRESSION] Erreur lors de la mise à jour du statut:', completeResponse.status)
+        // Ne pas échouer complètement si la suppression a réussi mais la mise à jour du statut a échoué
+      }
 
       setFormStatus({ type: 'success', message: 'Compte supprimé avec succès' })
       
       // Recharger les demandes
-      const { data } = await supabase
-        .from('deletion_requests')
-        .select('*')
-        .order('requested_at', { ascending: false })
-      setDeletionRequests(data || [])
+      const reloadUrl = `${supabaseUrl}/rest/v1/deletion_requests?select=*&order=requested_at.desc`
+      const reloadResponse = await fetch(reloadUrl, {
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Accept': 'application/json',
+        },
+      })
+      if (reloadResponse.ok) {
+        const data = await reloadResponse.json()
+        setDeletionRequests(Array.isArray(data) ? data : [])
+      }
 
     } catch (err) {
       console.error('❌ [DEMANDES SUPPRESSION] Exception:', err)
@@ -1229,7 +1326,7 @@ const AdminConsolePage: React.FC = () => {
           }))
           setFilesList(enrichedFiles)
         }
-      } catch (err) {
+    } catch (err) {
         console.error('Erreur lors du chargement de la disponibilité des fichiers:', err)
         // En cas d'erreur, mettre is_available à false par défaut
         const enrichedFiles = files.map((file: FileItem) => ({
@@ -1399,6 +1496,10 @@ const AdminConsolePage: React.FC = () => {
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
+
+      // Tracker le téléchargement
+      const { trackFileDownload } = await import('../lib/analytics')
+      trackFileDownload(fileName, session)
     } catch (err) {
       console.error('Erreur lors du téléchargement:', err)
       setFormStatus({
@@ -2441,7 +2542,7 @@ const AdminConsolePage: React.FC = () => {
               <div className="flex items-center mb-4">
                 {!isSidebarCollapsed && (
                   <h2 className="text-lg font-semibold text-[#774792]">
-                    Menu d’administration
+                    Console admin
                   </h2>
                 )}
                 <button
@@ -3889,16 +3990,16 @@ const AdminConsolePage: React.FC = () => {
                   {/* Barre de recherche et filtres */}
                   <div className="mb-6 space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Rechercher
-                      </label>
-                      <input
-                        type="text"
-                        value={adherentsSearch}
-                        onChange={(e) => setAdherentsSearch(e.target.value)}
-                        placeholder="Rechercher par email, nom, prénom ou profession..."
-                        className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                      />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rechercher
+                    </label>
+                    <input
+                      type="text"
+                      value={adherentsSearch}
+                      onChange={(e) => setAdherentsSearch(e.target.value)}
+                      placeholder="Rechercher par email, nom, prénom ou profession..."
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                    />
                     </div>
                     
                     {/* Filtres et export */}
@@ -4188,6 +4289,16 @@ const AdminConsolePage: React.FC = () => {
                               </div>
                             </div>
                             {request.status === 'pending' && (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleCancelDeletionRequest(request.id)}
+                                  className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  Annuler la demande
+                                </button>
                               <button
                                 onClick={() => handleProcessDeletionRequest(request.id, request.user_id)}
                                 className="px-4 py-2 text-sm text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors flex items-center gap-2"
@@ -4197,6 +4308,7 @@ const AdminConsolePage: React.FC = () => {
                                 </svg>
                                 Supprimer le compte
                               </button>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -5721,15 +5833,15 @@ const AdminConsolePage: React.FC = () => {
                   {/* En-tête avec statistiques */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                      <div>
+                    <div>
                         <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
                           <span className="text-4xl">📁</span>
                           Gestion des fichiers
                         </h2>
                         <p className="text-gray-600 mt-2 ml-11">
-                          Upload, téléchargez et gérez vos fichiers (Excel, Word, PDF, etc.)
-                        </p>
-                      </div>
+                        Upload, téléchargez et gérez vos fichiers (Excel, Word, PDF, etc.)
+                      </p>
+                    </div>
                     </div>
                     
                     {/* Statistiques */}
@@ -5794,10 +5906,10 @@ const AdminConsolePage: React.FC = () => {
                           Sélectionner un fichier
                         </label>
                         <div className="relative">
-                          <input
-                            type="file"
-                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                            accept=".xlsx,.xls,.doc,.docx,.pdf"
+                        <input
+                          type="file"
+                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                          accept=".xlsx,.xls,.doc,.docx,.pdf"
                             className="w-full px-4 py-3 rounded-xl bg-white border-2 border-dashed border-gray-300 hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 file:cursor-pointer"
                           />
                           {!selectedFile && (
@@ -5818,7 +5930,7 @@ const AdminConsolePage: React.FC = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-gray-800 truncate" title={selectedFile.name}>
-                              {selectedFile.name}
+                            {selectedFile.name}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
                               {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
@@ -5927,17 +6039,17 @@ const AdminConsolePage: React.FC = () => {
                                       ? 'bg-red-100'
                                       : 'bg-purple-100'
                                   }`}>
-                                    {fileType.includes('excel') || fileType.includes('spreadsheet') ? (
+                                  {fileType.includes('excel') || fileType.includes('spreadsheet') ? (
                                       <span className="text-3xl">📊</span>
-                                    ) : fileType.includes('word') || fileType.includes('document') ? (
+                                  ) : fileType.includes('word') || fileType.includes('document') ? (
                                       <span className="text-3xl">📝</span>
-                                    ) : fileType.includes('pdf') ? (
+                                  ) : fileType.includes('pdf') ? (
                                       <span className="text-3xl">📄</span>
-                                    ) : (
+                                  ) : (
                                       <span className="text-3xl">📁</span>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
                                     <div className="flex items-start justify-between gap-2">
                                       <div className="flex-1 min-w-0">
                                         <p className="font-semibold text-gray-900 truncate text-base">{file.name}</p>
@@ -5961,17 +6073,17 @@ const AdminConsolePage: React.FC = () => {
                                       <span className="hidden sm:inline">•</span>
                                       <span className="flex items-center gap-1">
                                         <span>📅</span>
-                                        {new Date(file.created_at).toLocaleDateString('fr-FR', {
-                                          day: 'numeric',
-                                          month: 'short',
-                                          year: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit'
-                                        })}
-                                      </span>
-                                    </div>
+                                      {new Date(file.created_at).toLocaleDateString('fr-FR', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </span>
                                   </div>
                                 </div>
+                              </div>
                                 
                                 {/* Actions */}
                                 <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">
@@ -5990,8 +6102,8 @@ const AdminConsolePage: React.FC = () => {
                                   </label>
                                   
                                   <div className="flex items-center gap-1">
-                                    <button
-                                      onClick={() => handleDownloadFile(file.name)}
+                                <button
+                                  onClick={() => handleDownloadFile(file.name)}
                                       className="px-3 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-sm font-medium"
                                       title="Télécharger le fichier"
                                     >
@@ -6020,16 +6132,16 @@ const AdminConsolePage: React.FC = () => {
                                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                       </svg>
-                                    </button>
-                                    <button
-                                      onClick={() => setDeleteFileConfirmName(file.name)}
+                                </button>
+                                <button
+                                  onClick={() => setDeleteFileConfirmName(file.name)}
                                       className="px-3 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors text-sm font-medium"
                                       title="Supprimer le fichier"
-                                    >
+                                >
                                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                       </svg>
-                                    </button>
+                                </button>
                                   </div>
                                 </div>
                               </div>
