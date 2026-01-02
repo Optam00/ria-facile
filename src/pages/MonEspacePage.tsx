@@ -139,6 +139,45 @@ const MonEspacePage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, session?.user?.id])
 
+  // Charger la demande de suppression existante au démarrage
+  useEffect(() => {
+    const loadExistingDeletionRequest = async () => {
+      if (!session?.user?.id || !isAdherent()) return
+
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+        if (!supabaseUrl || !supabaseAnonKey || !session?.access_token) {
+          return
+        }
+
+        const url = `${supabaseUrl}/rest/v1/deletion_requests?user_id=eq.${session.user.id}&status=in.(pending,processing)&select=*&order=requested_at.desc&limit=1`
+        const response = await fetch(url, {
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${session.access_token}`,
+            'Accept': 'application/json',
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (Array.isArray(data) && data.length > 0) {
+            setExistingDeletionRequest(data[0])
+          }
+        }
+      } catch (err) {
+        console.warn('⚠️ [MON ESPACE] Erreur lors du chargement de la demande existante:', err)
+      }
+    }
+
+    if (!loading && isAdherent() && session?.user?.id) {
+      loadExistingDeletionRequest()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, session?.user?.id])
+
   // Télécharger un fichier
   const handleDownloadFile = async (fileName: string) => {
     try {
@@ -180,6 +219,10 @@ const MonEspacePage: React.FC = () => {
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
+
+      // Tracker le téléchargement
+      const { trackFileDownload } = await import('../lib/analytics')
+      trackFileDownload(fileName, session)
     } catch (err) {
       console.error('Erreur lors du téléchargement:', err)
       alert(err instanceof Error ? err.message : 'Erreur lors du téléchargement du fichier.')
@@ -392,63 +435,47 @@ const MonEspacePage: React.FC = () => {
       console.log('🔵 [MON ESPACE] Session access_token présent:', !!session.access_token)
       console.log('🔵 [MON ESPACE] Type de user_id:', typeof session.user.id)
 
-      // Test : vérifier que RLS fonctionne pour la lecture
-      console.log('🔵 [MON ESPACE] Test de lecture pour vérifier RLS...')
-      const { data: testSelect, error: testError } = await supabase
-        .from('deletion_requests')
-        .select('id')
-        .eq('user_id', session.user.id)
-        .limit(1)
+      // Créer la demande de suppression via API REST directe
+      console.log('🔵 [MON ESPACE] Création de la demande via API REST...')
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
       
-      console.log('🔵 [MON ESPACE] Test SELECT résultat:', { testSelect, testError })
+      if (!supabaseAnonKey) {
+        setDeletionMessage({ type: 'error', text: 'Erreur de configuration' })
+        setIsSubmittingDeletion(false)
+        return
+      }
 
-      // Créer la demande de suppression
-      console.log('🔵 [MON ESPACE] Tentative d\'insertion dans deletion_requests...')
-      console.log('🔵 [MON ESPACE] Payload exact:', JSON.stringify({
+      const insertUrl = `${supabaseUrl}/rest/v1/deletion_requests`
+      const insertResponse = await fetch(insertUrl, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({
         user_id: session.user.id,
         email: userEmail,
         reason: deletionReason.trim() || null,
         status: 'pending',
-      }))
-
-      const { data, error } = await supabase
-        .from('deletion_requests')
-        .insert({
-          user_id: session.user.id,
-          email: userEmail,
-          reason: deletionReason.trim() || null,
-          status: 'pending',
-        })
-        .select()
-        .single()
-
-      console.log('🔵 [MON ESPACE] Réponse Supabase complète:', { 
-        data, 
-        error,
-        errorDetails: error ? {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        } : null
+        }),
       })
 
-      if (error) {
-        console.error('❌ [MON ESPACE] Erreur lors de la création de la demande:', error)
-        console.error('❌ [MON ESPACE] Détails de l\'erreur:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        })
+      if (!insertResponse.ok) {
+        const errorText = await insertResponse.text().catch(() => '')
+        const errorData = errorText ? JSON.parse(errorText) : { message: 'Erreur inconnue' }
+        console.error('❌ [MON ESPACE] Erreur lors de la création de la demande:', insertResponse.status, errorData)
         
         let errorMessage = 'Erreur lors de la création de la demande. Veuillez réessayer.'
-        if (error.code === 'PGRST301' || error.message.includes('permission denied') || error.message.includes('new row violates row-level security')) {
-          errorMessage = 'Erreur de permissions. Les politiques RLS peuvent bloquer cette opération. Vérifiez que la politique "users_can_create_own_deletion_request" est bien créée.'
-        } else if (error.message.includes('relation') && error.message.includes('does not exist')) {
+        if (insertResponse.status === 403 || errorData.message?.includes('permission denied') || errorData.message?.includes('row-level security')) {
+          errorMessage = 'Erreur de permissions. Veuillez contacter l\'administrateur.'
+        } else if (errorData.message?.includes('relation') && errorData.message?.includes('does not exist')) {
           errorMessage = 'La table deletion_requests n\'existe pas encore. Veuillez contacter l\'administrateur.'
-        } else if (error.code === '23503') {
-          errorMessage = 'Erreur de référence. Vérifiez que l\'utilisateur existe dans auth.users.'
+        } else if (errorData.code === '23503') {
+          errorMessage = 'Erreur de référence. Veuillez contacter l\'administrateur.'
+        } else if (errorData.message) {
+          errorMessage = errorData.message
         }
         
         setDeletionMessage({ type: 'error', text: errorMessage })
@@ -456,15 +483,18 @@ const MonEspacePage: React.FC = () => {
         return
       }
 
-      if (!data) {
+      const data = await insertResponse.json()
+      const createdRequest = Array.isArray(data) ? data[0] : data
+
+      if (!createdRequest) {
         console.error('❌ [MON ESPACE] Aucune donnée retournée après insertion')
         setDeletionMessage({ type: 'error', text: 'Erreur : aucune donnée retournée après insertion' })
         setIsSubmittingDeletion(false)
         return
       }
 
-      console.log('✅ [MON ESPACE] Demande de suppression créée avec succès:', data)
-      setExistingDeletionRequest(data)
+      console.log('✅ [MON ESPACE] Demande de suppression créée avec succès:', createdRequest)
+      setExistingDeletionRequest(createdRequest)
       setDeletionMessage({ 
         type: 'success', 
         text: 'Votre demande de suppression a été envoyée. Elle sera traitée par un administrateur sous peu.' 
@@ -486,14 +516,31 @@ const MonEspacePage: React.FC = () => {
     if (!existingDeletionRequest || !session?.user) return
 
     try {
-      const { error } = await supabase
-        .from('deletion_requests')
-        .update({ status: 'cancelled' })
-        .eq('id', existingDeletionRequest.id)
-        .eq('user_id', session.user.id)
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-      if (error) {
-        console.error('❌ [MON ESPACE] Erreur lors de l\'annulation:', error)
+      if (!supabaseUrl || !supabaseAnonKey || !session?.access_token) {
+        setDeletionMessage({ type: 'error', text: 'Erreur de configuration' })
+        return
+      }
+
+      const cancelUrl = `${supabaseUrl}/rest/v1/deletion_requests?id=eq.${existingDeletionRequest.id}&user_id=eq.${session.user.id}`
+      const cancelResponse = await fetch(cancelUrl, {
+        method: 'PATCH',
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
+          status: 'cancelled',
+        }),
+      })
+
+      if (!cancelResponse.ok) {
+        const errorText = await cancelResponse.text().catch(() => '')
+        console.error('❌ [MON ESPACE] Erreur lors de l\'annulation:', cancelResponse.status, errorText)
         setDeletionMessage({ type: 'error', text: 'Erreur lors de l\'annulation de la demande' })
         return
       }
@@ -1318,7 +1365,7 @@ const MonEspacePage: React.FC = () => {
                 >
                   {isLoadingFiles ? '⏳' : '🔄'}
                 </button>
-              </div>
+                </div>
               
               {isLoadingFiles ? (
                 <div className="text-center py-8 text-gray-500">Chargement...</div>
@@ -1364,15 +1411,15 @@ const MonEspacePage: React.FC = () => {
                   ))}
                 </div>
               )}
-            </div>
+              </div>
 
             {/* Placeholder pour les futures fonctionnalités */}
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 opacity-60">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-2xl">💬</span>
-                <h3 className="font-semibold text-gray-700">Mes conversations</h3>
-              </div>
-              <p className="text-gray-500 text-sm">Bientôt disponible</p>
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 opacity-60">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">💬</span>
+                  <h3 className="font-semibold text-gray-700">Mes conversations</h3>
+                </div>
+                <p className="text-gray-500 text-sm">Bientôt disponible</p>
             </div>
 
             {/* Déconnexion */}

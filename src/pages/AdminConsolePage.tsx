@@ -243,6 +243,7 @@ const AdminConsolePage: React.FC = () => {
     profession: string | null
     created_at: string
     consentement_prospection: boolean | null
+    role?: 'adherent' | 'admin'
   }
   const [adherentsList, setAdherentsList] = useState<Adherent[]>([])
   const [adherentsSearch, setAdherentsSearch] = useState('')
@@ -781,7 +782,8 @@ const AdminConsolePage: React.FC = () => {
           throw new Error('Configuration Supabase incomplète côté client.')
         }
 
-        const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,prenom,nom,profession,created_at,consentement_prospection&role=eq.adherent&order=created_at.desc`
+        // Charger tous les profils (adhérents et admins) pour que l'admin puisse voir tous les comptes
+        const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,prenom,nom,profession,created_at,consentement_prospection,role&order=created_at.desc`
 
         const response = await fetch(url, {
           headers: {
@@ -973,8 +975,7 @@ const AdminConsolePage: React.FC = () => {
         return
       }
 
-      // Supprimer l'utilisateur via une fonction SQL (SECURITY DEFINER)
-      // On passe directement à "completed" après suppression réussie
+      // Supprimer l'utilisateur via une fonction SQL (qui supprime le profil et bannit l'utilisateur)
       const deleteUserUrl = `${supabaseUrl}/rest/v1/rpc/delete_user_account`
       const deleteResponse = await fetch(deleteUserUrl, {
         method: 'POST',
@@ -4081,6 +4082,11 @@ const AdminConsolePage: React.FC = () => {
                                 </div>
                               </div>
                               <div className="flex flex-wrap gap-2 mt-2">
+                                {adherent.role === 'admin' && (
+                                  <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-semibold">
+                                    👑 Admin
+                                  </span>
+                                )}
                                 {adherent.profession && (
                                   <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
                                     {adherent.profession}

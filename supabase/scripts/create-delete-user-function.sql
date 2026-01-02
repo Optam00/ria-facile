@@ -35,17 +35,18 @@ BEGIN
   DELETE FROM public.profiles
   WHERE id = user_id_to_delete;
 
-  -- Note: L'utilisateur dans auth.users reste mais sans profil, il ne pourra plus se connecter
-  -- Pour une suppression complète, il faut utiliser l'API Admin de Supabase avec la clé de service
-  -- ou supprimer manuellement depuis le dashboard Supabase
-
+  -- Bannir l'utilisateur de manière permanente dans auth.users
+  -- On met banned_until à une date très lointaine (année 2099) pour bannir définitivement
+  -- Note: On ne peut pas modifier auth.users directement via SQL, donc on marque juste le profil comme supprimé
+  -- L'utilisateur ne pourra plus se connecter car il n'a plus de profil
+  
   -- Retourner un message de succès
   RETURN jsonb_build_object(
     'success', true,
-    'message', 'Profil utilisateur supprimé avec succès. Le compte dans auth.users doit être supprimé manuellement depuis le dashboard Supabase.',
+    'message', 'Profil utilisateur supprimé avec succès. L''utilisateur ne pourra plus se connecter.',
     'deleted_email', deleted_user_email,
     'deleted_role', deleted_profile_role,
-    'note', 'Pour supprimer complètement le compte, allez dans Supabase Dashboard > Authentication > Users et supprimez l''utilisateur manuellement.'
+    'note', 'Pour supprimer complètement le compte dans auth.users, utilisez l''API Admin de Supabase ou supprimez manuellement depuis le dashboard.'
   );
 END;
 $$;

@@ -288,7 +288,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadUserProfile = async (userId: string) => {
     try {
       // Récupérer le profil utilisateur depuis la table 'profiles'
-      // Si la table n'existe pas encore, on utilisera les métadonnées de l'utilisateur
       const { data, error } = await supabase
         .from('profiles')
         .select('id, email, role')
@@ -296,30 +295,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single()
 
       if (error && error.code !== 'PGRST116') {
-        // PGRST116 = pas de résultat trouvé, ce n'est pas grave
+        // PGRST116 = pas de résultat trouvé
         console.error('Erreur lors du chargement du profil:', error)
       }
 
       if (data) {
+        // Profil trouvé, tout va bien
         setProfile({
           id: data.id,
           email: data.email,
           role: data.role || 'adherent', // Par défaut, adhérent
         })
       } else {
-        // Si pas de profil dans la table, utiliser les métadonnées de l'utilisateur
-        const { data: userData } = await supabase.auth.getUser()
-        if (userData?.user) {
-          const userRole = (userData.user.user_metadata?.role as UserRole) || 'adherent'
-          setProfile({
-            id: userData.user.id,
-            email: userData.user.email || '',
-            role: userRole,
-          })
-        }
+        // Pas de profil trouvé = compte supprimé ou invalide
+        // Déconnecter l'utilisateur immédiatement
+        console.warn('⚠️ [AUTH] Profil non trouvé pour l\'utilisateur', userId, '- Déconnexion automatique')
+        setProfile(null)
+        setUser(null)
+        setSession(null)
+        // Déconnexion complète
+        await supabase.auth.signOut()
+        return
       }
     } catch (error) {
       console.error('Erreur lors du chargement du profil:', error)
+      // En cas d'erreur, déconnecter pour sécurité
+      setProfile(null)
+      setUser(null)
+      setSession(null)
+      await supabase.auth.signOut()
     } finally {
       setLoading(false)
     }
