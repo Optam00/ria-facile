@@ -50,7 +50,7 @@ const VerifierNiveauRisquePage: React.FC = () => {
       id: 2,
       label: 'Infrastructures Critiques',
       details: [
-        { id: 1, label: 'Composant de sécurité : Gestion du trafic (routier, fer, air) ou fourniture d\'eau, gaz, chauffage urbain, électricité ou infrastructures numériques critiques', condition: 'CONDITION : La défaillance doit mettre en danger la vie/santé des personnes ou causer des dommages matériels graves.' },
+        { id: 1, label: 'Composant de sécurité : Gestion du trafic (routier, fer, air) ou fourniture d\'eau, gaz, chauffage, électricité ou infrastructures numériques critiques', condition: 'CONDITION : La défaillance doit mettre en danger la vie/santé des personnes ou causer des dommages matériels graves.' },
         { id: 999, label: 'Aucun de ces cas.' }
       ]
     },
@@ -91,7 +91,8 @@ const VerifierNiveauRisquePage: React.FC = () => {
         { id: 1, label: 'Prédiction de risque de victimisation ou récidive' },
         { id: 2, label: 'Polygraphes / Détection d\'état émotionnel' },
         { id: 3, label: 'Évaluation de la fiabilité des preuves' },
-        { id: 4, label: 'Profilage criminel (si non interdit)' },
+        { id: 4, label: 'Évaluation du risque de récidive' },
+        { id: 5, label: 'Profilage' },
         { id: 999, label: 'Aucun de ces cas.' }
       ]
     },
@@ -102,6 +103,7 @@ const VerifierNiveauRisquePage: React.FC = () => {
         { id: 1, label: 'Polygraphes / Détection d\'état émotionnel' },
         { id: 2, label: 'Examen des demandes d\'asile, visa, titres de séjour' },
         { id: 3, label: 'Évaluation des risques sécuritaires ou sanitaires aux frontières' },
+        { id: 4, label: 'Contrôles aux frontières, aux fins de la détection, de la reconnaissance ou de l\'identification des personnes physiques sauf vérification des documents de voyage.' },
         { id: 999, label: 'Aucun de ces cas.' }
       ]
     },
@@ -446,7 +448,7 @@ const VerifierNiveauRisquePage: React.FC = () => {
                         <span className="text-sm text-gray-700">
                           {val === 1 && 'Manipulation : Techniques subliminales ou manipulatrices altérant le comportement de manière nuisible.'}
                           {val === 2 && 'Exploitation : Exploitation des vulnérabilités (âge, handicap, situation sociale/économique).'}
-                          {val === 3 && 'Notation Sociale (Social Scoring) : Évaluation par des autorités publiques menant à un traitement défavorable injustifié.'}
+                          {val === 3 && 'Notation Sociale : Évaluation selon le comportement social ou les caractéristiques menant à un traitement défavorable.'}
                           {val === 4 && 'Police Prédictive : Évaluation du risque criminel basée uniquement sur le profilage ou les traits de personnalité.'}
                           {val === 5 && 'Scraping Facial : Constitution ou extension de bases de données faciales par moissonnage non ciblé d\'internet ou de vidéosurveillance (CCTV).'}
                           {val === 6 && 'Émotions (Travail/École) : Reconnaissance des émotions sur le lieu de travail ou dans l\'enseignement (sauf raison médicale/sécurité).'}
@@ -808,7 +810,7 @@ const VerifierNiveauRisquePage: React.FC = () => {
                         />
                         <span className="text-sm text-gray-700">
                           {val === 1 && 'Interaction : Système destiné à interagir directement avec des personnes (Chatbot, etc.).'}
-                          {val === 2 && 'Génération de contenu : Système générant du texte, audio, vidéo, image (GPAI).'}
+                          {val === 2 && 'Génération de contenu : Système générant du texte, audio, vidéo, image.'}
                           {val === 3 && 'Deepfake : Génération/manipulation réaliste (Hypertrucage).'}
                           {val === 4 && 'Reconnaissance d\'émotions / Catégorisation biométrique : (Dans les cas autorisés et non Haut Risque).'}
                           {val === 5 && 'Aucun de ces cas.'}

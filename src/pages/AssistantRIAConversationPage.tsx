@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import assistantRiaImg from '../assets/assistant_ria.jpeg';
 import ReactMarkdown from 'react-markdown';
 // @ts-ignore
@@ -6,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 // @ts-ignore
 import remarkBreaks from 'remark-breaks';
 import { supabasePublic } from '../lib/supabasePublic';
+import { useAuth } from '../contexts/AuthContext';
 
 const MAX_HISTORY = 5;
 
@@ -30,12 +32,45 @@ const loadingMessages: Record<Exclude<LoadingStage, 'idle'>, string> = {
 };
 
 const AssistantRIAConversationPage = () => {
+  const { isAdherent } = useAuth();
   const [question, setQuestion] = useState('');
   const [history, setHistory] = useState<{question: string, answer: string}[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [loadingStage, setLoadingStage] = useState<LoadingStage>('idle');
+  const [limitError, setLimitError] = useState<string | null>(null);
+
+  // Fonction pour gérer le compteur de questions par jour pour les non-adhérents
+  const getQuestionCountToday = (): number => {
+    const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+    const key = `assistant-ria-questions-${today}`;
+    const stored = localStorage.getItem(key);
+    return stored ? parseInt(stored, 10) : 0;
+  };
+
+  const incrementQuestionCount = (): void => {
+    const today = new Date().toISOString().split('T')[0];
+    const key = `assistant-ria-questions-${today}`;
+    const currentCount = getQuestionCountToday();
+    localStorage.setItem(key, (currentCount + 1).toString());
+  };
+
+  const canAskQuestion = (): boolean => {
+    // Les adhérents n'ont pas de limite
+    if (isAdherent()) {
+      return true;
+    }
+    // Les non-adhérents sont limités à 2 questions par jour
+    return getQuestionCountToday() < 2;
+  };
+
+  const getRemainingQuestions = (): number => {
+    if (isAdherent()) {
+      return Infinity; // Pas de limite pour les adhérents
+    }
+    return Math.max(0, 2 - getQuestionCountToday());
+  };
 
   // Sauvegarder la question dans Supabase (optionnel, pour analytics)
   const saveQuestionToSupabase = async (question: string) => {
@@ -101,9 +136,19 @@ const AssistantRIAConversationPage = () => {
     if (e) e.preventDefault();
     const userQuestion = question;
     if (!userQuestion.trim()) return;
+
+    // Vérifier la limite pour les non-adhérents
+    if (!canAskQuestion()) {
+      setLimitError('Vous avez atteint la limite de 2 questions par jour.');
+      return;
+    }
+
+    setLimitError(null);
     setIsLoading(true);
     console.log('🚀 Début de handleAsk:', { question: userQuestion });
     try {
+      // Incrémenter le compteur avant d'envoyer (même si ça échoue, on compte la tentative)
+      incrementQuestionCount();
       await saveQuestionToSupabase(userQuestion);
       const answer = await callGeminiAPI(userQuestion, history);
       console.log('✅ Réponse obtenue avec succès');
@@ -129,6 +174,10 @@ const AssistantRIAConversationPage = () => {
   // Auto-expand textarea
   const handleTextareaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setQuestion(e.target.value);
+    // Effacer le message d'erreur quand l'utilisateur tape
+    if (limitError) {
+      setLimitError(null);
+    }
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
@@ -225,6 +274,34 @@ const AssistantRIAConversationPage = () => {
           </div>
         ))}
       </div>
+      {/* Message d'erreur de limite */}
+      {limitError && (
+        <div className="w-full max-w-xs sm:max-w-2xl lg:max-w-4xl mt-4 mb-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          {limitError}{' '}
+          <Link to="/inscription" className="text-red-800 font-semibold hover:underline">
+            Devenez adhérent
+          </Link>
+          {' '}pour poser des questions illimitées !
+        </div>
+      )}
+
+      {/* Indicateur de questions restantes pour les non-adhérents */}
+      {!isAdherent() && (
+        <div className="w-full max-w-xs sm:max-w-2xl lg:max-w-4xl mt-2 mb-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-sm text-center">
+          {getRemainingQuestions() > 0 ? (
+            <>Questions restantes aujourd'hui : <strong>{getRemainingQuestions()}</strong> / 2</>
+          ) : (
+            <>
+              Vous avez atteint votre limite quotidienne.{' '}
+              <Link to="/inscription" className="text-blue-800 font-semibold hover:underline">
+                Devenez adhérent
+              </Link>
+              {' '}pour des questions illimitées !
+            </>
+          )}
+        </div>
+      )}
+
       {/* Zone de saisie toujours en bas */}
       <form
         onSubmit={handleAsk}
@@ -234,11 +311,11 @@ const AssistantRIAConversationPage = () => {
         <textarea
           ref={textareaRef}
           className={`flex-1 px-4 py-2 rounded-xl border-0 focus:outline-none resize-none ${history.length > 0 ? 'min-h-[36px]' : 'min-h-[80px]'} sm:min-h-[44px] text-lg bg-transparent leading-[1.7] flex items-center`}
-          placeholder="Posez votre question"
+          placeholder={!canAskQuestion() ? "Limite quotidienne atteinte. Devenez adhérent pour continuer." : "Posez votre question"}
           value={question}
           onChange={handleTextareaInput}
           onKeyDown={handleTextareaKeyDown}
-          disabled={isLoading}
+          disabled={isLoading || !canAskQuestion()}
           rows={1}
           required
           style={{resize: 'none', display: 'flex', alignItems: 'center'}}
@@ -246,7 +323,7 @@ const AssistantRIAConversationPage = () => {
         <button
           type="submit"
           className="sm:ml-2 p-2 rounded-full bg-gradient-to-r from-indigo-500 to-[#774792] text-white shadow hover:shadow-md transition-all duration-300 disabled:opacity-60 flex items-center justify-center self-end sm:self-auto"
-          disabled={isLoading || !question.trim()}
+          disabled={isLoading || !question.trim() || !canAskQuestion()}
           aria-label="Envoyer (Ctrl+Entrée ou Cmd+Entrée)"
           title="Envoyer (Ctrl+Entrée ou Cmd+Entrée)"
         >

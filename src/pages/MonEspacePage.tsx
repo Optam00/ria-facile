@@ -40,6 +40,12 @@ const MonEspacePage: React.FC = () => {
   const [availableFiles, setAvailableFiles] = useState<Array<{ file_name: string; created_at: string; description?: string }>>([])
   const [isLoadingFiles, setIsLoadingFiles] = useState(false)
 
+  // État pour le dépliant de prospection commerciale
+  const [isProspectionExpanded, setIsProspectionExpanded] = useState(false)
+  
+  // État pour le dépliant de suppression de compte
+  const [isDeletionExpanded, setIsDeletionExpanded] = useState(false)
+
   // Charger les infos utilisateur uniquement depuis les métadonnées Supabase
   // On évite d'appeler la table profiles côté client car les requêtes timeout / 500
   useEffect(() => {
@@ -1152,50 +1158,6 @@ const MonEspacePage: React.FC = () => {
               )}
             </div>
 
-            {/* Section Consentement prospection commerciale */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
-                <span>📧</span> Prospection commerciale
-              </h2>
-              
-              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    id="consentementProspection"
-                    checked={consentementProspection}
-                    onChange={(e) => {
-                      setConsentementProspection(e.target.checked)
-                      // Sauvegarder immédiatement le changement
-                      handleSaveConsentement(e.target.checked)
-                    }}
-                    className="mt-1 w-4 h-4 text-[#774792] border-gray-300 rounded focus:ring-[#774792] focus:ring-2"
-                  />
-                  <div className="flex-1">
-                    <span className="text-sm font-medium text-gray-800">
-                      J'accepte de recevoir des communications commerciales de RIA Facile
-                    </span>
-                    <p className="text-xs text-gray-600 mt-1">
-                      En cochant cette case, vous acceptez de recevoir des emails promotionnels, newsletters et autres communications commerciales de RIA Facile. Vous pouvez modifier ce choix à tout moment.
-                    </p>
-                    <p className="text-xs text-gray-600 mt-2">
-                      Pour en savoir plus sur vos droits et la façon dont nous traitons vos données, consultez notre{' '}
-                      <a
-                        href="/politique-de-confidentialite"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#774792] hover:underline font-medium"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Politique de confidentialité
-                      </a>
-                      .
-                    </p>
-                  </div>
-                </label>
-              </div>
-            </div>
-
             {/* Section Export de données */}
             <div className="bg-white border border-gray-200 rounded-xl p-6">
               <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
@@ -1219,136 +1181,6 @@ const MonEspacePage: React.FC = () => {
               <p className="text-xs text-gray-500 mt-3 italic">
                 Le fichier PDF contiendra toutes vos informations personnelles : profil, consentements, dates de création et de connexion.
               </p>
-            </div>
-
-            {/* Section Suppression de compte */}
-            <div className="bg-white border border-red-200 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
-                <span>🗑️</span> Supprimer mon compte
-              </h2>
-              
-              {deletionMessage && (
-                <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${
-                  deletionMessage.type === 'success' 
-                    ? 'bg-green-50 text-green-700 border border-green-200' 
-                    : 'bg-red-50 text-red-700 border border-red-200'
-                }`}>
-                  {deletionMessage.text}
-                </div>
-              )}
-
-              {existingDeletionRequest ? (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                  <p className="text-sm text-yellow-800 mb-3">
-                    <strong>Demande en cours</strong> : Vous avez déjà une demande de suppression en attente de traitement.
-                  </p>
-                  <div className="text-xs text-yellow-700 mb-3">
-                    <p>Date de la demande : {new Date(existingDeletionRequest.requested_at).toLocaleDateString('fr-FR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}</p>
-                    {existingDeletionRequest.reason && (
-                      <p className="mt-2">Motif : {existingDeletionRequest.reason}</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={handleCancelDeletionRequest}
-                    className="px-4 py-2 rounded-lg bg-yellow-500 text-white font-medium text-sm hover:bg-yellow-600 transition-all"
-                  >
-                    Annuler ma demande
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {!showDeletionRequest ? (
-                    <div>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Si vous souhaitez supprimer votre compte, vous pouvez faire une demande. Un administrateur traitera votre demande sous peu. Cette action est irréversible.
-                      </p>
-                      <button
-                        onClick={() => setShowDeletionRequest(true)}
-                        className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium text-sm hover:bg-red-600 transition-all"
-                      >
-                        Demander la suppression de mon compte
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <p className="text-sm text-gray-600">
-                        Veuillez remplir le formulaire ci-dessous pour demander la suppression de votre compte.
-                      </p>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Motif de la suppression <span className="text-gray-400 font-normal">(optionnel)</span>
-                        </label>
-                        <textarea
-                          value={deletionReason}
-                          onChange={(e) => setDeletionReason(e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                          placeholder="Expliquez brièvement pourquoi vous souhaitez supprimer votre compte..."
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Mot de passe <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="password"
-                          value={deletionPassword}
-                          onChange={(e) => setDeletionPassword(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                          placeholder="Entrez votre mot de passe pour confirmer"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Nous avons besoin de votre mot de passe pour confirmer votre identité.
-                        </p>
-                      </div>
-
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                        <label className="flex items-start gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={deletionConfirm}
-                            onChange={(e) => setDeletionConfirm(e.target.checked)}
-                            className="mt-1 w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
-                          />
-                          <span className="text-sm text-red-800">
-                            Je comprends que la suppression de mon compte est définitive et irréversible. Toutes mes données seront supprimées de manière permanente.
-                          </span>
-                        </label>
-                      </div>
-
-                      <div className="flex gap-3 pt-2">
-                        <button
-                          onClick={handleRequestDeletion}
-                          disabled={isSubmittingDeletion}
-                          className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium text-sm shadow-md hover:bg-red-600 transition-all disabled:opacity-60"
-                        >
-                          {isSubmittingDeletion ? 'Envoi en cours...' : 'Envoyer la demande'}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowDeletionRequest(false)
-                            setDeletionReason('')
-                            setDeletionPassword('')
-                            setDeletionConfirm(false)
-                            setDeletionMessage(null)
-                          }}
-                          className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-all"
-                        >
-                          Annuler
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
             </div>
 
             {/* Section Fichiers disponibles */}
@@ -1413,13 +1245,225 @@ const MonEspacePage: React.FC = () => {
               )}
               </div>
 
-            {/* Placeholder pour les futures fonctionnalités */}
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 opacity-60">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-2xl">💬</span>
-                  <h3 className="font-semibold text-gray-700">Mes conversations</h3>
+            {/* Section Consentement prospection commerciale (dépliable, en bas) */}
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <button
+                onClick={() => setIsProspectionExpanded(!isProspectionExpanded)}
+                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span>📧</span>
+                  <h2 className="text-lg font-semibold text-gray-800">Prospection commerciale</h2>
                 </div>
-                <p className="text-gray-500 text-sm">Bientôt disponible</p>
+                <svg
+                  className={`w-5 h-5 text-gray-500 transition-transform ${isProspectionExpanded ? 'transform rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {isProspectionExpanded && (
+                <div className="px-6 pb-6">
+                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id="consentementProspection"
+                        checked={consentementProspection}
+                        onChange={(e) => {
+                          // Si l'utilisateur veut décocher, demander confirmation
+                          if (consentementProspection && !e.target.checked) {
+                            if (!window.confirm('Êtes-vous sûr de vouloir refuser les communications commerciales ? Vous ne recevrez plus nos newsletters et offres exclusives.')) {
+                              return
+                            }
+                          }
+                          setConsentementProspection(e.target.checked)
+                          // Sauvegarder immédiatement le changement
+                          handleSaveConsentement(e.target.checked)
+                        }}
+                        className="mt-1 w-4 h-4 text-[#774792] border-gray-300 rounded focus:ring-[#774792] focus:ring-2"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-gray-800">
+                          J'accepte de recevoir des communications commerciales de RIA Facile
+                        </span>
+                        <p className="text-xs text-gray-600 mt-1">
+                          En cochant cette case, vous acceptez de recevoir des emails promotionnels, newsletters et autres communications commerciales de RIA Facile. Vous pouvez modifier ce choix à tout moment.
+                        </p>
+                        <p className="text-xs text-gray-600 mt-2">
+                          Pour en savoir plus sur vos droits et la façon dont nous traitons vos données, consultez notre{' '}
+                          <a
+                            href="/politique-de-confidentialite"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#774792] hover:underline font-medium"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Politique de confidentialité
+                          </a>
+                          .
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Section Suppression de compte (dépliable, en bas) */}
+            <div className="bg-white border border-red-200 rounded-xl overflow-hidden">
+              <button
+                onClick={() => setIsDeletionExpanded(!isDeletionExpanded)}
+                className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span>🗑️</span>
+                  <h2 className="text-lg font-semibold text-gray-800">Supprimer mon compte</h2>
+                </div>
+                <svg
+                  className={`w-5 h-5 text-gray-500 transition-transform ${isDeletionExpanded ? 'transform rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {isDeletionExpanded && (
+                <div className="px-6 pb-6">
+                  {deletionMessage && (
+                    <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${
+                      deletionMessage.type === 'success' 
+                        ? 'bg-green-50 text-green-700 border border-green-200' 
+                        : 'bg-red-50 text-red-700 border border-red-200'
+                    }`}>
+                      {deletionMessage.text}
+                    </div>
+                  )}
+
+                  {existingDeletionRequest ? (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                      <p className="text-sm text-yellow-800 mb-3">
+                        <strong>Demande en cours</strong> : Vous avez déjà une demande de suppression en attente de traitement.
+                      </p>
+                      <div className="text-xs text-yellow-700 mb-3">
+                        <p>Date de la demande : {new Date(existingDeletionRequest.requested_at).toLocaleDateString('fr-FR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}</p>
+                        {existingDeletionRequest.reason && (
+                          <p className="mt-2">Motif : {existingDeletionRequest.reason}</p>
+                        )}
+                      </div>
+                      <button
+                        onClick={handleCancelDeletionRequest}
+                        className="px-4 py-2 rounded-lg bg-yellow-500 text-white font-medium text-sm hover:bg-yellow-600 transition-all"
+                      >
+                        Annuler ma demande
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {!showDeletionRequest ? (
+                        <div>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Si vous souhaitez supprimer votre compte, vous pouvez faire une demande. Un administrateur traitera votre demande sous peu. Cette action est irréversible.
+                          </p>
+                          <button
+                            onClick={() => {
+                              if (!window.confirm('Êtes-vous sûr de vouloir demander la suppression de votre compte ? Cette action est irréversible.')) {
+                                return
+                              }
+                              setShowDeletionRequest(true)
+                            }}
+                            className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium text-sm hover:bg-red-600 transition-all"
+                          >
+                            Demander la suppression de mon compte
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <p className="text-sm text-gray-600">
+                            Veuillez remplir le formulaire ci-dessous pour demander la suppression de votre compte.
+                          </p>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Motif de la suppression <span className="text-gray-400 font-normal">(optionnel)</span>
+                            </label>
+                            <textarea
+                              value={deletionReason}
+                              onChange={(e) => setDeletionReason(e.target.value)}
+                              rows={3}
+                              className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                              placeholder="Expliquez brièvement pourquoi vous souhaitez supprimer votre compte..."
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Mot de passe <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="password"
+                              value={deletionPassword}
+                              onChange={(e) => setDeletionPassword(e.target.value)}
+                              className="w-full px-4 py-2.5 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                              placeholder="Entrez votre mot de passe pour confirmer"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Nous avons besoin de votre mot de passe pour confirmer votre identité.
+                            </p>
+                          </div>
+
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <label className="flex items-start gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={deletionConfirm}
+                                onChange={(e) => setDeletionConfirm(e.target.checked)}
+                                className="mt-1 w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                              />
+                              <span className="text-sm text-red-800">
+                                Je comprends que la suppression de mon compte est définitive et irréversible. Toutes mes données seront supprimées de manière permanente.
+                              </span>
+                            </label>
+                          </div>
+
+                          <div className="flex gap-3 pt-2">
+                            <button
+                              onClick={handleRequestDeletion}
+                              disabled={isSubmittingDeletion}
+                              className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium text-sm shadow-md hover:bg-red-600 transition-all disabled:opacity-60"
+                            >
+                              {isSubmittingDeletion ? 'Envoi en cours...' : 'Envoyer la demande'}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowDeletionRequest(false)
+                                setDeletionReason('')
+                                setDeletionPassword('')
+                                setDeletionConfirm(false)
+                                setDeletionMessage(null)
+                              }}
+                              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-all"
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Déconnexion */}
