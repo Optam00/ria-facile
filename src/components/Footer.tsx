@@ -63,6 +63,11 @@ export const Footer: React.FC = () => {
                   Contact
                 </Link>
               </li>
+              <li>
+                <Link to="/rag" className="text-gray-600 hover:text-[#774792] text-sm">
+                  RAG
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
