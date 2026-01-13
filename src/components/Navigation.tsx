@@ -185,7 +185,6 @@ export const Navigation = () => {
                     onMouseLeave={scheduleConformiteClose}
                   >
                     <Link to="/assistant-ria" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Assistant RIA</Link>
-                    <Link to="/rag" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Recherche RAG</Link>
                     <Link to="/verificateur" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Vérificateur de conformité</Link>
                     <Link to="/matrice-des-obligations" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Matrice des obligations</Link>
                     <Link to="/fiches-pratiques" className="block px-3 py-2 rounded hover:bg-gray-50" onClick={() => setOpenConformite(false)}>Fiches pratiques</Link>
@@ -349,7 +348,6 @@ export const Navigation = () => {
                   {mOpenConformite && (
                     <div className="ml-1 flex flex-col gap-1 mt-1">
                       <Link to="/assistant-ria" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Assistant RIA</Link>
-                      <Link to="/rag" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Recherche RAG</Link>
                       <Link to="/verificateur" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Vérificateur de conformité</Link>
                       <Link to="/fiches-pratiques" className="block text-base leading-6 py-2 px-3 rounded-lg hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Fiches pratiques</Link>
                     </div>
