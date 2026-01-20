@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { question, sources, history = [] } = await req.json()
+    const { question, sources, history = [], mode } = await req.json()
 
     if (!question || !question.trim()) {
       return new Response(
@@ -122,8 +122,16 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY non définie')
     }
 
-    // Utiliser le même modèle que l'assistant RIA pour une meilleure compréhension
-    const model = "gemini-2.5-pro"
+    // Choisir le modèle Gemini en fonction du mode demandé
+    // - "detailed" (par défaut) : gemini-2.5-pro (modèle actuel)
+    // - "balanced" : gemini-2.5-flash
+    // - "quick" : gemini-2.5-flash-lite
+    let model = 'gemini-2.5-pro'
+    if (mode === 'balanced') {
+      model = 'gemini-2.5-flash'
+    } else if (mode === 'quick') {
+      model = 'gemini-2.5-flash-lite'
+    }
     
     // Séparer les instructions système du contenu (comme l'assistant RIA)
     const systemInstruction = `Tu es un expert juridique sur l'AI Act européen (RIA - Règlement UE 2024/1689).

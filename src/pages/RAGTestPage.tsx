@@ -13,6 +13,7 @@ import { supabasePublic } from '../lib/supabasePublic';
 const MAX_HISTORY = 5;
 
 type SourceType = 'reglement' | 'lignes_directrices' | 'jurisprudence';
+type ResponseMode = 'quick' | 'balanced' | 'detailed';
 
 interface HistoryItem {
   question: string;
@@ -73,6 +74,9 @@ const RAGTestPage: React.FC = () => {
   const [expandedSourceItems, setExpandedSourceItems] = useState<Record<string, boolean>>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Mode de réponse : rapide, équilibrée, complète
+  const [responseMode, setResponseMode] = useState<ResponseMode>('detailed');
+
   // L'utilisateur a accès s'il est admin ou adhérent
   const hasAccess = isAdmin() || isAdherent();
 
@@ -132,8 +136,8 @@ const RAGTestPage: React.FC = () => {
   // Le règlement est toujours inclus
   const selectedSources: SourceType[] = [
     'reglement',
-    ...(hasGuidelines ? ['lignes_directrices'] : []),
-    ...(hasJurisprudence ? ['jurisprudence'] : []),
+    ...(hasGuidelines ? (['lignes_directrices'] as SourceType[]) : []),
+    ...(hasJurisprudence ? (['jurisprudence'] as SourceType[]) : []),
   ];
 
   const handleCopy = async (text: string, index: number) => {
@@ -204,6 +208,7 @@ const RAGTestPage: React.FC = () => {
           question: question.trim(),
           sources: selectedSources,
           history: recentHistory,
+          mode: responseMode,
         }),
       });
 
@@ -361,13 +366,13 @@ const RAGTestPage: React.FC = () => {
                     </a>
                   ),
                   p: ({ children }) => <p className="mb-6 leading-relaxed">{children}</p>,
-                  ul: ({ children, depth }) => (
-                    <ul className={`mb-6 ${depth > 0 ? 'ml-6 mt-2' : 'ml-6'} list-disc space-y-2`}>
+                  ul: ({ children }) => (
+                    <ul className="mb-6 ml-6 list-disc space-y-2">
                       {children}
                     </ul>
                   ),
-                  ol: ({ children, depth }) => (
-                    <ol className={`mb-6 ${depth > 0 ? 'ml-6 mt-2' : 'ml-6'} list-decimal space-y-2`}>
+                  ol: ({ children }) => (
+                    <ol className="mb-6 ml-6 list-decimal space-y-2">
                       {children}
                     </ol>
                   ),
@@ -811,6 +816,39 @@ const RAGTestPage: React.FC = () => {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Sélecteur de mode de réponse */}
+        <div className="mb-3 px-2 sm:px-0">
+          <div className="flex justify-between items-center text-[11px] text-gray-600 mb-1">
+            <span className={responseMode === 'quick' ? 'font-semibold text-[#774792]' : ''}>
+              Réponse rapide
+            </span>
+            <span className={responseMode === 'balanced' ? 'font-semibold text-[#774792]' : ''}>
+              Équilibrée
+            </span>
+            <span className={responseMode === 'detailed' ? 'font-semibold text-[#774792]' : ''}>
+              Réponse complète
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] text-gray-500 whitespace-nowrap">Vitesse</span>
+            <input
+              type="range"
+              min={0}
+              max={2}
+              step={1}
+              value={responseMode === 'quick' ? 0 : responseMode === 'balanced' ? 1 : 2}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                if (val === 0) setResponseMode('quick');
+                else if (val === 1) setResponseMode('balanced');
+                else setResponseMode('detailed');
+              }}
+              className="flex-1 accent-[#774792]"
+            />
+            <span className="text-[10px] text-gray-500 whitespace-nowrap">Complétude</span>
+          </div>
         </div>
 
         {/* Formulaire de saisie */}
