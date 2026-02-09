@@ -15,11 +15,6 @@ export const Footer: React.FC = () => {
                   Mentions légales
                 </Link>
               </li>
-              <li>
-                <Link to="/connexion" className="text-gray-600 hover:text-[#774792] text-sm">
-                  Connexion
-                </Link>
-              </li>
             </ul>
           </div>
           <div>

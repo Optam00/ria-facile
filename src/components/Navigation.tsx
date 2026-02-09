@@ -202,7 +202,7 @@ export const Navigation = () => {
             <form
               onSubmit={handleSearchSubmit}
               className="hidden lg:flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5 hover:border-purple-300 focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-200 transition-all"
-              style={{ minWidth: isLoggedIn ? 170 : 220 }}
+              style={{ minWidth: isLoggedIn ? 140 : 180 }}
             >
               <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="11" cy="11" r="8" strokeWidth="2" />
@@ -258,16 +258,30 @@ export const Navigation = () => {
               Mon Espace
             </Link>
           )}
+          {/* Bouton connexion (si non connecté) */}
+          {!isLoggedIn && (
+            <Link
+              to="/connexion"
+              className="hidden lg:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold shadow-none hover:from-indigo-600 hover:to-purple-600 transition-all text-sm"
+              style={{ minWidth: 100, justifyContent: 'center' }}
+              aria-label="Se connecter"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+              <span>Connexion</span>
+            </Link>
+          )}
           {/* Bouton contact */}
           <Link
             to="/contact"
             className="hidden lg:inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold shadow-none hover:from-purple-700 hover:to-blue-700 transition-all text-sm"
-            style={{ minWidth: isLoggedIn ? 40 : 120 }}
+            style={{ minWidth: isLoggedIn ? 40 : 80 }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 00-2 2z"/>
             </svg>
-            {!isLoggedIn && <span className="ml-1.5">Nous contacter</span>}
+            {!isLoggedIn && <span className="ml-1.5">Contact</span>}
           </Link>
         </div>
 
@@ -374,7 +388,17 @@ export const Navigation = () => {
                     </span>
                   </Link>
                 )}
-                <Link to="/contact" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Nous contacter</Link>
+                {!isLoggedIn && (
+                  <Link to="/connexion" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-indigo-50 transition bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold" onClick={() => setIsOpen(false)}>
+                    <span className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                      </svg>
+                      Connexion
+                    </span>
+                  </Link>
+                )}
+                <Link to="/contact" className="py-2 px-3 rounded-lg text-lg font-medium hover:bg-blue-50 transition" onClick={() => setIsOpen(false)}>Contact</Link>
               </div>
             </div>
           )}
