@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import logo from '../assets/logo.jpeg'
+import logoAnimated from '../assets/logo-animated.gif'
 
 export const Navigation = () => {
   const { isAdmin, isAdherent } = useAuth()
@@ -13,6 +14,7 @@ export const Navigation = () => {
   const [openConformite, setOpenConformite] = useState(false)
   const [mOpenMaster, setMOpenMaster] = useState(false)
   const [mOpenConformite, setMOpenConformite] = useState(false)
+  const [isLogoHovered, setIsLogoHovered] = useState(false)
   const masterRef = useRef<HTMLDivElement>(null)
   const conformiteRef = useRef<HTMLDivElement>(null)
   const masterCloseTimeout = useRef<number | null>(null)
@@ -85,9 +87,11 @@ export const Navigation = () => {
         <Link 
           to="/" 
           className="flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
+          onMouseEnter={() => setIsLogoHovered(true)}
+          onMouseLeave={() => setIsLogoHovered(false)}
         >
           <img 
-            src={logo}
+            src={isLogoHovered ? logoAnimated : logo}
             alt="RIA Facile Logo" 
             className="h-12 w-auto object-contain"
           />
