@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
+import { AdherentOnlyOverlay } from '../components/AdherentOnlyOverlay'
 
 const FichePratiqueMaitriseIAPage: React.FC = () => {
   const [sourcesOuvertes, setSourcesOuvertes] = useState(false)
@@ -15,7 +16,8 @@ const FichePratiqueMaitriseIAPage: React.FC = () => {
         />
       </Helmet>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <AdherentOnlyOverlay>
+        <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Bouton retour */}
         <Link
           to="/fiches-pratiques"
@@ -412,7 +414,8 @@ const FichePratiqueMaitriseIAPage: React.FC = () => {
             <span>Retour aux fiches pratiques</span>
           </Link>
         </div>
-      </div>
+        </div>
+      </AdherentOnlyOverlay>
     </div>
   )
 }

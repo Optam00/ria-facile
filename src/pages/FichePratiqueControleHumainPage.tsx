@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
+import { AdherentOnlyOverlay } from '../components/AdherentOnlyOverlay'
 
 const FichePratiqueControleHumainPage: React.FC = () => {
   const [sourcesOuvertes, setSourcesOuvertes] = useState(false)
@@ -12,7 +13,8 @@ const FichePratiqueControleHumainPage: React.FC = () => {
         <meta name="description" content="Guide pratique pour la mise en place du contrôle humain dans les systèmes d'IA à haut risque. Croisement RGPD et AI Act." />
       </Helmet>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <AdherentOnlyOverlay>
+        <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Bouton retour */}
         <Link 
           to="/fiches-pratiques" 
@@ -456,7 +458,8 @@ const FichePratiqueControleHumainPage: React.FC = () => {
             <span>Retour aux fiches pratiques</span>
           </Link>
         </div>
-      </div>
+        </div>
+      </AdherentOnlyOverlay>
     </div>
   )
 }

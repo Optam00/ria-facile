@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
+import { AdherentOnlyOverlay } from '../components/AdherentOnlyOverlay'
 
 const FichePratiqueFRIAPage: React.FC = () => {
   const [sourcesOuvertes, setSourcesOuvertes] = useState(false)
@@ -12,7 +13,8 @@ const FichePratiqueFRIAPage: React.FC = () => {
         <meta name="description" content="Guide pratique pour réaliser une analyse d'impact sur les droits fondamentaux (FRIA) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act." />
       </Helmet>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <AdherentOnlyOverlay>
+        <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Bouton retour */}
         <Link 
           to="/fiches-pratiques" 
@@ -444,7 +446,8 @@ const FichePratiqueFRIAPage: React.FC = () => {
             <span>Retour aux fiches pratiques</span>
           </Link>
         </div>
-      </div>
+        </div>
+      </AdherentOnlyOverlay>
     </div>
   )
 }
