@@ -6,7 +6,20 @@ import { supabasePublic } from '../lib/supabasePublic'
 import { supabase } from '../lib/supabase'
 import AdminDashboard from '../components/AdminDashboard'
 
-type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | null
+// Fonction utilitaire pour décoder un JWT et vérifier son expiration
+const isTokenExpired = (token: string): boolean => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    const exp = payload.exp
+    if (!exp) return true
+    // Vérifier si le token expire dans les 30 prochaines secondes (marge de sécurité)
+    return Date.now() / 1000 >= exp - 30
+  } catch {
+    return true
+  }
+}
+
+type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-rag-questions' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | null
 
 interface Actualite {
   id: number
@@ -66,6 +79,13 @@ interface AssistantRIAQuestion {
   created_at?: string
 }
 
+interface RAGQuestion {
+  id: number
+  question: string
+  sources?: string[]
+  created_at?: string
+}
+
 const AdminConsolePage: React.FC = () => {
   const { signOut, isAdmin, profile, loading, session } = useAuth()
   const navigate = useNavigate()
@@ -104,7 +124,15 @@ const AdminConsolePage: React.FC = () => {
     references: '',
     auteur: '',
     theme: '',
+    image_url: '',
+    image_contenu_url: '',
   })
+  const [doctrineImageFile, setDoctrineImageFile] = useState<File | null>(null)
+  const [doctrineImagePreview, setDoctrineImagePreview] = useState<string | null>(null)
+  const [uploadingDoctrineImage, setUploadingDoctrineImage] = useState(false)
+  const [doctrineContenuImageFile, setDoctrineContenuImageFile] = useState<File | null>(null)
+  const [doctrineContenuImagePreview, setDoctrineContenuImagePreview] = useState<string | null>(null)
+  const [uploadingDoctrineContenuImage, setUploadingDoctrineContenuImage] = useState(false)
   const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({
     type: null,
     message: '',
@@ -198,7 +226,12 @@ const AdminConsolePage: React.FC = () => {
     references: '',
     auteur: '',
     theme: '',
+    image_url: '',
   })
+  const [doctrineEditImageFile, setDoctrineEditImageFile] = useState<File | null>(null)
+  const [doctrineEditImagePreview, setDoctrineEditImagePreview] = useState<string | null>(null)
+  const [doctrineEditContenuImageFile, setDoctrineEditContenuImageFile] = useState<File | null>(null)
+  const [doctrineEditContenuImagePreview, setDoctrineEditContenuImagePreview] = useState<string | null>(null)
   const [deleteDoctrineConfirmId, setDeleteDoctrineConfirmId] = useState<number | null>(null)
   
   // États pour la gestion du quiz
@@ -290,16 +323,43 @@ const AdminConsolePage: React.FC = () => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-  const getAuthHeaders = () => {
+  // Fonction pour obtenir les headers d'authentification avec rafraîchissement automatique du token
+  const getAuthHeaders = async () => {
     if (!supabaseUrl || !supabaseAnonKey) {
       throw new Error('Configuration Supabase manquante côté client')
     }
     if (!session?.access_token) {
       throw new Error('Session administrateur introuvable')
     }
+
+    let accessToken = session.access_token
+
+    // Vérifier si le token est expiré ou sur le point d'expirer
+    if (isTokenExpired(accessToken)) {
+      console.log('🔄 [AUTH] Token expiré ou sur le point d\'expirer, rafraîchissement...')
+      try {
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession(session)
+        if (refreshError) {
+          console.error('❌ [AUTH] Erreur lors du rafraîchissement du token:', refreshError)
+          throw new Error('Impossible de rafraîchir la session. Veuillez vous reconnecter.')
+        }
+        if (refreshData.session?.access_token) {
+          accessToken = refreshData.session.access_token
+          console.log('✅ [AUTH] Token rafraîchi avec succès')
+        } else {
+          throw new Error('Session rafraîchie mais aucun token disponible. Veuillez vous reconnecter.')
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          throw err
+        }
+        throw new Error('Erreur lors du rafraîchissement de la session. Veuillez vous reconnecter.')
+      }
+    }
+
     return {
       apikey: supabaseAnonKey,
-      Authorization: `Bearer ${session.access_token}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
       Prefer: 'return=minimal',
     } as const
@@ -363,6 +423,7 @@ const AdminConsolePage: React.FC = () => {
       icon: '🤖',
       items: [
         { id: 'consulter-assistant-ria' as AdminAction, label: 'Consulter les questions', icon: '📋' },
+        { id: 'consulter-rag-questions' as AdminAction, label: 'Consulter les questions RAG', icon: '🔍' },
       ],
     },
     {
@@ -1197,7 +1258,7 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      const headers = getAuthHeaders()
+      const headers = await getAuthHeaders()
       
       // Supprimer le profil (la suppression cascade sur auth.users si configuré)
       const response = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${id}`, {
@@ -1924,7 +1985,7 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      const headers = getAuthHeaders()
+      const headers = await getAuthHeaders()
       const response = await fetch(`${supabaseUrl}/rest/v1/Actu?id=eq.${editingActualite.id}`, {
         method: 'PATCH',
         headers,
@@ -1994,7 +2055,7 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      const headers = getAuthHeaders()
+      const headers = await getAuthHeaders()
       const response = await fetch(`${supabaseUrl}/rest/v1/docs?id=eq.${editingDoc.id}`, {
         method: 'PATCH',
         headers,
@@ -2043,7 +2104,7 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      const headers = getAuthHeaders()
+      const headers = await getAuthHeaders()
       const response = await fetch(`${supabaseUrl}/rest/v1/docs?id=eq.${id}`, {
         method: 'DELETE',
         headers,
@@ -2098,7 +2159,13 @@ const AdminConsolePage: React.FC = () => {
       references: doctrine.references,
       auteur: doctrine.auteur,
       theme: doctrine.theme,
+      image_url: doctrine.image_url || '',
+      image_contenu_url: doctrine.image_contenu_url || '',
     })
+    setDoctrineEditImageFile(null)
+    setDoctrineEditImagePreview(doctrine.image_url || null)
+    setDoctrineEditContenuImageFile(null)
+    setDoctrineEditContenuImagePreview(doctrine.image_contenu_url || null)
     setIsEditDoctrineModalOpen(true)
   }
 
@@ -2110,7 +2177,76 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      const headers = getAuthHeaders()
+      let imageUrl = doctrineEditForm.image_url
+      let imageContenuUrl = doctrineEditForm.image_contenu_url
+
+      // Upload de la nouvelle image de couverture si un fichier a été sélectionné
+      if (doctrineEditImageFile) {
+        setUploadingDoctrineImage(true)
+        try {
+          const fileName = `doctrine-${Date.now()}-${doctrineEditImageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+          const uploadUrl = `${supabaseUrl}/storage/v1/object/doctrine-images/${fileName}`
+          
+          const headers = await getAuthHeaders()
+          const uploadResponse = await fetch(uploadUrl, {
+            method: 'POST',
+            headers: {
+              ...headers,
+              'Content-Type': doctrineEditImageFile.type || 'image/jpeg',
+              'x-upsert': 'false',
+              'cache-control': '3600'
+            },
+            body: doctrineEditImageFile
+          })
+
+          if (!uploadResponse.ok) {
+            const errorText = await uploadResponse.text()
+            throw new Error(`Erreur lors de l'upload de l'image: ${errorText}`)
+          }
+
+          imageUrl = `${supabaseUrl}/storage/v1/object/public/doctrine-images/${fileName}`
+        } catch (uploadError) {
+          setUploadingDoctrineImage(false)
+          throw new Error(uploadError instanceof Error ? uploadError.message : 'Erreur lors de l\'upload de l\'image')
+        } finally {
+          setUploadingDoctrineImage(false)
+        }
+      }
+
+      // Upload de la nouvelle image de contenu si un fichier a été sélectionné
+      if (doctrineEditContenuImageFile) {
+        setUploadingDoctrineContenuImage(true)
+        try {
+          const fileName = `doctrine-contenu-${Date.now()}-${doctrineEditContenuImageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+          const uploadUrl = `${supabaseUrl}/storage/v1/object/doctrine-images/${fileName}`
+          
+          const headers = await getAuthHeaders()
+          const uploadResponse = await fetch(uploadUrl, {
+            method: 'POST',
+            headers: {
+              ...headers,
+              'Content-Type': doctrineEditContenuImageFile.type || 'image/jpeg',
+              'x-upsert': 'false',
+              'cache-control': '3600'
+            },
+            body: doctrineEditContenuImageFile
+          })
+
+          if (!uploadResponse.ok) {
+            const errorText = await uploadResponse.text()
+            throw new Error(`Erreur lors de l'upload de l'image de contenu: ${errorText}`)
+          }
+
+          imageContenuUrl = `${supabaseUrl}/storage/v1/object/public/doctrine-images/${fileName}`
+        } catch (uploadError) {
+          setUploadingDoctrineContenuImage(false)
+          throw new Error(uploadError instanceof Error ? uploadError.message : 'Erreur lors de l\'upload de l\'image de contenu')
+        } finally {
+          setUploadingDoctrineContenuImage(false)
+        }
+      }
+
+      const headers = await getAuthHeaders()
       const response = await fetch(`${supabaseUrl}/rest/v1/doctrine?id=eq.${editingDoctrine.id}`, {
         method: 'PATCH',
         headers,
@@ -2133,6 +2269,8 @@ const AdminConsolePage: React.FC = () => {
           references: doctrineEditForm.references.trim(),
           auteur: doctrineEditForm.auteur.trim(),
           theme: doctrineEditForm.theme.trim(),
+          image_url: imageUrl || null,
+          image_contenu_url: imageContenuUrl || null,
         }),
       })
 
@@ -2170,7 +2308,7 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      const headers = getAuthHeaders()
+      const headers = await getAuthHeaders()
       const response = await fetch(`${supabaseUrl}/rest/v1/doctrine?id=eq.${id}`, {
         method: 'DELETE',
         headers,
@@ -2209,7 +2347,7 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      const headers = getAuthHeaders()
+      const headers = await getAuthHeaders()
       const response = await fetch(`${supabaseUrl}/rest/v1/Actu?id=eq.${id}`, {
         method: 'DELETE',
         headers,
@@ -2268,7 +2406,7 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      const headers = getAuthHeaders()
+      const headers = await getAuthHeaders()
       const response = await fetch(`${supabaseUrl}/rest/v1/questions?Id=eq.${editingQuestion.Id}`, {
         method: 'PATCH',
         headers,
@@ -2317,7 +2455,7 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      const headers = getAuthHeaders()
+      const headers = await getAuthHeaders()
       const response = await fetch(`${supabaseUrl}/rest/v1/questions?Id=eq.${id}`, {
         method: 'DELETE',
         headers,
@@ -2356,7 +2494,7 @@ const AdminConsolePage: React.FC = () => {
     setFormStatus({ type: null, message: '' })
 
     try {
-      const headers = getAuthHeaders()
+      const headers = await getAuthHeaders()
       const response = await fetch(`${supabaseUrl}/rest/v1/assistant_ria?id=eq.${id}`, {
         method: 'DELETE',
         headers,
@@ -2682,7 +2820,7 @@ const AdminConsolePage: React.FC = () => {
                       setFormStatus({ type: null, message: '' })
 
                       try {
-                        const headers = getAuthHeaders()
+                        const headers = await getAuthHeaders()
                         const response = await fetch(`${supabaseUrl}/rest/v1/Actu`, {
                           method: 'POST',
                           headers,
@@ -3310,7 +3448,7 @@ const AdminConsolePage: React.FC = () => {
                       setFormStatus({ type: null, message: '' })
 
                       try {
-                        const headers = getAuthHeaders()
+                        const headers = await getAuthHeaders()
                         const response = await fetch(`${supabaseUrl}/rest/v1/docs`, {
                           method: 'POST',
                           headers,
@@ -3633,7 +3771,78 @@ const AdminConsolePage: React.FC = () => {
                       setFormStatus({ type: null, message: '' })
 
                       try {
-                        const headers = getAuthHeaders()
+                        let imageUrl = doctrineForm.image_url
+                        let imageContenuUrl = doctrineForm.image_contenu_url
+
+                        // Upload de l'image de couverture si un fichier a été sélectionné
+                        if (doctrineImageFile) {
+                          setUploadingDoctrineImage(true)
+                          try {
+                            const fileName = `doctrine-${Date.now()}-${doctrineImageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+                            const uploadUrl = `${supabaseUrl}/storage/v1/object/doctrine-images/${fileName}`
+                            
+                            const headers = await getAuthHeaders()
+                            const uploadResponse = await fetch(uploadUrl, {
+                              method: 'POST',
+                              headers: {
+                                ...headers,
+                                'Content-Type': doctrineImageFile.type || 'image/jpeg',
+                                'x-upsert': 'false',
+                                'cache-control': '3600'
+                              },
+                              body: doctrineImageFile
+                            })
+
+                            if (!uploadResponse.ok) {
+                              const errorText = await uploadResponse.text()
+                              throw new Error(`Erreur lors de l'upload de l'image: ${errorText}`)
+                            }
+
+                            // Construire l'URL publique de l'image
+                            imageUrl = `${supabaseUrl}/storage/v1/object/public/doctrine-images/${fileName}`
+                          } catch (uploadError) {
+                            setUploadingDoctrineImage(false)
+                            throw new Error(uploadError instanceof Error ? uploadError.message : 'Erreur lors de l\'upload de l\'image')
+                          } finally {
+                            setUploadingDoctrineImage(false)
+                          }
+                        }
+
+                        // Upload de l'image de contenu si un fichier a été sélectionné
+                        if (doctrineContenuImageFile) {
+                          setUploadingDoctrineContenuImage(true)
+                          try {
+                            const fileName = `doctrine-contenu-${Date.now()}-${doctrineContenuImageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+                            const uploadUrl = `${supabaseUrl}/storage/v1/object/doctrine-images/${fileName}`
+                            
+                            const headers = await getAuthHeaders()
+                            const uploadResponse = await fetch(uploadUrl, {
+                              method: 'POST',
+                              headers: {
+                                ...headers,
+                                'Content-Type': doctrineContenuImageFile.type || 'image/jpeg',
+                                'x-upsert': 'false',
+                                'cache-control': '3600'
+                              },
+                              body: doctrineContenuImageFile
+                            })
+
+                            if (!uploadResponse.ok) {
+                              const errorText = await uploadResponse.text()
+                              throw new Error(`Erreur lors de l'upload de l'image de contenu: ${errorText}`)
+                            }
+
+                            // Construire l'URL publique de l'image
+                            imageContenuUrl = `${supabaseUrl}/storage/v1/object/public/doctrine-images/${fileName}`
+                          } catch (uploadError) {
+                            setUploadingDoctrineContenuImage(false)
+                            throw new Error(uploadError instanceof Error ? uploadError.message : 'Erreur lors de l\'upload de l\'image de contenu')
+                          } finally {
+                            setUploadingDoctrineContenuImage(false)
+                          }
+                        }
+
+                        const headers = await getAuthHeaders()
                         const response = await fetch(`${supabaseUrl}/rest/v1/doctrine`, {
                           method: 'POST',
                           headers,
@@ -3656,12 +3865,46 @@ const AdminConsolePage: React.FC = () => {
                             references: doctrineForm.references.trim(),
                             auteur: doctrineForm.auteur.trim(),
                             theme: doctrineForm.theme.trim(),
+                            image_url: imageUrl || null,
+                            image_contenu_url: imageContenuUrl || null,
                           }),
                         })
 
                         if (!response.ok) {
                           const text = await response.text()
-                          throw new Error(text || `Erreur Supabase (${response.status})`)
+                          let errorMessage = text || `Erreur Supabase (${response.status})`
+                          
+                          // Messages d'erreur plus explicites
+                          if (response.status === 401) {
+                            errorMessage = 'Erreur d\'authentification. Veuillez vous reconnecter.'
+                          } else if (response.status === 403) {
+                            errorMessage = 'Accès refusé. Vérifiez que vous avez les droits administrateur et que les politiques RLS sont correctement configurées.'
+                          } else if (response.status === 404) {
+                            errorMessage = 'La table doctrine n\'existe pas. Veuillez exécuter le script create-doctrine-table.sql dans Supabase.'
+                          } else if (response.status === 409) {
+                            errorMessage = 'Conflit : un article avec ces caractéristiques existe déjà.'
+                          } else if (response.status === 422) {
+                            errorMessage = 'Données invalides. Vérifiez que tous les champs requis sont remplis.'
+                          } else if (text.includes('JWT expired') || text.includes('jwt expired') || response.status === 401) {
+                            errorMessage = 'Votre session a expiré. Le système va tenter de la rafraîchir automatiquement. Si le problème persiste, veuillez vous reconnecter.'
+                            // Tenter de rafraîchir la session une dernière fois
+                            try {
+                              if (session) {
+                                const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession(session)
+                                if (!refreshError && refreshData.session) {
+                                  errorMessage = 'Session rafraîchie. Veuillez réessayer d\'ajouter l\'article.'
+                                }
+                              }
+                            } catch (refreshErr) {
+                              console.error('Erreur lors du rafraîchissement:', refreshErr)
+                            }
+                          } else if (text.includes('permission denied') || text.includes('new row violates row-level security')) {
+                            errorMessage = 'Permission refusée par les politiques RLS. Vérifiez que vous êtes administrateur et que les politiques sont correctement configurées.'
+                          } else if (text.includes('relation') && text.includes('does not exist')) {
+                            errorMessage = 'La table doctrine n\'existe pas. Veuillez exécuter le script create-doctrine-table.sql dans Supabase.'
+                          }
+                          
+                          throw new Error(errorMessage)
                         }
 
                         setFormStatus({ type: 'success', message: 'Article de doctrine ajouté avec succès.' })
@@ -3684,7 +3927,13 @@ const AdminConsolePage: React.FC = () => {
                           references: '',
                           auteur: '',
                           theme: '',
+                          image_url: '',
+                          image_contenu_url: '',
                         })
+                        setDoctrineImageFile(null)
+                        setDoctrineImagePreview(null)
+                        setDoctrineContenuImageFile(null)
+                        setDoctrineContenuImagePreview(null)
                       } catch (err) {
                         setFormStatus({
                           type: 'error',
@@ -3748,6 +3997,156 @@ const AdminConsolePage: React.FC = () => {
                           className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
                           placeholder="Ex : gouvernance, transparence..."
                         />
+                      </div>
+                    </div>
+
+                    {/* Champ d'upload d'image */}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Image de l'article
+                      </label>
+                      <div className="space-y-4">
+                        {doctrineImagePreview && (
+                          <div className="relative w-full max-w-md">
+                            <img
+                              src={doctrineImagePreview}
+                              alt="Aperçu"
+                              className="w-full h-48 object-cover rounded-xl border border-gray-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDoctrineImageFile(null)
+                                setDoctrineImagePreview(null)
+                                setDoctrineForm({ ...doctrineForm, image_url: '' })
+                              }}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
+                              title="Supprimer l'image"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-4">
+                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                              </svg>
+                              <p className="mb-2 text-sm text-gray-500">
+                                <span className="font-semibold">Cliquez pour uploader</span> ou glissez-déposez
+                              </p>
+                              <p className="text-xs text-gray-500">PNG, JPG, WEBP (MAX. 5MB)</p>
+                            </div>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) {
+                                  // Vérifier la taille (5MB max)
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    setFormStatus({
+                                      type: 'error',
+                                      message: 'L\'image est trop volumineuse. Taille maximale : 5MB'
+                                    })
+                                    return
+                                  }
+                                  setDoctrineImageFile(file)
+                                  const reader = new FileReader()
+                                  reader.onloadend = () => {
+                                    setDoctrineImagePreview(reader.result as string)
+                                  }
+                                  reader.readAsDataURL(file)
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                        {uploadingDoctrineImage && (
+                          <div className="text-sm text-gray-600 flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-purple-500"></div>
+                            Upload de l'image en cours...
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Champ d'upload d'image de contenu (schéma explicatif) */}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Image dans le contenu (schéma explicatif - optionnel)
+                      </label>
+                      <p className="text-xs text-gray-500 mb-3">Cette image apparaîtra dans le contenu de l'article, après l'introduction</p>
+                      <div className="space-y-4">
+                        {doctrineContenuImagePreview && (
+                          <div className="relative w-full max-w-md">
+                            <img
+                              src={doctrineContenuImagePreview}
+                              alt="Aperçu image contenu"
+                              className="w-full h-48 object-cover rounded-xl border border-gray-200"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDoctrineContenuImageFile(null)
+                                setDoctrineContenuImagePreview(null)
+                                setDoctrineForm({ ...doctrineForm, image_contenu_url: '' })
+                              }}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
+                              title="Supprimer l'image"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-4">
+                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                              </svg>
+                              <p className="mb-2 text-sm text-gray-500">
+                                <span className="font-semibold">Cliquez pour uploader</span> ou glissez-déposez
+                              </p>
+                              <p className="text-xs text-gray-500">PNG, JPG, WEBP (MAX. 5MB)</p>
+                            </div>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0]
+                                if (file) {
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    setFormStatus({
+                                      type: 'error',
+                                      message: 'L\'image est trop volumineuse. Taille maximale : 5MB'
+                                    })
+                                    return
+                                  }
+                                  setDoctrineContenuImageFile(file)
+                                  const reader = new FileReader()
+                                  reader.onloadend = () => {
+                                    setDoctrineContenuImagePreview(reader.result as string)
+                                  }
+                                  reader.readAsDataURL(file)
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                        {uploadingDoctrineContenuImage && (
+                          <div className="text-sm text-gray-600 flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-purple-500"></div>
+                            Upload de l'image de contenu en cours...
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -4353,7 +4752,7 @@ const AdminConsolePage: React.FC = () => {
                       setFormStatus({ type: null, message: '' })
 
                       try {
-                        const headers = getAuthHeaders()
+                        const headers = await getAuthHeaders()
                         const response = await fetch(`${supabaseUrl}/rest/v1/questions`, {
                           method: 'POST',
                           headers,
@@ -4754,6 +5153,146 @@ const AdminConsolePage: React.FC = () => {
                 </div>
               )}
 
+              {selectedAction === 'consulter-rag-questions' && (
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-800">Consulter les questions RAG</h2>
+                      <p className="text-gray-600 mt-2">Consultez et supprimez les questions posées dans le système RAG.</p>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {filteredRAGQuestions.length} question{filteredRAGQuestions.length > 1 ? 's' : ''}
+                    </div>
+                  </div>
+
+                  {formStatus.type && (
+                    <div
+                      className={`mb-4 rounded-xl px-4 py-3 ${
+                        formStatus.type === 'success'
+                          ? 'bg-green-50 text-green-800 border border-green-200'
+                          : 'bg-red-50 text-red-800 border border-red-200'
+                      }`}
+                    >
+                      {formStatus.message}
+                    </div>
+                  )}
+
+                  {/* Barre de recherche */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Rechercher
+                    </label>
+                    <input
+                      type="text"
+                      value={ragSearch}
+                      onChange={(e) => setRagSearch(e.target.value)}
+                      placeholder="Rechercher par question..."
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
+                    />
+                  </div>
+
+                  {/* Liste des questions */}
+                  {isLoadingRAG ? (
+                    <div className="text-center py-12">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#774792]"></div>
+                      <p className="mt-4 text-gray-600">Chargement des questions...</p>
+                    </div>
+                  ) : filteredRAGQuestions.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-xl">
+                      <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-gray-500">
+                        {ragSearch
+                          ? 'Aucune question ne correspond à votre recherche.'
+                          : 'Aucune question trouvée.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredRAGQuestions.map((q) => (
+                        <div
+                          key={q.id}
+                          className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                            <div className="flex-1">
+                              <p className="text-gray-800 mb-2">{q.question}</p>
+                              {q.sources && q.sources.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                  {q.sources.map((source, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="text-xs px-2 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-200"
+                                    >
+                                      {source === 'reglement' ? '📋 Règlement' : 
+                                       source === 'lignes_directrices' ? '📘 Lignes directrices' : 
+                                       source === 'jurisprudence' ? '⚖️ Jurisprudence' : source}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              {q.created_at && (
+                                <p className="text-xs text-gray-500">
+                                  {new Date(q.created_at).toLocaleDateString('fr-FR', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setDeleteRAGConfirmId(q.id)}
+                                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors flex items-center gap-2 text-sm font-medium"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Supprimer
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Modal de confirmation de suppression */}
+                  {deleteRAGConfirmId !== null && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                          Confirmer la suppression
+                        </h3>
+                        <p className="text-gray-600 mb-6">
+                          Êtes-vous sûr de vouloir supprimer cette question RAG ? Cette action est irréversible.
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                          <button
+                            onClick={() => setDeleteRAGConfirmId(null)}
+                            disabled={isSubmitting}
+                            className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors disabled:opacity-50"
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRAGQuestion(deleteRAGConfirmId)}
+                            disabled={isSubmitting}
+                            className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+                          >
+                            {isSubmitting ? 'Suppression...' : 'Supprimer'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {selectedAction === 'enrichir-article' && (
                 <div>
                   <h2 className="text-2xl font-semibold text-gray-800 mb-6">Enrichir un article</h2>
@@ -4898,7 +5437,7 @@ const AdminConsolePage: React.FC = () => {
                           setFormStatus({ type: null, message: '' })
 
                           try {
-                            const headers = getAuthHeaders()
+                            const headers = await getAuthHeaders()
                             const response = await fetch(
                               `${supabaseUrl}/rest/v1/article?id_article=eq.${selectedArticleId}`,
                               {
@@ -5458,7 +5997,158 @@ const AdminConsolePage: React.FC = () => {
                     className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
                   />
                 </div>
+              </div>
 
+              {/* Champ d'upload d'image pour l'édition */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Image de l'article
+                </label>
+                <div className="space-y-4">
+                  {doctrineEditImagePreview && (
+                    <div className="relative w-full max-w-md">
+                      <img
+                        src={doctrineEditImagePreview}
+                        alt="Aperçu"
+                        className="w-full h-48 object-cover rounded-xl border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDoctrineEditImageFile(null)
+                          setDoctrineEditImagePreview(null)
+                          setDoctrineEditForm({ ...doctrineEditForm, image_url: '' })
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
+                        title="Supprimer l'image"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-4">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p className="mb-2 text-sm text-gray-500">
+                          <span className="font-semibold">Cliquez pour uploader</span> ou glissez-déposez
+                        </p>
+                        <p className="text-xs text-gray-500">PNG, JPG, WEBP (MAX. 5MB)</p>
+                      </div>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            if (file.size > 5 * 1024 * 1024) {
+                              setFormStatus({
+                                type: 'error',
+                                message: 'L\'image est trop volumineuse. Taille maximale : 5MB'
+                              })
+                              return
+                            }
+                            setDoctrineEditImageFile(file)
+                            const reader = new FileReader()
+                            reader.onloadend = () => {
+                              setDoctrineEditImagePreview(reader.result as string)
+                            }
+                            reader.readAsDataURL(file)
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  {uploadingDoctrineImage && (
+                    <div className="text-sm text-gray-600 flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-purple-500"></div>
+                      Upload de l'image en cours...
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Champ d'upload d'image de contenu pour l'édition */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Image dans le contenu (schéma explicatif - optionnel)
+                </label>
+                <p className="text-xs text-gray-500 mb-3">Cette image apparaîtra dans le contenu de l'article, après l'introduction</p>
+                <div className="space-y-4">
+                  {doctrineEditContenuImagePreview && (
+                    <div className="relative w-full max-w-md">
+                      <img
+                        src={doctrineEditContenuImagePreview}
+                        alt="Aperçu image contenu"
+                        className="w-full h-48 object-cover rounded-xl border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDoctrineEditContenuImageFile(null)
+                          setDoctrineEditContenuImagePreview(null)
+                          setDoctrineEditForm({ ...doctrineEditForm, image_contenu_url: '' })
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
+                        title="Supprimer l'image"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-4">
+                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p className="mb-2 text-sm text-gray-500">
+                          <span className="font-semibold">Cliquez pour uploader</span> ou glissez-déposez
+                        </p>
+                        <p className="text-xs text-gray-500">PNG, JPG, WEBP (MAX. 5MB)</p>
+                      </div>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            if (file.size > 5 * 1024 * 1024) {
+                              setFormStatus({
+                                type: 'error',
+                                message: 'L\'image est trop volumineuse. Taille maximale : 5MB'
+                              })
+                              return
+                            }
+                            setDoctrineEditContenuImageFile(file)
+                            const reader = new FileReader()
+                            reader.onloadend = () => {
+                              setDoctrineEditContenuImagePreview(reader.result as string)
+                            }
+                            reader.readAsDataURL(file)
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  {uploadingDoctrineContenuImage && (
+                    <div className="text-sm text-gray-600 flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-purple-500"></div>
+                      Upload de l'image de contenu en cours...
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Résumé (abstract)*

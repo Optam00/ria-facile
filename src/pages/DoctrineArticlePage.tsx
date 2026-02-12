@@ -22,6 +22,8 @@ interface DoctrineArticleComplet {
   conclusion: string;
   references: string;
   auteur: string;
+  image_url?: string;
+  image_contenu_url?: string;
 }
 
 const DoctrineArticlePage: React.FC = () => {
@@ -80,35 +82,61 @@ const DoctrineArticlePage: React.FC = () => {
         <meta property="og:description" content={article.abstract} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={window.location.href} />
-        {/* Si tu as une image d'illustration, remplace l'URL ci-dessous */}
-        <meta property="og:image" content="https://www.ria-facile.com/favicon.ico" />
+        <link rel="canonical" href={window.location.href} />
+        {/* Image Open Graph */}
+        <meta property="og:image" content={article.image_url || "https://www.ria-facile.com/favicon.ico"} />
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.titre + ' - RIA Facile'} />
         <meta name="twitter:description" content={article.abstract} />
-        <meta name="twitter:image" content="https://www.ria-facile.com/favicon.ico" />
+        <meta name="twitter:image" content={article.image_url || "https://www.ria-facile.com/favicon.ico"} />
       </Helmet>
 
-      <div className="bg-white rounded-3xl shadow-lg p-8 md:p-12">
-        {/* Titre */}
-        <h1 className="text-4xl font-bold text-center mb-4" style={{ color: '#774792' }}>
-          {article.titre}
-        </h1>
+      <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+        <div className="p-8 md:p-12">
+          {/* Titre en haut */}
+          <h1 className="text-4xl font-bold text-center mb-8" style={{ color: '#774792' }}>
+            {article.titre}
+          </h1>
 
-        {/* Date */}
-        <div className="text-center text-gray-600 mb-8">
-          {new Date(article.date).toLocaleDateString('fr-FR')}
-        </div>
-
-        {/* Résumé */}
-        <div className="bg-gray-50 p-6 rounded-lg mb-8 text-gray-700 italic">
-          {article.abstract}
-        </div>
+          {/* Image à gauche et résumé à droite */}
+          <div className="flex flex-col md:flex-row gap-6 mb-8 items-start md:items-center">
+            {/* Image à gauche */}
+            {article.image_url && (
+              <div className="md:w-1/3 flex-shrink-0 flex items-center">
+                <img
+                  src={article.image_url}
+                  alt={article.titre}
+                  className="w-full h-auto rounded-lg object-cover shadow-md"
+                  loading="eager"
+                />
+              </div>
+            )}
+            
+            {/* Résumé à droite */}
+            <div className={`${article.image_url ? 'md:w-2/3' : 'w-full'} flex items-center`}>
+              <div className="bg-gray-50 p-6 rounded-lg text-gray-700 italic w-full">
+                {article.abstract}
+              </div>
+            </div>
+          </div>
 
         {/* Introduction */}
         <div className="mb-8 text-gray-700 leading-relaxed">
           {article.intro}
         </div>
+
+        {/* Image de contenu (schéma explicatif) - après l'introduction */}
+        {article.image_contenu_url && (
+          <div className="mb-8 flex justify-center">
+            <img
+              src={article.image_contenu_url}
+              alt="Schéma explicatif"
+              className="max-w-full h-auto rounded-lg shadow-md"
+              loading="lazy"
+            />
+          </div>
+        )}
 
         {/* Partie 1 */}
         <h2 className="text-2xl font-bold uppercase mb-6" style={{ color: '#774792' }}>
@@ -166,9 +194,12 @@ const DoctrineArticlePage: React.FC = () => {
           ))}
         </div>
 
-        {/* Auteur */}
+        {/* Auteur et date */}
         <div className="text-right text-gray-800 font-semibold">
           {article.auteur}
+          <span className="text-gray-400 text-sm font-normal ml-2">
+            • {new Date(article.date).toLocaleDateString('fr-FR')}
+          </span>
         </div>
 
         {/* Lien retour liste articles */}
@@ -192,6 +223,7 @@ const DoctrineArticlePage: React.FC = () => {
             </svg>
             Voir tous les articles de doctrine
           </Link>
+        </div>
         </div>
       </div>
     </div>
