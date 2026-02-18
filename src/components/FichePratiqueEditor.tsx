@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { TableEditor } from './TableEditor'
+import { TableEditor, TableData } from './TableEditor'
 import { SourcesEditor } from './SourcesEditor'
-
-import { TableData } from './TableEditor'
 
 export interface TextBlockStyle {
   type: 'none' | 'border-left' | 'box' | 'gradient-box' | 'info-box'

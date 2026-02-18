@@ -746,7 +746,7 @@ const AdminConsolePage: React.FC = () => {
 
       const range = selection.getRangeAt(0)
       const container = range.commonAncestorContainer
-      const element = container.nodeType === Node.TEXT_NODE 
+      const element = container.nodeType === 3 // Node.TEXT_NODE = 3
         ? container.parentElement 
         : container as HTMLElement
 
@@ -810,7 +810,7 @@ const AdminConsolePage: React.FC = () => {
       let linkElement: HTMLAnchorElement | null = null
       let node = range.commonAncestorContainer
       while (node && node !== editor) {
-        if (node.nodeType === Node.ELEMENT_NODE) {
+        if (node.nodeType === 1) { // Node.ELEMENT_NODE = 1
           const element = node as HTMLElement
           if (element.tagName === 'A') {
             linkElement = element as HTMLAnchorElement
