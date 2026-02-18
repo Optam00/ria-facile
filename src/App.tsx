@@ -26,6 +26,7 @@ import AssistantRIAPage from './pages/AssistantRIAPage'
 import AssistantRIAConversationPage from './pages/AssistantRIAConversationPage';
 import VerifierPage from './pages/VerifierPage'
 import FichesPratiquesPage from './pages/FichesPratiquesPage'
+import FichePratiquePage from './pages/FichePratiquePage'
 import VerifierSystemePage from './pages/VerifierSystemePage'
 import VerifierModelePage from './pages/VerifierModelePage'
 import VerifierChampApplicationPage from './pages/VerifierChampApplicationPage'
@@ -38,7 +39,7 @@ import FichePratiqueExactitudePage from './pages/FichePratiqueExactitudePage'
 import FichePratiqueExplicabilitePage from './pages/FichePratiqueExplicabilitePage'
 import FichePratiqueRMSPage from './pages/FichePratiqueRMSPage'
 import FichePratiqueFRIAPage from './pages/FichePratiqueFRIAPage'
-import FichePratiqueTransparencePage from './pages/FichePratiqueTransparencePage'
+// import FichePratiqueTransparencePage from './pages/FichePratiqueTransparencePage' // Supprimé - maintenant géré par la route dynamique
 import FichePratiqueControleHumainPage from './pages/FichePratiqueControleHumainPage'
 import FichePratiqueDroitsRGPDPage from './pages/FichePratiqueDroitsRGPDPage'
 import FichePratiqueSecteurBancairePage from './pages/FichePratiqueSecteurBancairePage'
@@ -103,11 +104,13 @@ function App() {
               <Route path="/verificateur/role-organisation-modele" element={<VerifierRoleOrganisationModelePage />} />
               <Route path="/matrice-des-obligations" element={<MatriceDesObligationsPage />} />
               <Route path="/fiches-pratiques" element={<FichesPratiquesPage />} />
+              <Route path="/fiches-pratiques/:slug" element={<FichePratiquePage />} />
+              {/* Routes statiques en fallback pour les anciennes fiches (à supprimer progressivement) */}
               <Route path="/fiches-pratiques/exactitude" element={<FichePratiqueExactitudePage />} />
               <Route path="/fiches-pratiques/explicabilite" element={<FichePratiqueExplicabilitePage />} />
               <Route path="/fiches-pratiques/rms" element={<FichePratiqueRMSPage />} />
               <Route path="/fiches-pratiques/fria" element={<FichePratiqueFRIAPage />} />
-              <Route path="/fiches-pratiques/transparence" element={<FichePratiqueTransparencePage />} />
+              {/* Route transparence supprimée - maintenant gérée par la route dynamique /fiches-pratiques/:slug */}
               <Route path="/fiches-pratiques/controle-humain" element={<FichePratiqueControleHumainPage />} />
               <Route path="/fiches-pratiques/droits-rgpd" element={<FichePratiqueDroitsRGPDPage />} />
               <Route path="/fiches-pratiques/secteur-bancaire" element={<FichePratiqueSecteurBancairePage />} />

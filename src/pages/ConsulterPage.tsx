@@ -919,6 +919,7 @@ export const ConsulterPage = () => {
         <meta name="description" content="Plus besoin de se battre avec le pdf officiel, vous pouvez désormais consulter le règlement grâce à un sommaire interactif" />
         <meta property="og:title" content="Consulter le règlement IA de façon simple et interactive (RIA, IA Act, AI Act)" />
         <meta property="og:description" content="Plus besoin de se battre avec le pdf officiel, vous pouvez désormais consulter le règlement grâce à un sommaire interactif" />
+        <link rel="canonical" href="https://ria-facile.com/consulter" />
       </Helmet>
       <div className={`${isFullscreen ? 'fixed inset-0 z-50 bg-white p-0' : 'min-h-[calc(100vh-1rem)] p-0'}`}>
         <div className={`${isFullscreen ? 'h-full overflow-hidden' : 'max-w-6xl mx-auto'}`}>

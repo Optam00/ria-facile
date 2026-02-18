@@ -31,6 +31,31 @@ const loadingMessages: Record<Exclude<LoadingStage, 'idle'>, string> = {
   stillWorking: "Toujours en train de réfléchir... tu peux me laisser finir ou relancer une nouvelle question."
 };
 
+/**
+ * Nettoie le texte pour supprimer les caractères indésirables et corriger les problèmes d'encodage
+ */
+function cleanAnswerText(text: string): string {
+  return text
+    // Supprimer les caractères de contrôle non-standard
+    .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '')
+    // Corriger les problèmes d'encodage courants
+    .replace(/â€™/g, "'")
+    .replace(/â€œ/g, '"')
+    .replace(/â€/g, '"')
+    .replace(/â€"/g, '—')
+    .replace(/â€"/g, '–')
+    .replace(/â€¦/g, '…')
+    // Normaliser les espaces multiples
+    .replace(/[ \t]+/g, ' ')
+    // Normaliser les sauts de ligne multiples (garder max 2)
+    .replace(/\n{3,}/g, '\n\n')
+    // Supprimer les espaces en début/fin de ligne
+    .split('\n')
+    .map(line => line.trim())
+    .join('\n')
+    .trim();
+}
+
 const AssistantRIAConversationPage = () => {
   const { isAdherent } = useAuth();
   const [question, setQuestion] = useState('');
@@ -252,7 +277,15 @@ const AssistantRIAConversationPage = () => {
                 )}
               </button>
             </div>
-            <div className="bg-white rounded-xl border border-[#d1b3f7] px-4 py-2 text-gray-700 prose-ria max-w-none">
+            <div className="bg-white rounded-xl border border-[#d1b3f7] px-4 py-2 text-gray-700 prose-ria max-w-none
+              [&>p]:mb-6 [&>p]:leading-relaxed
+              [&>ul]:mb-6 [&>ul]:ml-6 [&>ul]:list-disc [&>ul]:space-y-2
+              [&>ol]:mb-6 [&>ol]:ml-6 [&>ol]:list-decimal [&>ol]:space-y-2
+              [&>ul>li]:ml-2 [&>ol>li]:ml-2
+              [&>ul>li>ul]:mt-2 [&>ul>li>ul]:ml-6 [&>ul>li>ul]:list-disc
+              [&>ol>li>ol]:mt-2 [&>ol>li>ol]:ml-6 [&>ol>li>ol]:list-decimal
+              [&>strong]:font-semibold [&>strong]:text-gray-900
+              [&>em]:italic [&>em]:text-gray-700">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkBreaks]}
                 components={{
@@ -266,9 +299,29 @@ const AssistantRIAConversationPage = () => {
                       {props.children}
                     </a>
                   ),
+                  p: ({ children }) => <p className="mb-6 leading-relaxed">{children}</p>,
+                  ul: ({ children, depth }) => (
+                    <ul className={`mb-6 ${depth > 0 ? 'ml-6 mt-2' : 'ml-6'} list-disc space-y-2`}>
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children, depth }) => (
+                    <ol className={`mb-6 ${depth > 0 ? 'ml-6 mt-2' : 'ml-6'} list-decimal space-y-2`}>
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="ml-2 leading-relaxed">{children}</li>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-gray-900">{children}</strong>
+                  ),
+                  em: ({ children }) => (
+                    <em className="italic text-gray-700">{children}</em>
+                  ),
                 }}
               >
-                {item.answer.replace(/\n/g, '\n\n')}
+                {cleanAnswerText(item.answer).replace(/\n/g, '\n\n')}
               </ReactMarkdown>
             </div>
           </div>

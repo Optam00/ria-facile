@@ -22,7 +22,7 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({ images, currentIndex, onC
   if (!images[currentIndex]) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 transition-all animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 transition-all animate-fade-in overflow-y-auto overflow-x-hidden" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
       {/* Overlay pour fermer */}
       <div className="absolute inset-0 cursor-zoom-out" onClick={onClose} />
       {/* Contenu lightbox */}

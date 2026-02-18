@@ -87,8 +87,9 @@ export const HomePage = () => {
     <div className="min-h-screen">
       <Helmet>
         <title>RIA Facile - Comprendre et appliquer le Règlement IA (AI Act, IA Act, RIA)</title>
-        <meta name="description" content="RIA Facile vous aide à comprendre et appliquer le Règlement européen sur l'Intelligence Artificielle. Outils interactifs, quiz, schémas explicatifs et documentation complète." />
-        <meta name="keywords" content="RIA, AI Act, règlement IA, intelligence artificielle, conformité, Europe, GPAI, systèmes d'IA haut risque, deepfakes, chatbots" />
+        <meta name="description" content="RIA Facile vous aide à comprendre et appliquer le Règlement IA (AI Act, IA Act, RIA) et à assurer votre conformité IA. Outils interactifs, quiz, schémas explicatifs et documentation complète pour votre mise en conformité." />
+        <meta name="keywords" content="RIA, AI Act, IA Act, règlement IA, intelligence artificielle, conformité IA, conformité, Europe, GPAI, systèmes d'IA haut risque, deepfakes, chatbots" />
+        <link rel="canonical" href="https://ria-facile.com/" />
         <script type="application/ld+json">
           {JSON.stringify(faqStructuredData)}
         </script>
@@ -105,7 +106,7 @@ export const HomePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center">
             <div className="space-y-6">
               <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: '#774792' }}>
-                Comprenez et appliquez le Règlement IA en toute simplicité
+                Comprenez et appliquez le Règlement IA : votre guide pour la conformité IA
               </h1>
               <p className="text-xl text-gray-600">
                 RIA Facile a été créé pour vous aider dans votre mise en conformité au règlement européen sur l'intelligence artificielle (RIA, AI act, IA act).
@@ -129,7 +130,7 @@ export const HomePage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-gradient-to-r from-[#774792] to-indigo-600 rounded-2xl shadow-lg p-4 md:p-5 text-white hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
+            className="bg-gradient-to-r from-[#774792] to-violet-700 rounded-2xl shadow-lg p-4 md:p-5 text-white hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
           >
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex-1 text-center md:text-left">
@@ -154,10 +155,10 @@ export const HomePage = () => {
       <div className="py-8 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col items-center text-center mb-8">
-            <h2 className="inline-block text-3xl font-bold text-purple-800 mb-2 px-4 py-1 bg-white rounded-lg">
+            <h2 className="inline-block text-3xl font-bold text-[#774792] mb-2 px-4 py-1 bg-white rounded-lg">
               Les fonctionnalités de RIA Facile
             </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full" />
+            <div className="w-24 h-1 bg-gradient-to-r from-[#774792] to-violet-800 rounded-full" />
           </div>
 
           {/* Première ligne : 3 encarts */}
@@ -279,10 +280,10 @@ export const HomePage = () => {
       <div className="py-12 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col items-center text-center mb-8">
-            <h2 className="inline-block text-3xl font-bold text-purple-800 mb-2 px-4 py-1 bg-white rounded-lg">
+            <h2 className="inline-block text-3xl font-bold text-[#774792] mb-2 px-4 py-1 bg-white rounded-lg">
               FAQ
             </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-purple-600 to-purple-800 rounded-full" />
+            <div className="w-24 h-1 bg-gradient-to-r from-[#774792] to-violet-800 rounded-full" />
           </div>
 
           <div className="space-y-4">
@@ -302,7 +303,7 @@ export const HomePage = () => {
                     animate={{ rotate: openQuestion === index ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 text-[#774792]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </motion.div>
@@ -317,7 +318,7 @@ export const HomePage = () => {
                       transition={{ duration: 0.3 }}
                       className="px-6 pb-4"
                     >
-                      <div className="text-gray-600 whitespace-pre-line [&>ul]:list-none [&>ul]:pl-0 [&>ul]:space-y-2 [&>ul>li]:flex [&>ul>li]:items-start [&>ul>li]:gap-2 [&>ul>li]:before:content-['•'] [&>ul>li]:before:text-purple-500 [&>ul>li]:before:font-bold [&>ul>li]:before:flex-shrink-0 [&>ul>li]:before:mt-1">
+                      <div className="text-gray-600 whitespace-pre-line [&>ul]:list-none [&>ul]:pl-0 [&>ul]:space-y-2 [&>ul>li]:flex [&>ul>li]:items-start [&>ul>li]:gap-2 [&>ul>li]:before:content-['•'] [&>ul>li]:before:text-[#774792] [&>ul>li]:before:font-bold [&>ul>li]:before:flex-shrink-0 [&>ul>li]:before:mt-1">
                         {(() => {
                           const cleanAnswer = item.answer.replace(/<strong>|<\/strong>/g, '');
                           const lines = cleanAnswer.split('\n');

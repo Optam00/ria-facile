@@ -14,7 +14,7 @@ const FichePratiqueFRIAPage: React.FC = () => {
       </Helmet>
 
       <AdherentOnlyOverlay>
-        <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Bouton retour */}
         <Link 
           to="/fiches-pratiques" 
@@ -446,7 +446,7 @@ const FichePratiqueFRIAPage: React.FC = () => {
             <span>Retour aux fiches pratiques</span>
           </Link>
         </div>
-        </div>
+      </div>
       </AdherentOnlyOverlay>
     </div>
   )

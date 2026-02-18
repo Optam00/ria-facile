@@ -122,6 +122,7 @@ export const SchemasPage = () => {
         <meta property="og:description" content={metaDescription} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://ria-facile.com/schemas" />
+        <link rel="canonical" href="https://ria-facile.com/schemas" />
         <meta property="og:image" content={`https://ria-facile.com/schemas/${encodeURIComponent("1. AI act. Calendrier d'entree en application.png")}`} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Le RIA en schémas - 22 infographies explicatives du Règlement IA" />

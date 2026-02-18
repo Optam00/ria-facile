@@ -97,7 +97,10 @@ const DoctrinePage: React.FC = () => {
                 <div className="flex flex-col md:flex-row">
                   {/* Image à gauche */}
                   {article.image_url && (
-                    <div className="md:w-1/3 h-64 md:h-auto">
+                    <Link 
+                      to={`/doctrine/${article.id}`}
+                      className="md:w-1/3 h-64 md:h-auto cursor-pointer hover:opacity-90 transition-opacity"
+                    >
                       <img
                         src={article.image_url}
                         alt={article.titre}
@@ -111,57 +114,60 @@ const DoctrinePage: React.FC = () => {
                           console.log(`Image chargée avec succès pour l'article ${article.id}:`, article.image_url);
                         }}
                       />
-                    </div>
+                    </Link>
                   )}
                   
                   {/* Contenu à droite */}
                   <div className={`p-8 ${article.image_url ? 'md:w-2/3' : 'w-full'}`}>
-                    <div className="flex flex-col mb-6">
-                      <h2 className="text-2xl font-semibold text-purple-800">
-                        {article.titre}
-                      </h2>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-sm text-gray-500">
-                          {formatDate(article.date)}
-                        </span>
-                        {article.theme && (
-                          <>
-                            <span className="text-gray-400">•</span>
-                            <span className="text-sm font-medium text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
-                              {article.theme}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-gray-600 mb-6 line-clamp-3">
-                      {article.abstract}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      {article.auteur && (
-                        <span className="text-sm text-gray-600 italic">
-                          Par {article.auteur}
-                        </span>
-                      )}
+                  <div className="flex flex-col mb-6">
                       <Link 
                         to={`/doctrine/${article.id}`}
-                        className="group inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg hover:from-purple-700 hover:to-purple-900 transition-all duration-300 transform hover:scale-[1.02]"
+                        className="text-2xl font-semibold text-purple-800 hover:text-purple-900 transition-colors cursor-pointer"
                       >
-                        <span>Lire l'article</span>
-                        <svg 
-                          className="w-5 h-5 ml-2 transform transition-transform duration-300 group-hover:translate-x-1" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth={2} 
-                            d="M14 5l7 7m0 0l-7 7m7-7H3"
-                          />
-                        </svg>
+                      {article.titre}
                       </Link>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-sm text-gray-500">
+                        {formatDate(article.date)}
+                      </span>
+                      {article.theme && (
+                        <>
+                          <span className="text-gray-400">•</span>
+                          <span className="text-sm font-medium text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+                            {article.theme}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-gray-600 mb-6 line-clamp-3">
+                    {article.abstract}
+                  </p>
+                  <div className="flex justify-between items-center">
+                    {article.auteur && (
+                      <span className="text-sm text-gray-600 italic">
+                        Par {article.auteur}
+                      </span>
+                    )}
+                    <Link 
+                      to={`/doctrine/${article.id}`}
+                      className="group inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg hover:from-purple-700 hover:to-purple-900 transition-all duration-300 transform hover:scale-[1.02]"
+                    >
+                      <span>Lire l'article</span>
+                      <svg 
+                        className="w-5 h-5 ml-2 transform transition-transform duration-300 group-hover:translate-x-1" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
+                      </svg>
+                    </Link>
                     </div>
                   </div>
                 </div>

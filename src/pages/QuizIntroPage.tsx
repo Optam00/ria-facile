@@ -13,6 +13,7 @@ export const QuizIntroPage = () => {
         <meta name="description" content="Plongez dans notre quiz interactif sur le Règlement européen sur l'Intelligence Artificielle (RIA) pour tester vos connaissances" />
         <meta property="og:title" content="Testez vos connaissances sur le Règlement IA (RIA, AI act, IA act)" />
         <meta property="og:description" content="Plongez dans notre quiz interactif sur le Règlement européen sur l'Intelligence Artificielle (RIA) pour tester vos connaissances" />
+        <link rel="canonical" href="https://ria-facile.com/quiz" />
       </Helmet>
       <div className="min-h-[calc(100vh-5rem)] relative overflow-hidden">
         <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">

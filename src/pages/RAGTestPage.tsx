@@ -75,7 +75,8 @@ const RAGTestPage: React.FC = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Mode de réponse : rapide, équilibrée, complète
-  const [responseMode, setResponseMode] = useState<ResponseMode>('detailed');
+  // Par défaut : mode "équilibrée"
+  const [responseMode, setResponseMode] = useState<ResponseMode>('balanced');
 
   // L'utilisateur a accès s'il est admin ou adhérent
   const hasAccess = isAdmin() || isAdherent();
@@ -260,6 +261,7 @@ const RAGTestPage: React.FC = () => {
       <Helmet>
         <title>RAG — RIA Facile</title>
         <meta name="description" content="Recherche augmentée par génération (RAG) sur le Règlement européen sur l'IA" />
+        <link rel="canonical" href="https://ria-facile.com/rag" />
       </Helmet>
 
       {/* Overlay pour les non-adhérents */}

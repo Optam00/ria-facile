@@ -48,6 +48,7 @@ export const ContactPage = () => {
       <Helmet>
         <title>Contactez-nous | RIA Facile</title>
         <meta name="description" content="Contactez-nous pour toute question sur le Règlement IA, pour être accompagné dans votre mise en conformité ou pour nous signaler un bug." />
+        <link rel="canonical" href="https://ria-facile.com/contact" />
       </Helmet>
       <div className="min-h-[calc(100vh-5rem)] relative overflow-hidden">
         <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">

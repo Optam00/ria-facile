@@ -538,6 +538,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onActionSelect }) => {
         </button>
 
         <button
+          onClick={() => onActionSelect('consulter-fiches-pratiques')}
+          className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 border border-orange-200 shadow-sm hover:shadow-md hover:border-orange-300 hover:scale-[1.02] transition-all cursor-pointer text-left"
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xl">📋</span>
+            <span className="text-[10px] font-medium text-orange-600 bg-orange-200 px-1.5 py-0.5 rounded-full">Fiches</span>
+          </div>
+          <p className="text-xl font-bold text-orange-700">-</p>
+          <p className="text-orange-600 text-[10px]">Pratiques</p>
+        </button>
+
+        <button
           onClick={() => onActionSelect('consulter-questions')}
           className="bg-gradient-to-br from-rose-50 to-rose-100 rounded-lg p-3 border border-rose-200 shadow-sm hover:shadow-md hover:border-rose-300 hover:scale-[1.02] transition-all cursor-pointer text-left"
         >
@@ -666,6 +678,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onActionSelect }) => {
           >
             <span className="text-lg group-hover:scale-110 transition-transform">✍️</span>
             <span className="text-[10px] text-gray-700 font-medium text-center leading-tight">Doctrine</span>
+          </button>
+          <button
+            onClick={() => onActionSelect('ajouter-fiche-pratique')}
+            className="flex flex-col items-center gap-1 p-2 bg-white rounded-lg border border-gray-200 hover:border-orange-300 hover:bg-orange-50 transition-all group"
+          >
+            <span className="text-lg group-hover:scale-110 transition-transform">📋</span>
+            <span className="text-[10px] text-gray-700 font-medium text-center leading-tight">Fiche</span>
           </button>
           <button
             onClick={() => onActionSelect('consulter-assistant-ria')}

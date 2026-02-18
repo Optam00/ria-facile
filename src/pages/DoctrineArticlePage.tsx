@@ -94,10 +94,33 @@ const DoctrineArticlePage: React.FC = () => {
 
       <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
         <div className="p-8 md:p-12">
+          {/* Lien retour discret en haut */}
+          <div className="mb-4">
+            <Link 
+              to="/doctrine"
+              className="inline-flex items-center text-gray-500 hover:text-gray-700 transition-colors duration-300 text-sm"
+            >
+              <svg 
+                className="w-4 h-4 mr-1" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M7 16l-4-4m0 0l4-4m-4 4h18"
+                />
+              </svg>
+              <span>Voir tous les articles</span>
+            </Link>
+          </div>
+
           {/* Titre en haut */}
           <h1 className="text-4xl font-bold text-center mb-8" style={{ color: '#774792' }}>
-            {article.titre}
-          </h1>
+          {article.titre}
+        </h1>
 
           {/* Image à gauche et résumé à droite */}
           <div className="flex flex-col md:flex-row gap-6 mb-8 items-start md:items-center">
@@ -110,16 +133,16 @@ const DoctrineArticlePage: React.FC = () => {
                   className="w-full h-auto rounded-lg object-cover shadow-md"
                   loading="eager"
                 />
-              </div>
+        </div>
             )}
-            
+
             {/* Résumé à droite */}
             <div className={`${article.image_url ? 'md:w-2/3' : 'w-full'} flex items-center`}>
               <div className="bg-gray-50 p-6 rounded-lg text-gray-700 italic w-full">
-                {article.abstract}
+          {article.abstract}
               </div>
             </div>
-          </div>
+        </div>
 
         {/* Introduction */}
         <div className="mb-8 text-gray-700 leading-relaxed">

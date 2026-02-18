@@ -63,22 +63,28 @@ export const LastDoctrineArticle: React.FC = () => {
           <div className="flex flex-col md:flex-row">
             {/* Image à gauche */}
             {article.image_url && (
-              <div className="md:w-1/3 h-64 md:h-auto">
+              <Link 
+                to={`/doctrine/${article.id}`}
+                className="md:w-1/3 h-64 md:h-auto cursor-pointer hover:opacity-90 transition-opacity"
+              >
                 <img
                   src={article.image_url}
                   alt={article.titre}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
-              </div>
+              </Link>
             )}
             
             {/* Contenu à droite */}
             <div className={`p-4 md:p-6 ${article.image_url ? 'md:w-2/3' : 'w-full'}`}>
               <div className="flex flex-col mb-4">
-                <h3 className="text-xl md:text-2xl font-semibold text-purple-800 mb-2">
+                <Link 
+                  to={`/doctrine/${article.id}`}
+                  className="text-xl md:text-2xl font-semibold text-purple-800 mb-2 hover:text-purple-900 transition-colors cursor-pointer"
+                >
                   {article.titre}
-                </h3>
+                </Link>
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
                   <span className="text-sm text-gray-500">
                     {formatDate(article.date)}

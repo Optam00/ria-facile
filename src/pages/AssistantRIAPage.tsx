@@ -14,6 +14,7 @@ export const AssistantRIAPage = () => {
         <meta name="description" content="Présentation de l'assistant RIA, votre expert du règlement européen sur l'intelligence artificielle." />
         <meta property="og:title" content="Assistant RIA | RIA Facile" />
         <meta property="og:description" content="Présentation de l'assistant RIA, votre expert du règlement européen sur l'intelligence artificielle." />
+        <link rel="canonical" href="https://ria-facile.com/assistant-ria" />
       </Helmet>
       <div className="min-h-[calc(100vh-5rem)] relative overflow-hidden">
         <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">

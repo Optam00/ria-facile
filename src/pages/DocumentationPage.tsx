@@ -149,6 +149,7 @@ export const DocumentationPage = () => {
       <Helmet>
         <title>Retrouvez tous les documents en lien avec le Règlement IA (RIA, AI act, IA act)</title>
         <meta name="description" content="Consultez les lignes directrices et autres documents facilitant la compréhension du RIA" />
+        <link rel="canonical" href="https://ria-facile.com/documentation" />
       </Helmet>
       
       {/* En-tête de la page */}

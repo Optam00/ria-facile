@@ -301,7 +301,7 @@ export const Navigation = () => {
             </svg>
           </button>
           {isOpen && (
-            <div className="fixed inset-0 z-50 bg-black/20 flex justify-end" onClick={() => setIsOpen(false)}>
+            <div className="fixed inset-0 z-50 bg-black/20 flex justify-end overflow-hidden" style={{ left: 0, right: 0, top: 0, bottom: 0 }} onClick={() => setIsOpen(false)}>
               <div className="w-72 max-w-full bg-white h-full shadow-2xl p-6 flex flex-col gap-2 animate-fade-in" onClick={e => e.stopPropagation()}>
                 <button
                   onClick={() => setIsOpen(false)}

@@ -347,16 +347,17 @@ const VerifierNiveauRisquePage: React.FC = () => {
     <div className="min-h-[60vh]">
       <Helmet>
         <title>Déterminer le niveau de risque d&apos;un système d&apos;IA — RIA Facile</title>
+        <link rel="canonical" href="https://ria-facile.com/verificateur/niveau-risque" />
       </Helmet>
 
       <div className="max-w-4xl mx-auto">
         {/* Bandeau */}
         <div className="bg-white rounded-3xl shadow-md p-6 mb-6 text-center">
           <h1 className="text-2xl md:text-3xl font-bold mb-2" style={{ color: '#774792' }}>
-            Déterminer le niveau de risque d&apos;un système d&apos;IA
+            Déterminer le niveau de risque pour votre conformité IA
           </h1>
           <p className="text-gray-600">
-            Répondez à ce questionnaire pour identifier le niveau de risque de votre système d&apos;IA selon le Règlement européen sur l&apos;intelligence artificielle.
+            Répondez à ce questionnaire pour identifier le niveau de risque de votre système d&apos;IA selon le Règlement européen sur l&apos;intelligence artificielle et assurer votre conformité IA.
           </p>
         </div>
 
