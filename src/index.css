@@ -231,4 +231,42 @@ body::after {
 /* Plus de padding dans les bulles de chat */
 .ria-bubble {
   padding: 1.1em 1.3em;
+}
+
+/* Styles pour les liens dans les éditeurs */
+[contenteditable="true"] a {
+  color: #2563eb !important;
+  text-decoration: underline !important;
+  cursor: pointer;
+}
+
+[contenteditable="true"] a:hover {
+  color: #1d4ed8 !important;
+}
+
+/* Styles pour les liens dans les fiches pratiques publiées */
+.fiche-pratique-content a {
+  color: #2563eb !important;
+  text-decoration: underline !important;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.fiche-pratique-content a:hover {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+}
+
+.fiche-pratique-content a:visited {
+  color: #7c3aed !important;
+}
+
+/* Style spécifique pour le lien de contact dans le disclaimer */
+.fiche-pratique-content a[href="/contact"] {
+  color: #774792 !important;
+  font-weight: 600 !important;
+}
+
+.fiche-pratique-content a[href="/contact"]:hover {
+  color: #5d356f !important;
 } 

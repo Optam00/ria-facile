@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabasePublic } from '../lib/supabasePublic'
 import { supabase } from '../lib/supabase'
 import AdminDashboard from '../components/AdminDashboard'
+import { FichePratiqueEditor, FichePratiqueSection } from '../components/FichePratiqueEditor'
 
 // Fonction utilitaire pour décoder un JWT et vérifier son expiration
 const isTokenExpired = (token: string): boolean => {
@@ -19,7 +20,7 @@ const isTokenExpired = (token: string): boolean => {
   }
 }
 
-type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-rag-questions' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | null
+type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-rag-questions' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | 'ajouter-fiche-pratique' | 'consulter-fiches-pratiques' | null
 
 interface Actualite {
   id: number
@@ -85,6 +86,29 @@ interface RAGQuestion {
   sources?: string[]
   created_at?: string
 }
+
+interface FichePratique {
+  id: number
+  slug: string
+  titre: string
+  description: string
+  categorie?: string
+  duree?: string
+  articles_ria: string[]
+  concerne_rgpd?: boolean
+  show_disclaimer?: boolean
+  disclaimer_text?: string | null
+  contenu: {
+    sections: FichePratiqueSection[]
+  }
+  image_url?: string
+  published?: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+const DEFAULT_DISCLAIMER_TEXT =
+  'Cette fiche pratique peut impliquer des simplifications pour faciliter la compréhension. Une lecture attentive du texte officiel du Règlement IA est nécessaire pour une application complète et précise.<br><br>Pour bénéficier d\'un accompagnement personnalisé par des experts, <a href="/contact" style="color: #774792; text-decoration: underline; font-weight: 600;">contactez-nous via le formulaire</a>.'
 
 const AdminConsolePage: React.FC = () => {
   const { signOut, isAdmin, profile, loading, session } = useAuth()
@@ -246,6 +270,41 @@ const AdminConsolePage: React.FC = () => {
   })
   const [questionsList, setQuestionsList] = useState<QuizQuestion[]>([])
   const [questionsSearch, setQuestionsSearch] = useState('')
+  
+  // États pour les fiches pratiques
+  const [fichesPratiquesList, setFichesPratiquesList] = useState<FichePratique[]>([])
+  const [fichesPratiquesSearch, setFichesPratiquesSearch] = useState('')
+  const [isLoadingFichesPratiques, setIsLoadingFichesPratiques] = useState(false)
+  const [editingFichePratique, setEditingFichePratique] = useState<FichePratique | null>(null)
+  const [fichePratiqueForm, setFichePratiqueForm] = useState({
+    slug: '',
+    titre: '',
+    description: '',
+    articles_ria: [] as string[],
+    concerne_rgpd: false,
+    show_disclaimer: true,
+    disclaimer_text: DEFAULT_DISCLAIMER_TEXT,
+  })
+  const [articlesRiaInput, setArticlesRiaInput] = useState<string>('')
+  const [fichePratiquePublished, setFichePratiquePublished] = useState<boolean>(false)
+  const disclaimerEditorRef = useRef<HTMLDivElement | null>(null)
+  const [disclaimerEditorInitialized, setDisclaimerEditorInitialized] = useState(false)
+  const [disclaimerCurrentFontSize, setDisclaimerCurrentFontSize] = useState<string>('default')
+  const [disclaimerLinkModal, setDisclaimerLinkModal] = useState<{
+    visible: boolean
+    url: string
+    openInNewTab: boolean
+    existingLink: HTMLAnchorElement | null
+    savedRange: Range | null
+  }>({
+    visible: false,
+    url: '',
+    openInNewTab: true,
+    existingLink: null,
+    savedRange: null,
+  })
+  const [fichePratiqueSections, setFichePratiqueSections] = useState<FichePratiqueSection[]>([])
+  const [deleteFichePratiqueConfirmId, setDeleteFichePratiqueConfirmId] = useState<number | null>(null)
   const [questionsThemeFilter, setQuestionsThemeFilter] = useState('')
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<QuizQuestion | null>(null)
@@ -401,6 +460,15 @@ const AdminConsolePage: React.FC = () => {
       ],
     },
     {
+      key: 'fiches-pratiques',
+      label: 'Fiches pratiques',
+      icon: '📋',
+      items: [
+        { id: 'ajouter-fiche-pratique' as AdminAction, label: 'Ajouter une fiche', icon: '➕' },
+        { id: 'consulter-fiches-pratiques' as AdminAction, label: 'Consulter et modifier', icon: '📋' },
+      ],
+    },
+    {
       key: 'ria',
       label: 'RIA',
       icon: '✨',
@@ -542,8 +610,28 @@ const AdminConsolePage: React.FC = () => {
         auteur: '',
         theme: '',
       })
+    } else if (selectedAction === 'ajouter-fiche-pratique') {
+      if (!editingFichePratique) {
+        // Nouvelle fiche, réinitialiser
+        setFichePratiqueForm({
+          slug: '',
+          titre: '',
+          description: '',
+          articles_ria: [],
+          concerne_rgpd: false,
+          show_disclaimer: true,
+          disclaimer_text: DEFAULT_DISCLAIMER_TEXT,
+          sources: [],
+        })
+        setArticlesRiaInput('')
+        setFichePratiquePublished(false)
+        setFichePratiqueSections([])
+      }
+    } else if (selectedAction === 'consulter-fiches-pratiques') {
+      setFichesPratiquesSearch('')
+      setEditingFichePratique(null)
     }
-  }, [selectedAction])
+  }, [selectedAction, editingFichePratique])
 
   // Charger la liste des articles quand on arrive sur "enrichir un article"
   useEffect(() => {
@@ -596,6 +684,333 @@ const AdminConsolePage: React.FC = () => {
     }
 
     loadActualites()
+  }, [selectedAction])
+
+  // Fonctions pour l'éditeur de disclaimer
+  const executeDisclaimerCommand = (command: string, value?: string) => {
+    const editor = disclaimerEditorRef.current
+    if (!editor) return
+
+    editor.focus()
+    
+    setTimeout(() => {
+      const selection = window.getSelection()
+      
+      if (!selection || selection.rangeCount === 0) {
+        const rangeEnd = document.createRange()
+        rangeEnd.selectNodeContents(editor)
+        rangeEnd.collapse(false)
+        selection?.removeAllRanges()
+        selection?.addRange(rangeEnd)
+      }
+      
+      const success = document.execCommand(command, false, value || undefined)
+      
+      if (success) {
+        setTimeout(() => {
+          updateDisclaimerContent()
+        }, 0)
+      }
+    }, 10)
+  }
+
+  const updateDisclaimerContent = () => {
+    const editor = disclaimerEditorRef.current
+    if (!editor) return
+
+    const html = editor.innerHTML.trim()
+    // S'assurer que les liens sont visibles
+    const links = editor.querySelectorAll('a')
+    links.forEach(link => {
+      if (!link.style.color) {
+        link.style.color = '#2563eb'
+        link.style.textDecoration = 'underline'
+      }
+    })
+
+    // Mettre à jour le formulaire
+    const cleanHtml = (html === '' || html === '<br>' || html === '<p><br></p>' || html === '<p></p>') ? '' : html
+    setFichePratiqueForm({ ...fichePratiqueForm, disclaimer_text: cleanHtml || null })
+  }
+
+  const refreshDisclaimerFontSize = () => {
+    const editor = disclaimerEditorRef.current
+    if (!editor) return
+
+    try {
+      const selection = window.getSelection()
+      if (!selection || selection.rangeCount === 0) {
+        setDisclaimerCurrentFontSize('default')
+        return
+      }
+
+      const range = selection.getRangeAt(0)
+      const container = range.commonAncestorContainer
+      const element = container.nodeType === Node.TEXT_NODE 
+        ? container.parentElement 
+        : container as HTMLElement
+
+      if (!element) {
+        setDisclaimerCurrentFontSize('default')
+        return
+      }
+
+      const computedStyle = window.getComputedStyle(element)
+      const fontSize = computedStyle.fontSize
+      const sizeMatch = fontSize.match(/(\d+(?:\.\d+)?)/)
+      
+      if (sizeMatch) {
+        const sizeValue = parseFloat(sizeMatch[1])
+        // Convertir px en taille relative (approximation)
+        const size = Math.round(sizeValue / 8) // 8px = taille 1, 16px = taille 2, etc.
+        const allowed = ['1', '2', '3', '4', '5', '6', '7']
+        if (size && allowed.includes(size.toString())) {
+          setDisclaimerCurrentFontSize(size.toString())
+        } else {
+          setDisclaimerCurrentFontSize('default')
+        }
+      } else {
+        setDisclaimerCurrentFontSize('default')
+      }
+    } catch {
+      setDisclaimerCurrentFontSize('default')
+    }
+  }
+
+  const handleDisclaimerLinkClick = () => {
+    const editor = disclaimerEditorRef.current
+    if (!editor) return
+
+    // Sauvegarder la position de scroll actuelle
+    const scrollY = window.scrollY
+    const scrollX = window.scrollX
+
+    editor.focus()
+    
+    setTimeout(() => {
+      const selection = window.getSelection()
+      if (!selection || selection.rangeCount === 0) {
+        const range = document.createRange()
+        range.selectNodeContents(editor)
+        range.collapse(false)
+        selection?.removeAllRanges()
+        selection?.addRange(range)
+        alert('Veuillez sélectionner du texte avant d\'ajouter un lien')
+        return
+      }
+
+      const range = selection.getRangeAt(0)
+      if (range.collapsed) {
+        alert('Veuillez sélectionner du texte avant d\'ajouter un lien')
+        return
+      }
+
+      const savedRange = range.cloneRange()
+
+      let linkElement: HTMLAnchorElement | null = null
+      let node = range.commonAncestorContainer
+      while (node && node !== editor) {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const element = node as HTMLElement
+          if (element.tagName === 'A') {
+            linkElement = element as HTMLAnchorElement
+            break
+          }
+        }
+        node = node.parentNode
+      }
+
+      setDisclaimerLinkModal({
+        visible: true,
+        url: linkElement?.href || '',
+        openInNewTab: linkElement?.target === '_blank',
+        existingLink: linkElement,
+        savedRange: savedRange,
+      })
+
+      setTimeout(() => {
+        window.scrollTo(scrollX, scrollY)
+      }, 50)
+    }, 10)
+  }
+
+  const applyDisclaimerLink = () => {
+    const editor = disclaimerEditorRef.current
+    if (!editor) return
+
+    if (disclaimerLinkModal.existingLink) {
+      disclaimerLinkModal.existingLink.href = disclaimerLinkModal.url || '#'
+      disclaimerLinkModal.existingLink.target = disclaimerLinkModal.openInNewTab ? '_blank' : ''
+      disclaimerLinkModal.existingLink.rel = disclaimerLinkModal.openInNewTab ? 'noopener noreferrer' : ''
+      disclaimerLinkModal.existingLink.style.color = '#2563eb'
+      disclaimerLinkModal.existingLink.style.textDecoration = 'underline'
+    } else {
+      editor.focus()
+      
+      setTimeout(() => {
+        const selection = window.getSelection()
+        if (!selection) return
+
+        if (disclaimerLinkModal.savedRange) {
+          try {
+            selection.removeAllRanges()
+            selection.addRange(disclaimerLinkModal.savedRange)
+          } catch (e) {
+            console.warn('Impossible de restaurer la sélection:', e)
+            return
+          }
+        } else {
+          return
+        }
+
+        const range = selection.getRangeAt(0)
+        if (range.collapsed) {
+          return
+        }
+
+        const selectedText = range.toString()
+        if (!selectedText) return
+
+        const linkHtml = `<a href="${disclaimerLinkModal.url || '#'}" ${disclaimerLinkModal.openInNewTab ? 'target="_blank" rel="noopener noreferrer"' : ''} style="color: #2563eb; text-decoration: underline;">${selectedText}</a>`
+        
+        try {
+          range.deleteContents()
+          const tempDiv = document.createElement('div')
+          tempDiv.innerHTML = linkHtml
+          const linkNode = tempDiv.firstChild
+          if (linkNode) {
+            range.insertNode(linkNode)
+          }
+        } catch (e) {
+          document.execCommand('insertHTML', false, linkHtml)
+        }
+      }, 10)
+    }
+
+    setTimeout(() => {
+      updateDisclaimerContent()
+    }, 200)
+
+    setDisclaimerLinkModal({ visible: false, url: '', openInNewTab: true, existingLink: null, savedRange: null })
+  }
+
+  const removeDisclaimerLink = () => {
+    if (!disclaimerLinkModal.existingLink) return
+
+    const text = disclaimerLinkModal.existingLink.textContent || ''
+    const textNode = document.createTextNode(text)
+    disclaimerLinkModal.existingLink.parentNode?.replaceChild(textNode, disclaimerLinkModal.existingLink)
+
+    setTimeout(() => {
+      updateDisclaimerContent()
+    }, 0)
+
+    setDisclaimerLinkModal({ visible: false, url: '', openInNewTab: true, existingLink: null, savedRange: null })
+  }
+
+  // Empêcher le scroll du body quand la modal de lien disclaimer est ouverte
+  useEffect(() => {
+    if (disclaimerLinkModal.visible) {
+      const scrollY = window.scrollY
+      const scrollX = window.scrollX
+      
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.left = `-${scrollX}px`
+      document.body.style.width = '100%'
+      
+      return () => {
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.left = ''
+        document.body.style.width = ''
+        window.scrollTo(scrollX, scrollY)
+      }
+    }
+  }, [disclaimerLinkModal.visible])
+
+  // Réinitialiser l'éditeur de disclaimer quand on change de fiche
+  useEffect(() => {
+    if (editingFichePratique || selectedAction === 'ajouter-fiche-pratique') {
+      setDisclaimerEditorInitialized(false)
+      setTimeout(() => {
+        const editor = disclaimerEditorRef.current
+        if (editor) {
+          const contentToLoad = fichePratiqueForm.disclaimer_text && fichePratiqueForm.disclaimer_text.trim() !== ''
+            ? fichePratiqueForm.disclaimer_text
+            : DEFAULT_DISCLAIMER_TEXT
+          editor.innerHTML = contentToLoad
+          const links = editor.querySelectorAll('a')
+          links.forEach(link => {
+            if (!link.style.color) {
+              link.style.color = '#2563eb'
+              link.style.textDecoration = 'underline'
+            }
+          })
+          setDisclaimerEditorInitialized(true)
+        }
+      }, 100)
+    }
+  }, [editingFichePratique, fichePratiqueForm.disclaimer_text])
+
+  // Charger la liste des fiches pratiques
+  useEffect(() => {
+    if (selectedAction !== 'consulter-fiches-pratiques') return
+
+    const loadFichesPratiques = async () => {
+      setIsLoadingFichesPratiques(true)
+      try {
+        console.log('🔄 Chargement des fiches pratiques...')
+        console.log('Session:', session ? 'présente' : 'absente')
+        console.log('Is admin:', isAdmin())
+        
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+        
+        if (!supabaseUrl || !supabaseAnonKey) {
+          throw new Error('Configuration Supabase manquante')
+        }
+        
+        // Utiliser une requête directe avec authentification pour voir toutes les fiches
+        const headers = await getAuthHeaders()
+        
+        const response = await fetch(
+          `${supabaseUrl}/rest/v1/fiches_pratiques?select=*&order=created_at.desc`,
+          {
+            method: 'GET',
+            headers: {
+              ...headers,
+              'Content-Type': 'application/json',
+            },
+          }
+        )
+
+        console.log('📊 Réponse HTTP:', response.status, response.statusText)
+
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('❌ Erreur HTTP:', errorText)
+          throw new Error(`Erreur ${response.status}: ${errorText}`)
+        }
+        
+        const data = await response.json()
+        console.log('✅ Fiches pratiques chargées:', data?.length || 0)
+        setFichesPratiquesList(data ?? [])
+      } catch (err) {
+        console.error('❌ Erreur lors du chargement des fiches pratiques:', err)
+        const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue'
+        setFormStatus({
+          type: 'error',
+          message: `Impossible de charger la liste des fiches pratiques: ${errorMessage}`,
+        })
+      } finally {
+        setIsLoadingFichesPratiques(false)
+      }
+    }
+
+    loadFichesPratiques()
   }, [selectedAction])
 
   // Charger la liste des médias disponibles quand on arrive sur "ajouter-actualite"
@@ -2341,6 +2756,45 @@ const AdminConsolePage: React.FC = () => {
     }
   }
 
+  // Supprimer une fiche pratique
+  const handleDeleteFichePratique = async (id: number) => {
+    setIsSubmitting(true)
+    setFormStatus({ type: null, message: '' })
+
+    try {
+      const headers = await getAuthHeaders()
+      const response = await fetch(`${supabaseUrl}/rest/v1/fiches_pratiques?id=eq.${id}`, {
+        method: 'DELETE',
+        headers,
+      })
+
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `Erreur Supabase (${response.status})`)
+      }
+
+      // Recharger la liste
+      const { data, error: reloadError } = await supabasePublic
+        .from('fiches_pratiques')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (!reloadError && data) {
+        setFichesPratiquesList(data)
+      }
+
+      setFormStatus({ type: 'success', message: 'Fiche pratique supprimée avec succès.' })
+      setDeleteFichePratiqueConfirmId(null)
+    } catch (err) {
+      setFormStatus({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Une erreur est survenue.',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   // Supprimer une actualité
   const handleDeleteActualite = async (id: number) => {
     setIsSubmitting(true)
@@ -2580,6 +3034,24 @@ const AdminConsolePage: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deleteDoctrineConfirmId, isSubmitting])
+
+  // Gérer la touche Enter pour valider la suppression d'une fiche pratique
+  useEffect(() => {
+    if (deleteFichePratiqueConfirmId === null) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !isSubmitting) {
+        e.preventDefault()
+        handleDeleteFichePratique(deleteFichePratiqueConfirmId)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleteFichePratiqueConfirmId, isSubmitting])
 
   // Gérer la touche Enter pour valider la suppression d'une question de quiz
   useEffect(() => {
@@ -4723,6 +5195,846 @@ const AdminConsolePage: React.FC = () => {
                 </div>
               )}
 
+              {/* Sections pour les fiches pratiques */}
+              {selectedAction === 'ajouter-fiche-pratique' && (
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+                        {editingFichePratique ? 'Modifier une fiche pratique' : 'Ajouter une fiche pratique'}
+                      </h2>
+                      <p className="text-gray-600">
+                        {editingFichePratique 
+                          ? 'Modifiez la fiche pratique avec un contenu flexible (sections et images).'
+                          : 'Créez une nouvelle fiche pratique avec un contenu flexible (sections et images).'
+                        }
+                      </p>
+                    </div>
+                    
+                    {/* Toggle pour publié/non publié */}
+                    <div className="flex items-center gap-3">
+                      <span className={`text-sm font-medium transition-colors ${!fichePratiquePublished ? 'text-gray-700' : 'text-gray-400'}`}>
+                        Non publié
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setFichePratiquePublished(!fichePratiquePublished)}
+                        className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#774792] focus:ring-offset-2 ${
+                          fichePratiquePublished ? 'bg-[#774792]' : 'bg-gray-300'
+                        }`}
+                        role="switch"
+                        aria-checked={fichePratiquePublished}
+                      >
+                        <span
+                          className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                            fichePratiquePublished ? 'translate-x-9' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                      <span className={`text-sm font-medium transition-colors ${fichePratiquePublished ? 'text-[#774792]' : 'text-gray-400'}`}>
+                        Publié
+                      </span>
+                    </div>
+                  </div>
+
+                  {formStatus.type && (
+                    <div
+                      className={`mb-4 rounded-xl px-4 py-3 ${
+                        formStatus.type === 'success'
+                          ? 'bg-green-50 text-green-800 border border-green-200'
+                          : 'bg-red-50 text-red-800 border border-red-200'
+                      }`}
+                    >
+                      {formStatus.message}
+                    </div>
+                  )}
+
+                  <form
+                    className="space-y-6"
+                    onSubmit={async (e) => {
+                      e.preventDefault()
+                      setIsSubmitting(true)
+                      setFormStatus({ type: null, message: '' })
+
+                      try {
+                        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+                        
+                        // Validation
+                        if (!fichePratiqueForm.slug.trim()) {
+                          throw new Error('Le slug est requis')
+                        }
+                        if (!fichePratiqueForm.titre.trim()) {
+                          throw new Error('Le titre est requis')
+                        }
+                        // Note: On permet l'enregistrement sans sections pour l'instant, l'utilisateur peut ajouter le contenu plus tard
+                        // if (fichePratiqueSections.length === 0) {
+                        //   throw new Error('Au moins une section est requise. Cliquez sur "Ajouter une section" ou "Ajouter une image" dans la section "Contenu de la fiche".')
+                        // }
+                        
+                        console.log('Validation OK, envoi de la fiche pratique...')
+                        console.log('Nombre de sections:', fichePratiqueSections.length)
+                        console.log('Sections:', JSON.stringify(fichePratiqueSections, null, 2))
+
+                        // Utiliser directement les sections du contenu flexible
+                        let finalSections = [...fichePratiqueSections]
+
+                        // Les sections sources sont maintenant gérées directement dans l'éditeur de sections
+                        // Plus besoin de les créer depuis le formulaire
+
+                        // Préparer les sections avec positions correctes
+                        console.log('Préparation des sections...', finalSections)
+                        const sectionsWithPositions = finalSections.length > 0
+                          ? finalSections.map((s, index) => {
+                              // Nettoyer les sections : garder seulement les champs nécessaires pour la base
+                              const cleanedSection: any = {
+                                type: s.type,
+                                position: index + 1,
+                              }
+                              if (s.id) cleanedSection.id = s.id
+                              if (s.titre) cleanedSection.titre = s.titre
+                              // Préserver les blocs (nouveau format avec sous-titres, textes, tableaux)
+                              if (s.blocs && s.blocs.length > 0) {
+                                cleanedSection.blocs = s.blocs.map(block => {
+                                  const cleanedBlock: any = {
+                                    type: block.type,
+                                    id: block.id,
+                                  }
+                                  if (block.texte) cleanedBlock.texte = block.texte
+                                  if (block.contenu) cleanedBlock.contenu = block.contenu
+                                  if (block.table_data) cleanedBlock.table_data = block.table_data
+                                  if (block.style) cleanedBlock.style = block.style
+                                  return cleanedBlock
+                                })
+                              }
+                              // Préserver l'ancien format pour compatibilité
+                              if (s.contenu) cleanedSection.contenu = s.contenu
+                              if (s.image_url) cleanedSection.image_url = s.image_url
+                              if (s.alt) cleanedSection.alt = s.alt
+                              if (s.table_data) cleanedSection.table_data = s.table_data
+                              if (s.sources) cleanedSection.sources = s.sources
+                              return cleanedSection
+                            })
+                          : [] // Permettre l'enregistrement sans sections
+                        console.log('Sections préparées:', JSON.stringify(sectionsWithPositions, null, 2))
+
+                        console.log('Récupération des headers d\'authentification...')
+                        const headers = await getAuthHeaders()
+                        console.log('Headers récupérés, URL Supabase:', supabaseUrl)
+                        
+                        // Si on est en mode édition, utiliser PUT, sinon POST
+                        const isEdit = editingFichePratique !== null
+                        const url = isEdit
+                          ? `${supabaseUrl}/rest/v1/fiches_pratiques?id=eq.${editingFichePratique.id}`
+                          : `${supabaseUrl}/rest/v1/fiches_pratiques`
+                        
+                        // Utiliser le statut du toggle publié/non publié
+                        const publishedValue = fichePratiquePublished
+                        
+                        const payload = {
+                          slug: fichePratiqueForm.slug.trim(),
+                          titre: fichePratiqueForm.titre.trim(),
+                          description: fichePratiqueForm.description.trim() || null,
+                          articles_ria: fichePratiqueForm.articles_ria,
+                          concerne_rgpd: fichePratiqueForm.concerne_rgpd,
+                          show_disclaimer: fichePratiqueForm.show_disclaimer,
+                          disclaimer_text: fichePratiqueForm.disclaimer_text?.trim() || null,
+                          contenu: {
+                            sections: sectionsWithPositions,
+                          },
+                          published: publishedValue,
+                        }
+                        
+                        console.log('Envoi de la requête:', { url, method: isEdit ? 'PATCH' : 'POST', payload })
+                        console.log('Headers:', Object.keys(headers))
+                        console.log('Payload JSON:', JSON.stringify(payload, null, 2))
+                        
+                        const response = await fetch(url, {
+                          method: isEdit ? 'PATCH' : 'POST',
+                          headers: {
+                            ...headers,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                          },
+                          body: JSON.stringify(payload),
+                        })
+
+                        console.log('Réponse reçue:', response.status, response.statusText)
+                        console.log('Headers de réponse:', Object.fromEntries(response.headers.entries()))
+
+                        if (!response.ok) {
+                          const text = await response.text()
+                          console.error('Erreur Supabase - Status:', response.status)
+                          console.error('Erreur Supabase - Body:', text)
+                          try {
+                            const errorJson = JSON.parse(text)
+                            console.error('Erreur Supabase - JSON:', errorJson)
+                            
+                            // Gestion spécifique des erreurs courantes
+                            let errorMessage = errorJson.message || errorJson.error_description || text || `Erreur Supabase (${response.status})`
+                            
+                            if (errorJson.code === '23505') {
+                              // Erreur de contrainte unique (slug dupliqué)
+                              if (errorJson.message?.includes('slug')) {
+                                errorMessage = `Le slug "${fichePratiqueForm.slug}" existe déjà. Veuillez utiliser un slug unique (ex: "${fichePratiqueForm.slug}-2" ou un autre nom).`
+                              } else {
+                                errorMessage = `Une valeur existe déjà en base de données. ${errorJson.message}`
+                              }
+                            } else if (response.status === 409) {
+                              errorMessage = `Conflit : ${errorMessage}`
+                            }
+                            
+                            throw new Error(errorMessage)
+                          } catch (parseError) {
+                            throw new Error(text || `Erreur Supabase (${response.status})`)
+                          }
+                        }
+                        
+                        const responseData = await response.json()
+                        console.log('Données de réponse:', responseData)
+
+                        console.log('Fiche pratique enregistrée avec succès!')
+                        setFormStatus({ 
+                          type: 'success', 
+                          message: fichePratiquePublished
+                            ? (isEdit ? 'Fiche pratique publiée et modifiée avec succès.' : 'Fiche pratique publiée avec succès.')
+                            : (isEdit ? 'Brouillon modifié avec succès. La fiche n\'est pas encore publiée.' : 'Brouillon enregistré avec succès. La fiche n\'est pas encore publiée.')
+                        })
+                        
+                        // Réinitialiser le formulaire
+                        setFichePratiqueForm({
+                          slug: '',
+                          titre: '',
+                          description: '',
+                          articles_ria: [],
+                          concerne_rgpd: false,
+                          show_disclaimer: true,
+                          disclaimer_text: DEFAULT_DISCLAIMER_TEXT,
+                          sources: [],
+                        })
+                        setArticlesRiaInput('')
+                        setFichePratiquePublished(false)
+                        setFichePratiqueSections([])
+                        setEditingFichePratique(null)
+                        
+                        // Recharger la liste si on était en mode consultation
+                        if (selectedAction === 'consulter-fiches-pratiques') {
+                          // Utiliser le client authentifié pour voir toutes les fiches (publiées et brouillons)
+                          const { data, error } = await supabase
+                            .from('fiches_pratiques')
+                            .select('*')
+                            .order('created_at', { ascending: false })
+                          if (!error && data) {
+                            setFichesPratiquesList(data)
+                          }
+                        }
+                      } catch (err) {
+                        console.error('Erreur lors de l\'enregistrement de la fiche pratique:', err)
+                        const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue.'
+                        console.error('Message d\'erreur:', errorMessage)
+                        setFormStatus({
+                          type: 'error',
+                          message: errorMessage,
+                        })
+                      } finally {
+                        setIsSubmitting(false)
+                      }
+                    }}
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Slug* (identifiant URL, ex: "exactitude")
+                        </label>
+                        <input
+                          type="text"
+                          value={fichePratiqueForm.slug}
+                          onChange={(e) => setFichePratiqueForm({ ...fichePratiqueForm, slug: e.target.value })}
+                          required
+                          className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200"
+                          placeholder="exactitude"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Titre*
+                        </label>
+                        <input
+                          type="text"
+                          value={fichePratiqueForm.titre}
+                          onChange={(e) => setFichePratiqueForm({ ...fichePratiqueForm, titre: e.target.value })}
+                          required
+                          className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200"
+                          placeholder="Titre de la fiche pratique"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Description
+                        </label>
+                        <textarea
+                          value={fichePratiqueForm.description}
+                          onChange={(e) => setFichePratiqueForm({ ...fichePratiqueForm, description: e.target.value })}
+                          rows={3}
+                          className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200"
+                          placeholder="Description de la fiche pratique"
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Articles RIA associés (séparés par des virgules)
+                        </label>
+                        <input
+                          type="text"
+                          value={articlesRiaInput}
+                          onChange={(e) => {
+                            // Permettre la saisie libre sans filtrage immédiat
+                            setArticlesRiaInput(e.target.value)
+                          }}
+                          onBlur={(e) => {
+                            // Au blur, parser et nettoyer les articles
+                            const articles = e.target.value
+                              .split(',')
+                              .map(a => a.trim())
+                              .filter(a => a.length > 0)
+                              .filter((value, index, self) => self.indexOf(value) === index) // Supprimer les doublons
+                            setFichePratiqueForm({ ...fichePratiqueForm, articles_ria: articles })
+                            // Mettre à jour l'input avec la version nettoyée
+                            setArticlesRiaInput(articles.join(', '))
+                          }}
+                          className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200"
+                          placeholder="Ex: 10, 15, 26"
+                        />
+                        {fichePratiqueForm.articles_ria.length > 0 && (
+                          <p className="mt-1 text-xs text-gray-500">
+                            Articles enregistrés: {fichePratiqueForm.articles_ria.join(', ')}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="md:col-span-2 space-y-4">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={fichePratiqueForm.concerne_rgpd}
+                            onChange={(e) => setFichePratiqueForm({ ...fichePratiqueForm, concerne_rgpd: e.target.checked })}
+                            className="w-5 h-5 text-[#774792] border-gray-300 rounded focus:ring-[#774792] focus:ring-2"
+                          />
+                          <span className="text-sm font-medium text-gray-700">
+                            Cette fiche pratique concerne aussi la conformité RGPD
+                          </span>
+                        </label>
+
+                        <div className="border-t border-gray-200 pt-4 space-y-3">
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={fichePratiqueForm.show_disclaimer}
+                              onChange={(e) => setFichePratiqueForm({ ...fichePratiqueForm, show_disclaimer: e.target.checked })}
+                              className="w-5 h-5 text-[#774792] border-gray-300 rounded focus:ring-[#774792] focus:ring-2"
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                              Afficher le disclaimer en bas de la fiche
+                            </span>
+                          </label>
+
+                          <details className="group" open={disclaimerEditorInitialized}>
+                            <summary className="flex items-center justify-between cursor-pointer text-sm text-gray-700 select-none">
+                              <span className="font-medium">Éditer le disclaimer</span>
+                              <span className="text-xs text-gray-500 group-open:hidden">Afficher</span>
+                              <span className="text-xs text-gray-500 hidden group-open:inline">Masquer</span>
+                            </summary>
+                            <div className="mt-2 space-y-2">
+                              {/* Barre d'outils de formatage */}
+                              <div className="flex flex-wrap items-center gap-1 p-2 bg-gray-100 border border-gray-300 rounded-t-lg">
+                                <button
+                                  type="button"
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    executeDisclaimerCommand('bold')
+                                  }}
+                                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 font-bold"
+                                  title="Gras"
+                                >
+                                  B
+                                </button>
+                                <button
+                                  type="button"
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    executeDisclaimerCommand('italic')
+                                  }}
+                                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 italic"
+                                  title="Italique"
+                                >
+                                  I
+                                </button>
+                                <button
+                                  type="button"
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    executeDisclaimerCommand('underline')
+                                  }}
+                                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 underline"
+                                  title="Souligné"
+                                >
+                                  U
+                                </button>
+                                <button
+                                  type="button"
+                                  onMouseDown={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleDisclaimerLinkClick()
+                                  }}
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                  }}
+                                  className="px-2 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center justify-center"
+                                  title="Ajouter un lien"
+                                  style={{ minWidth: '32px', minHeight: '32px', display: 'flex' }}
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                  </svg>
+                                </button>
+                                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                                <input
+                                  type="color"
+                                  onInput={(e) => {
+                                    const target = e.target as HTMLInputElement
+                                    executeDisclaimerCommand('foreColor', target.value)
+                                  }}
+                                  className="w-8 h-7 border border-gray-300 rounded cursor-pointer"
+                                  title="Couleur"
+                                />
+                                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                                <select
+                                  onMouseDown={(e) => {
+                                    const editor = disclaimerEditorRef.current
+                                    if (editor) editor.focus()
+                                  }}
+                                  onChange={(e) => {
+                                    const editor = disclaimerEditorRef.current
+                                    if (!editor) return
+                                    editor.focus()
+                                    const size = e.target.value
+                                    if (size === 'default') {
+                                      executeDisclaimerCommand('removeFormat')
+                                    } else {
+                                      const success = document.execCommand('fontSize', false, size)
+                                      if (!success) {
+                                        const selection = window.getSelection()
+                                        if (selection && selection.rangeCount > 0) {
+                                          const range = selection.getRangeAt(0)
+                                          const span = document.createElement('span')
+                                          span.style.fontSize = `${Number(size) * 0.5}em`
+                                          try {
+                                            range.surroundContents(span)
+                                          } catch (e) {
+                                            document.execCommand('insertHTML', false, `<span style="font-size: ${Number(size) * 0.5}em">${range.toString()}</span>`)
+                                          }
+                                        }
+                                      }
+                                      setTimeout(() => {
+                                        updateDisclaimerContent()
+                                        refreshDisclaimerFontSize()
+                                      }, 0)
+                                    }
+                                    setDisclaimerCurrentFontSize(size)
+                                  }}
+                                  className="px-2 py-1 text-xs bg-white border border-gray-300 rounded"
+                                  value={disclaimerCurrentFontSize}
+                                >
+                                  <option value="default">Taille</option>
+                                  <option value="1">Très petit</option>
+                                  <option value="2">Petit</option>
+                                  <option value="3">Normal</option>
+                                  <option value="4">Moyen</option>
+                                  <option value="5">Grand</option>
+                                  <option value="6">Très grand</option>
+                                  <option value="7">Énorme</option>
+                                </select>
+                              </div>
+                              {/* Éditeur de contenu */}
+                              <div
+                                ref={(el) => {
+                                  disclaimerEditorRef.current = el
+                                  if (el && !disclaimerEditorInitialized) {
+                                    // Initialiser le contenu seulement une fois
+                                    const currentContent = el.innerHTML.trim()
+                                    if (currentContent === '' || currentContent === '<br>' || currentContent === '<p><br></p>') {
+                                      const contentToLoad = fichePratiqueForm.disclaimer_text && fichePratiqueForm.disclaimer_text.trim() !== ''
+                                        ? fichePratiqueForm.disclaimer_text
+                                        : DEFAULT_DISCLAIMER_TEXT
+                                      el.innerHTML = contentToLoad
+                                      // S'assurer que les liens sont visibles et stylés
+                                      const links = el.querySelectorAll('a')
+                                      links.forEach(link => {
+                                        // Si le lien pointe vers /contact, utiliser le style purple
+                                        if (link.getAttribute('href') === '/contact') {
+                                          link.style.color = '#774792'
+                                          link.style.textDecoration = 'underline'
+                                          link.style.fontWeight = '600'
+                                        } else if (!link.style.color) {
+                                          link.style.color = '#2563eb'
+                                          link.style.textDecoration = 'underline'
+                                        }
+                                      })
+                                    }
+                                    setDisclaimerEditorInitialized(true)
+                                  }
+                                }}
+                                contentEditable
+                                onInput={() => {
+                                  updateDisclaimerContent()
+                                  refreshDisclaimerFontSize()
+                                }}
+                                onBlur={() => {
+                                  updateDisclaimerContent()
+                                }}
+                                className="w-full min-h-[100px] px-3 py-2 rounded-b-lg border border-t-0 border-gray-300 focus:border-[#774792] focus:ring focus:ring-purple-200 text-sm focus:outline-none"
+                                style={{ whiteSpace: 'pre-wrap' }}
+                              />
+                              <p className="text-xs text-gray-500">
+                                Si vous laissez vide, le texte de disclaimer par défaut sera utilisé.
+                              </p>
+                            </div>
+                          </details>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div className="mt-8">
+                      <h3 className="text-xl font-semibold text-gray-800 mb-4">Contenu de la fiche</h3>
+                      <FichePratiqueEditor
+                        sections={fichePratiqueSections}
+                        onSectionsChange={setFichePratiqueSections}
+                        onImageUpload={async (file, sectionId) => {
+                          console.log('Upload d\'image dans section:', sectionId, 'Fichier:', file.name)
+                          try {
+                            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+                            const fileName = `fiches-pratiques/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+                            const filePath = `${fileName}`
+
+                            console.log('Upload vers:', filePath)
+                            
+                            // Créer un timeout pour l'upload
+                            const uploadPromise = supabase.storage
+                              .from('fiches-pratiques-images')
+                              .upload(filePath, file, {
+                                cacheControl: '3600',
+                                upsert: false
+                              })
+                            
+                            const timeoutPromise = new Promise<never>((_, reject) => {
+                              setTimeout(() => reject(new Error('Timeout: l\'upload de l\'image a pris trop de temps')), 30000)
+                            })
+                            
+                            const { error: uploadError } = await Promise.race([
+                              uploadPromise,
+                              timeoutPromise
+                            ])
+
+                            if (uploadError) {
+                              console.error('Erreur upload image section:', uploadError)
+                              throw uploadError
+                            }
+
+                            console.log('Upload réussi, récupération de l\'URL publique...')
+                            const { data: { publicUrl } } = supabase.storage
+                              .from('fiches-pratiques-images')
+                              .getPublicUrl(filePath)
+
+                            console.log('URL publique récupérée:', publicUrl)
+                            return publicUrl
+                          } catch (error) {
+                            console.error('Erreur complète upload image section:', error)
+                            throw error
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div className="pt-6 border-t border-gray-200">
+                      <div className="flex flex-col items-end gap-4">
+                        <div className="flex justify-end gap-4">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedAction(null)
+                              setEditingFichePratique(null)
+                            }}
+                            className="px-6 py-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                            disabled={isSubmitting}
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="px-6 py-3 rounded-xl bg-[#774792] text-white hover:bg-[#5d356f] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {isSubmitting ? 'Enregistrement...' : editingFichePratique ? 'Enregistrer les modifications' : 'Enregistrer la fiche pratique'}
+                          </button>
+                        </div>
+                        
+                        {/* Toggle de publication en bas, aligné à droite */}
+                        <div className="flex items-center gap-3">
+                          <span className={`text-sm font-medium transition-colors ${!fichePratiquePublished ? 'text-gray-700' : 'text-gray-400'}`}>
+                            Non publié
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setFichePratiquePublished(!fichePratiquePublished)}
+                            className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#774792] focus:ring-offset-2 ${
+                              fichePratiquePublished ? 'bg-[#774792]' : 'bg-gray-300'
+                            }`}
+                            role="switch"
+                            aria-checked={fichePratiquePublished}
+                          >
+                            <span
+                              className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                                fichePratiquePublished ? 'translate-x-9' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                          <span className={`text-sm font-medium transition-colors ${fichePratiquePublished ? 'text-[#774792]' : 'text-gray-400'}`}>
+                            Publié
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Modal pour ajouter/modifier un lien dans le disclaimer */}
+                    {disclaimerLinkModal.visible && (
+                      <div 
+                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" 
+                        style={{ 
+                          left: 0, 
+                          right: 0, 
+                          top: 0, 
+                          bottom: 0,
+                          position: 'fixed'
+                        }}
+                        onMouseDown={(e) => {
+                          if (e.target === e.currentTarget) {
+                            e.preventDefault()
+                          }
+                        }}
+                      >
+                        <div 
+                          className="bg-white rounded-lg p-6 max-w-md w-full my-auto"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                            {disclaimerLinkModal.existingLink ? 'Modifier le lien' : 'Ajouter un lien'}
+                          </h3>
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                URL
+                              </label>
+                              <input
+                                type="url"
+                                value={disclaimerLinkModal.url}
+                                onChange={(e) => setDisclaimerLinkModal({ ...disclaimerLinkModal, url: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="https://exemple.com"
+                                autoFocus
+                              />
+                            </div>
+                            <div>
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={disclaimerLinkModal.openInNewTab}
+                                  onChange={(e) => setDisclaimerLinkModal({ ...disclaimerLinkModal, openInNewTab: e.target.checked })}
+                                  className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                />
+                                <span className="text-sm text-gray-700">Ouvrir dans un nouvel onglet</span>
+                              </label>
+                            </div>
+                            <div className="flex gap-2 justify-end">
+                              {disclaimerLinkModal.existingLink && (
+                                <button
+                                  type="button"
+                                  onClick={removeDisclaimerLink}
+                                  className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                >
+                                  Supprimer le lien
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setDisclaimerLinkModal({ visible: false, url: '', openInNewTab: true, existingLink: null, savedRange: null })}
+                                className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                              >
+                                Annuler
+                              </button>
+                              <button
+                                type="button"
+                                onClick={applyDisclaimerLink}
+                                className="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                              >
+                                {disclaimerLinkModal.existingLink ? 'Modifier' : 'Appliquer'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </form>
+                </div>
+              )}
+
+              {selectedAction === 'consulter-fiches-pratiques' && (
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-800">Consulter et modifier les fiches pratiques</h2>
+                      <p className="text-gray-600 mt-2">Gérez toutes les fiches pratiques existantes.</p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedAction('ajouter-fiche-pratique')}
+                      className="px-4 py-2 bg-[#774792] text-white rounded-lg hover:bg-[#5d356f] transition-colors"
+                    >
+                      + Ajouter une fiche
+                    </button>
+                  </div>
+
+                  {formStatus.type && (
+                    <div
+                      className={`mb-4 rounded-xl px-4 py-3 ${
+                        formStatus.type === 'success'
+                          ? 'bg-green-50 text-green-800 border border-green-200'
+                          : 'bg-red-50 text-red-800 border border-red-200'
+                      }`}
+                    >
+                      {formStatus.message}
+                    </div>
+                  )}
+
+                  {/* Barre de recherche */}
+                  <div className="mb-6">
+                    <input
+                      type="text"
+                      value={fichesPratiquesSearch}
+                      onChange={(e) => setFichesPratiquesSearch(e.target.value)}
+                      placeholder="Rechercher une fiche pratique..."
+                      className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200"
+                    />
+                  </div>
+
+                  {/* Liste des fiches pratiques */}
+                  {isLoadingFichesPratiques ? (
+                    <div className="text-center py-12">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#774792]"></div>
+                      <p className="mt-4 text-gray-600">Chargement des fiches pratiques...</p>
+                    </div>
+                  ) : fichesPratiquesList.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-xl">
+                      <p className="text-gray-500">Aucune fiche pratique trouvée.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {fichesPratiquesList
+                        .filter((fiche) =>
+                          fiche.titre.toLowerCase().includes(fichesPratiquesSearch.toLowerCase()) ||
+                          fiche.slug.toLowerCase().includes(fichesPratiquesSearch.toLowerCase())
+                        )
+                        .map((fiche) => (
+                          <div
+                            key={fiche.id}
+                            className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h3 className="text-lg font-semibold text-gray-800">{fiche.titre}</h3>
+                                  {fiche.published === false && (
+                                    <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full font-medium">
+                                      Brouillon
+                                    </span>
+                                  )}
+                                  {fiche.published === true && (
+                                    <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full font-medium">
+                                      Publié
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600 mt-1">{fiche.description}</p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  {fiche.articles_ria.length > 0 && (
+                                    <span className="text-xs text-gray-500">
+                                      Articles: {fiche.articles_ria.join(', ')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingFichePratique(fiche)
+                                    // Charger toutes les sections, y compris les sections sources
+                                    // Les sections sources sont maintenant gérées dans l'éditeur de sections
+                                    let sectionsToLoad = [...(fiche.contenu?.sections || [])]
+                                      .map((s, index) => {
+                                        const section: any = {
+                                          ...s,
+                                          // S'assurer que chaque section a un ID unique
+                                          id: s.id || `${s.type}-${Date.now()}-${index}`,
+                                        }
+                                        // S'assurer que les blocs ont tous des IDs
+                                        if (section.blocs && Array.isArray(section.blocs)) {
+                                          section.blocs = section.blocs.map((block: any, blockIndex: number) => ({
+                                            ...block,
+                                            id: block.id || `block-${section.id || index}-${blockIndex}`,
+                                          }))
+                                        }
+                                        return section
+                                      })
+                                    
+                                    setFichePratiqueForm({
+                                      slug: fiche.slug,
+                                      titre: fiche.titre,
+                                      description: fiche.description || '',
+                                      articles_ria: fiche.articles_ria,
+                                      concerne_rgpd: fiche.concerne_rgpd || false,
+                                      show_disclaimer: fiche.show_disclaimer !== false,
+                                      disclaimer_text: fiche.disclaimer_text && fiche.disclaimer_text.trim().length > 0
+                                        ? fiche.disclaimer_text
+                                        : DEFAULT_DISCLAIMER_TEXT,
+                                      sources: [],
+                                    })
+                                    setArticlesRiaInput(fiche.articles_ria.join(', '))
+                                    setFichePratiquePublished(fiche.published === true)
+                                    setFichePratiqueSections(sectionsToLoad)
+                                    setSelectedAction('ajouter-fiche-pratique')
+                                  }}
+                                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                >
+                                  Modifier
+                                </button>
+                                <button
+                                  onClick={() => setDeleteFichePratiqueConfirmId(fiche.id)}
+                                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                  Supprimer
+                                </button>
+                              </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {!selectedAction && (
                 <AdminDashboard onActionSelect={(action) => setSelectedAction(action as AdminAction)} />
               )}
@@ -5263,8 +6575,8 @@ const AdminConsolePage: React.FC = () => {
 
                   {/* Modal de confirmation de suppression */}
                   {deleteRAGConfirmId !== null && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                      <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+                      <div className="bg-white rounded-xl p-6 max-w-md w-full my-auto">
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">
                           Confirmer la suppression
                         </h3>
@@ -5583,8 +6895,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal de modification d'actualité */}
       {isEditModalOpen && editingActualite && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto my-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-gray-800">Modifier l'actualité</h3>
@@ -5695,8 +7007,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal de confirmation de suppression */}
       {deleteConfirmId !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full my-auto">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -5735,8 +7047,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal de modification d'un doc */}
       {isEditDocModalOpen && editingDoc && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto my-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-gray-800">Modifier le document</h3>
@@ -5879,8 +7191,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal de confirmation de suppression d'un doc */}
       {deleteDocConfirmId !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full my-auto">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -5919,8 +7231,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal de modification d'un article de doctrine */}
       {isEditDoctrineModalOpen && editingDoctrine && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto my-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-gray-800">Modifier l'article de doctrine</h3>
@@ -5997,7 +7309,7 @@ const AdminConsolePage: React.FC = () => {
                     className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
                   />
                 </div>
-              </div>
+                </div>
 
               {/* Champ d'upload d'image pour l'édition */}
               <div className="md:col-span-2">
@@ -6340,8 +7652,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal de confirmation de suppression d'un article de doctrine */}
       {deleteDoctrineConfirmId !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full my-auto">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -6380,8 +7692,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal de modification d'une question de quiz */}
       {isEditQuestionModalOpen && editingQuestion && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto my-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-gray-800">Modifier la question</h3>
@@ -6856,8 +8168,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal de confirmation de suppression d'une question de quiz */}
       {deleteQuestionConfirmId !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full my-auto">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -6896,8 +8208,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal de confirmation de suppression d'une question de l'assistant RIA */}
       {deleteAssistantRIAConfirmId !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full my-auto">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -6936,8 +8248,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal de confirmation de suppression d'un adhérent */}
       {deleteAdherentConfirmId !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full my-auto">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -6976,8 +8288,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal d'édition de la description d'un fichier */}
       {editDescriptionData !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full my-auto">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
@@ -7033,8 +8345,8 @@ const AdminConsolePage: React.FC = () => {
 
       {/* Modal de renommage d'un fichier */}
       {renameFileData !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full my-auto">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -7085,10 +8397,50 @@ const AdminConsolePage: React.FC = () => {
         </div>
       )}
 
+      {/* Modal de confirmation de suppression d'une fiche pratique */}
+      {deleteFichePratiqueConfirmId !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full my-auto">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800">Confirmer la suppression</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Êtes-vous sûr de vouloir supprimer cette fiche pratique ? Cette action est irréversible.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => setDeleteFichePratiqueConfirmId(null)}
+                  className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                  disabled={isSubmitting}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => handleDeleteFichePratique(deleteFichePratiqueConfirmId)}
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? 'Suppression...' : 'Supprimer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de confirmation de suppression d'un fichier */}
       {deleteFileConfirmName !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full my-auto">
             <div className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -7124,6 +8476,7 @@ const AdminConsolePage: React.FC = () => {
           </div>
         </div>
       )}
+
     </div>
     </>
   )
