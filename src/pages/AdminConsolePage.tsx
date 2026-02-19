@@ -44,7 +44,7 @@ const isTokenExpired = (token: string): boolean => {
   }
 }
 
-type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-rag-questions' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | 'ajouter-fiche-pratique' | 'consulter-fiches-pratiques' | null
+type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'veille' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-rag-questions' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | 'ajouter-fiche-pratique' | 'consulter-fiches-pratiques' | null
 
 interface Actualite {
   id: number
@@ -88,6 +88,21 @@ interface DoctrineArticle {
   image_url?: string
   image_contenu_url?: string
   published?: boolean
+}
+
+interface VeilleGroupRow {
+  id: number
+  name: string
+  position: number
+}
+
+interface VeilleLinkRow {
+  id: number
+  group_id: number
+  label: string | null
+  url: string
+  position: number
+  note?: string | null
 }
 
 interface QuizQuestion {
@@ -232,6 +247,9 @@ const AdminConsolePage: React.FC = () => {
     lien: '',
   })
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+  const [veilleGroups, setVeilleGroups] = useState<VeilleGroupRow[]>([])
+  const [veilleLinks, setVeilleLinks] = useState<VeilleLinkRow[]>([])
+  const [isLoadingVeille, setIsLoadingVeille] = useState(false)
   const [availableMedias, setAvailableMedias] = useState<string[]>([])
   const [isMediaDropdownOpen, setIsMediaDropdownOpen] = useState(false)
   const [availableAuteurs, setAvailableAuteurs] = useState<string[]>([])
@@ -448,6 +466,7 @@ const AdminConsolePage: React.FC = () => {
       items: [
         { id: 'ajouter-actualite' as AdminAction, label: 'Ajouter une actualité', icon: '➕' },
         { id: 'consulter-actus' as AdminAction, label: 'Consulter et modifier', icon: '📋' },
+        { id: 'veille' as AdminAction, label: 'Veille', icon: '🔗' },
       ],
     },
     {
@@ -1165,6 +1184,183 @@ const AdminConsolePage: React.FC = () => {
 
     loadDoctrine()
   }, [selectedAction])
+
+  // Charger les groupes et liens de veille (admin uniquement, fetch avec auth comme le reste de l'admin)
+  useEffect(() => {
+    if (selectedAction !== 'veille') return
+
+    const loadVeille = async () => {
+      setIsLoadingVeille(true)
+      setFormStatus({ type: null, message: '' })
+      const timeoutMs = 12_000
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+      try {
+        const headers = await getAuthHeaders()
+        const [groupsRes, linksRes] = await Promise.all([
+          fetch(`${supabaseUrl}/rest/v1/veille_groups?select=*&order=position.asc`, {
+            headers: { ...headers, Accept: 'application/json' },
+            signal: controller.signal,
+          }),
+          fetch(`${supabaseUrl}/rest/v1/veille_links?select=*&order=position.asc`, {
+            headers: { ...headers, Accept: 'application/json' },
+            signal: controller.signal,
+          }),
+        ])
+        clearTimeout(timeoutId)
+
+        if (!groupsRes.ok) {
+          const text = await groupsRes.text()
+          throw new Error(text || `veille_groups: ${groupsRes.status}`)
+        }
+        if (!linksRes.ok) {
+          const text = await linksRes.text()
+          throw new Error(text || `veille_links: ${linksRes.status}`)
+        }
+
+        const groupsData = await groupsRes.json()
+        const linksData = await linksRes.json()
+        setVeilleGroups(Array.isArray(groupsData) ? groupsData : [])
+        setVeilleLinks(Array.isArray(linksData) ? linksData : [])
+      } catch (err) {
+        console.error('Erreur chargement veille:', err)
+        const message =
+          err instanceof Error
+            ? err.name === 'AbortError'
+              ? 'Chargement trop long. Vérifiez votre connexion et que les tables veille_groups / veille_links existent dans Supabase.'
+              : err.message
+            : 'Impossible de charger la veille.'
+        setFormStatus({
+          type: 'error',
+          message: message.includes('relation') || message.includes('does not exist')
+            ? 'Les tables de veille sont absentes. Exécutez le script create-veille-tables.sql dans Supabase (SQL Editor).'
+            : message,
+        })
+      } finally {
+        clearTimeout(timeoutId)
+        setIsLoadingVeille(false)
+      }
+    }
+
+    loadVeille()
+  }, [selectedAction])
+
+  const veilleAddGroup = async () => {
+    try {
+      const maxPos = veilleGroups.length === 0 ? 0 : Math.max(...veilleGroups.map((g) => g.position), 0)
+      const headers = await getAuthHeaders()
+      const res = await fetch(`${supabaseUrl}/rest/v1/veille_groups`, {
+        method: 'POST',
+        headers: { ...headers, Prefer: 'return=representation' },
+        body: JSON.stringify({ name: 'Nouveau groupe', position: maxPos + 1 }),
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        setFormStatus({ type: 'error', message: text || `Erreur ${res.status}` })
+        return
+      }
+      const data = await res.json()
+      const newRow = Array.isArray(data) ? data[0] : data
+      if (newRow) setVeilleGroups((prev) => [...prev, newRow])
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de l\'ajout du groupe.' })
+    }
+  }
+
+  const veilleUpdateGroupName = async (id: number, name: string) => {
+    try {
+      const headers = await getAuthHeaders()
+      const res = await fetch(`${supabaseUrl}/rest/v1/veille_groups?id=eq.${id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ name }),
+      })
+      if (!res.ok) {
+        setFormStatus({ type: 'error', message: await res.text() || `Erreur ${res.status}` })
+        return
+      }
+      setVeilleGroups((prev) => prev.map((g) => (g.id === id ? { ...g, name } : g)))
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de la mise à jour.' })
+    }
+  }
+
+  const veilleDeleteGroup = async (id: number) => {
+    try {
+      const headers = await getAuthHeaders()
+      const res = await fetch(`${supabaseUrl}/rest/v1/veille_groups?id=eq.${id}`, { method: 'DELETE', headers })
+      if (!res.ok) {
+        setFormStatus({ type: 'error', message: await res.text() || `Erreur ${res.status}` })
+        return
+      }
+      setVeilleGroups((prev) => prev.filter((g) => g.id !== id))
+      setVeilleLinks((prev) => prev.filter((l) => l.group_id !== id))
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de la suppression.' })
+    }
+  }
+
+  const veilleAddLink = async (group_id: number) => {
+    try {
+      const groupLinks = veilleLinks.filter((l) => l.group_id === group_id)
+      const maxPos = groupLinks.length === 0 ? 0 : Math.max(...groupLinks.map((l) => l.position), 0)
+      const headers = await getAuthHeaders()
+      const res = await fetch(`${supabaseUrl}/rest/v1/veille_links`, {
+        method: 'POST',
+        headers: { ...headers, Prefer: 'return=representation' },
+        body: JSON.stringify({ group_id, label: '', url: 'https://', note: '', position: maxPos + 1 }),
+      })
+      if (!res.ok) {
+        setFormStatus({ type: 'error', message: await res.text() || `Erreur ${res.status}` })
+        return
+      }
+      const data = await res.json()
+      const newRow = Array.isArray(data) ? data[0] : data
+      if (newRow) setVeilleLinks((prev) => [...prev, newRow])
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de l\'ajout du lien.' })
+    }
+  }
+
+  const veilleUpdateLink = async (id: number, field: 'label' | 'url' | 'note', value: string) => {
+    try {
+      const headers = await getAuthHeaders()
+      const res = await fetch(`${supabaseUrl}/rest/v1/veille_links?id=eq.${id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ [field]: value }),
+      })
+      if (!res.ok) {
+        setFormStatus({ type: 'error', message: await res.text() || `Erreur ${res.status}` })
+        return
+      }
+      setVeilleLinks((prev) => prev.map((l) => (l.id === id ? { ...l, [field]: value } : l)))
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de la mise à jour.' })
+    }
+  }
+
+  const veilleDeleteLink = async (id: number) => {
+    try {
+      const headers = await getAuthHeaders()
+      const res = await fetch(`${supabaseUrl}/rest/v1/veille_links?id=eq.${id}`, { method: 'DELETE', headers })
+      if (!res.ok) {
+        setFormStatus({ type: 'error', message: await res.text() || `Erreur ${res.status}` })
+        return
+      }
+      setVeilleLinks((prev) => prev.filter((l) => l.id !== id))
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de la suppression.' })
+    }
+  }
+
+  const veilleOpenAllInGroup = (group_id: number) => {
+    const links = veilleLinks.filter((l) => l.group_id === group_id && l.url && l.url.trim() !== '')
+    links.forEach((l, i) => {
+      setTimeout(() => window.open(l.url.trim(), '_blank', 'noopener,noreferrer'), i * 200)
+    })
+  }
 
   // Charger la liste des questions de quiz quand on arrive sur "consulter-questions"
   useEffect(() => {
@@ -3480,6 +3676,126 @@ const AdminConsolePage: React.FC = () => {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {selectedAction === 'veille' && (
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-800">Veille</h2>
+                      <p className="text-gray-600 mt-2">Gérez vos liens de veille par groupes. Ouvrez tous les liens d&apos;un groupe d&apos;un coup.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={veilleAddGroup}
+                      className="px-4 py-2 rounded-xl border border-purple-100 bg-purple-50 text-gray-700 hover:bg-purple-100 transition-colors flex items-center gap-2"
+                    >
+                      <span>+</span> Ajouter un groupe
+                    </button>
+                  </div>
+
+                  {formStatus.type && (
+                    <div
+                      className={`mb-4 rounded-xl px-4 py-3 ${
+                        formStatus.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'
+                      }`}
+                    >
+                      {formStatus.message}
+                    </div>
+                  )}
+
+                  {isLoadingVeille ? (
+                    <div className="text-center py-12">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#774792]"></div>
+                      <p className="mt-4 text-gray-600">Chargement…</p>
+                    </div>
+                  ) : veilleGroups.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-xl">
+                      <p className="text-gray-500 mb-4">Aucun groupe. Cliquez sur « Ajouter un groupe » pour commencer.</p>
+                      <button type="button" onClick={veilleAddGroup} className="px-4 py-2 rounded-xl border border-purple-100 bg-purple-50 text-gray-700 hover:bg-purple-100 transition-colors">
+                        Ajouter un groupe
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {veilleGroups.map((group) => {
+                        const groupLinks = veilleLinks.filter((l) => l.group_id === group.id).sort((a, b) => a.position - b.position)
+                        return (
+                          <div key={group.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                              <input
+                                type="text"
+                                value={group.name}
+                                onChange={(e) => setVeilleGroups((prev) => prev.map((g) => (g.id === group.id ? { ...g, name: e.target.value } : g)))}
+                                onBlur={(e) => veilleUpdateGroupName(group.id, e.target.value.trim() || 'Sans nom')}
+                                onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+                                className="text-lg font-semibold text-gray-800 px-2 py-1 rounded border border-transparent hover:border-gray-300 focus:border-gray-400 focus:ring-1 focus:ring-gray-300 min-w-[200px]"
+                                placeholder="Nom du groupe"
+                              />
+                              <div className="flex items-center gap-2 ml-auto">
+                                <button
+                                  type="button"
+                                  onClick={() => veilleOpenAllInGroup(group.id)}
+                                  disabled={groupLinks.length === 0}
+                                  className="px-3 py-1.5 rounded-lg border border-purple-100 bg-purple-50 text-gray-700 text-sm hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                  Ouvrir tout ({groupLinks.length})
+                                </button>
+                                <button type="button" onClick={() => veilleAddLink(group.id)} className="px-3 py-1.5 rounded-lg border border-purple-100 bg-purple-50 text-gray-700 text-sm hover:bg-purple-100">
+                                  + Lien
+                                </button>
+                                <button type="button" onClick={() => veilleDeleteGroup(group.id)} className="px-3 py-1.5 rounded-lg border border-purple-100 bg-purple-50 text-gray-600 text-sm hover:bg-purple-100" title="Supprimer le groupe">
+                                  Supprimer le groupe
+                                </button>
+                              </div>
+                            </div>
+                            <div className="space-y-2 pl-2 border-l-2 border-gray-200">
+                              {groupLinks.length === 0 ? (
+                                <p className="text-sm text-gray-500 italic">Aucun lien. Cliquez sur « + Lien ».</p>
+                              ) : (
+                                groupLinks.map((link) => (
+                                  <div key={link.id} className="flex flex-wrap items-center gap-2 py-1">
+                                    <input
+                                      type="text"
+                                      value={link.label ?? ''}
+                                      onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, label: e.target.value } : l)))}
+                                      onBlur={(e) => veilleUpdateLink(link.id, 'label', e.target.value)}
+                                      placeholder="Libellé"
+                                      className="w-40 px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
+                                    />
+                                    <input
+                                      type="url"
+                                      value={link.url}
+                                      onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, url: e.target.value } : l)))}
+                                      onBlur={(e) => veilleUpdateLink(link.id, 'url', e.target.value)}
+                                      placeholder="https://…"
+                                      className="flex-1 min-w-[200px] px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={link.note ?? ''}
+                                      onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, note: e.target.value } : l)))}
+                                      onBlur={(e) => veilleUpdateLink(link.id, 'note', e.target.value)}
+                                      placeholder="Note (facultatif)"
+                                      className="w-36 px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
+                                    />
+                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="Ouvrir">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                    </a>
+                                    <button type="button" onClick={() => veilleDeleteLink(link.id)} className="p-1.5 rounded text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="Supprimer">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </div>

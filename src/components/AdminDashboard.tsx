@@ -464,21 +464,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onActionSelect }) => {
         </button>
 
         <button
-          onClick={() => onActionSelect('consulter-adherents')}
+          onClick={() => onActionSelect('veille')}
           className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-4 text-white shadow-md hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer text-left"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-emerald-100 text-xs font-medium">Nouveaux adhérents</p>
-              <p className="text-3xl font-bold">+{stats.newAdherentsThisWeek}</p>
-              <p className="text-emerald-200 text-xs">
-                {timeFilter === 'today' ? "Aujourd'hui" : 
-                 timeFilter === 'week' ? 'Cette semaine' : 
-                 timeFilter === 'month' ? 'Ce mois' : 
-                 'Cette année'}
-              </p>
+              <p className="text-lg font-bold">Veille et liens utiles</p>
             </div>
-            <div className="text-4xl opacity-30">📈</div>
+            <div className="text-4xl opacity-30">🔗</div>
           </div>
         </button>
       </div>
