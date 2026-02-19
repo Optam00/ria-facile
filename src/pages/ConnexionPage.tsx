@@ -2,14 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { supabase } from '../lib/supabase'
-
-type UserType = 'adherent' | 'admin'
 
 const ConnexionPage: React.FC = () => {
-  const { isAdmin, isAdherent, loading, signOut, signIn } = useAuth()
+  const { isAdmin, isAdherent, loading, profile, signOut, signIn } = useAuth()
   const navigate = useNavigate()
-  const [userType, setUserType] = useState<UserType>('adherent')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -51,16 +47,17 @@ const ConnexionPage: React.FC = () => {
     })
   }, [signOut])
 
-  // Rediriger si l'utilisateur est déjà connecté
+  // Rediriger dès que le profil est connu : admin → console, adhérent → mon espace
   useEffect(() => {
-    // Dès que le profil est chargé et indique un utilisateur connecté,
-    // on redirige sans bloquer l'affichage de la page de connexion.
+    if (loading) return
     if (isAdmin()) {
       navigate('/admin/console', { replace: true })
-    } else if (isAdherent()) {
+      return
+    }
+    if (isAdherent()) {
       navigate('/mon-espace', { replace: true })
     }
-  }, [loading, isAdmin, isAdherent, navigate])
+  }, [loading, profile, isAdmin, isAdherent, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,19 +65,18 @@ const ConnexionPage: React.FC = () => {
     setError('')
 
     try {
-      // Utiliser la fonction signIn du contexte pour bénéficier de la gestion du flag explicit_logout
-      const { error } = await signIn(email, password, userType)
+      const { error, role } = await signIn(email, password)
 
       if (error) {
         setError(error.message || 'Erreur lors de la connexion')
         return
       }
 
-      // Redirection après connexion réussie : on force un rechargement complet
-      if (userType === 'admin') {
-        window.location.assign('/admin/console')
+      // Redirection immédiate selon le rôle (évite de dépendre du cycle de rendu)
+      if (role === 'admin') {
+        navigate('/admin/console', { replace: true })
       } else {
-        window.location.assign('/mon-espace')
+        navigate('/mon-espace', { replace: true })
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors de la connexion')
@@ -93,46 +89,12 @@ const ConnexionPage: React.FC = () => {
     <div className="min-h-screen p-4">
       <Helmet>
         <title>Connexion — RIA Facile</title>
-        <meta name="description" content="Page de connexion à RIA Facile - Adhérent ou Administrateur" />
+        <meta name="description" content="Page de connexion à RIA Facile" />
       </Helmet>
 
       <div className="max-w-2xl mx-auto">
         <div className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white">
           <h1 className="text-3xl font-bold mb-8 text-[#774792] text-center">Connexion</h1>
-
-          {/* Sélecteur de type d'utilisateur */}
-          <div className="mb-8">
-            <div className="flex gap-4 bg-gray-100 p-1 rounded-xl">
-              <button
-                type="button"
-                onClick={() => {
-                  setUserType('adherent')
-                  setError('')
-                }}
-                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                  userType === 'adherent'
-                    ? 'bg-white text-[#774792] shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Adhérent
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setUserType('admin')
-                  setError('')
-                }}
-                className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                  userType === 'admin'
-                    ? 'bg-white text-[#774792] shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Administrateur
-              </button>
-            </div>
-          </div>
 
           {/* Message de confirmation d'email */}
           {emailConfirmed && (
@@ -237,7 +199,7 @@ const ConnexionPage: React.FC = () => {
                   Connexion en cours...
                 </span>
               ) : (
-                `Se connecter en tant que ${userType === 'adherent' ? 'adhérent' : 'administrateur'}`
+                'Se connecter'
               )}
             </button>
           </form>
@@ -245,21 +207,14 @@ const ConnexionPage: React.FC = () => {
           {/* Informations supplémentaires */}
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-600 text-center">
-              {userType === 'adherent' ? (
-                <>
-                  Vous n&apos;avez pas encore de compte adhérent ?{' '}
-                  <Link to="/inscription" className="text-[#774792] hover:underline font-medium">
-                    S&apos;inscrire
-                  </Link>
-                </>
-              ) : (
-                <>
-                  Accès réservé aux administrateurs. En cas de problème,{' '}
-                  <Link to="/contact" className="text-[#774792] hover:underline font-medium">
-                    contactez le support
-                  </Link>
-                </>
-              )}
+              Vous n&apos;avez pas encore de compte ?{' '}
+              <Link to="/inscription" className="text-[#774792] hover:underline font-medium">
+                S&apos;inscrire
+              </Link>
+              {' · '}
+              <Link to="/contact" className="text-[#774792] hover:underline font-medium">
+                Contact
+              </Link>
             </p>
           </div>
         </div>

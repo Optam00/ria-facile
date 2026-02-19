@@ -16,7 +16,7 @@ interface AuthContextType {
   session: Session | null
   loading: boolean
   showInactivityWarning: boolean
-  signIn: (email: string, password: string, role: UserRole) => Promise<{ error: AuthError | null }>
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null; role?: UserRole }>
   signOut: () => Promise<void>
   isAdmin: () => boolean
   isAdherent: () => boolean
@@ -329,7 +329,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
-  const signIn = async (email: string, password: string, role: UserRole) => {
+  const signIn = async (email: string, password: string) => {
     try {
       // NETTOYER COMPLÈTEMENT LE LOCALSTORAGE AVANT LA CONNEXION
       // Cela évite que Chrome garde l'ancien JWT en cache
@@ -384,6 +384,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // FORCER LE RAFRAÎCHISSEMENT DU TOKEN pour obtenir le nouveau JWT avec le rôle admin
       // Cela résout le problème où Chrome garde l'ancien JWT en cache
+      let sessionToUse = data.session
       if (data.session) {
         try {
           console.log('🔄 [AUTH] Rafraîchissement forcé du token après connexion...')
@@ -391,6 +392,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (refreshError) {
             console.warn('⚠️ [AUTH] Erreur lors du rafraîchissement du token:', refreshError)
           } else if (refreshData.session) {
+            sessionToUse = refreshData.session
             console.log('✅ [AUTH] Token rafraîchi avec succès, nouveau JWT:', {
               hasRole: !!(refreshData.session.user.user_metadata?.role || refreshData.session.user.raw_user_meta_data?.role),
               role: refreshData.session.user.user_metadata?.role || refreshData.session.user.raw_user_meta_data?.role
@@ -401,10 +403,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      // On ne refait pas de logique de rôle ici : 
-      // - on laisse onAuthStateChange + loadUserProfile charger le profil
-      // - la vérification de rôle se fait ensuite dans les composants (isAdmin / isAdherent)
-      return { error: null }
+      // Utiliser la session courante (utile après déconnexion + reconnexion avec un autre compte)
+      const { data: { session: currentSession } } = await supabase.auth.getSession()
+      const userId = currentSession?.user?.id ?? data.user.id
+
+      // Charger le rôle depuis le profil pour permettre la redirection immédiate après connexion
+      let role: UserRole = 'adherent'
+      try {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .single()
+        if (profileData?.role === 'admin' || profileData?.role === 'adherent') {
+          role = profileData.role
+        }
+      } catch (_) {
+        // Garder 'adherent' par défaut
+      }
+
+      // Mettre à jour le contexte immédiatement pour que la page de destination (admin ou mon-espace)
+      // voie le bon utilisateur dès l'arrivée (évite le retour à la connexion après changement de compte)
+      const session = sessionToUse ?? currentSession ?? data.session
+      if (session) {
+        setSession(session)
+        setUser(session.user)
+        setProfile({
+          id: session.user.id,
+          email: session.user.email ?? '',
+          role,
+        })
+      }
+      setLoading(false)
+
+      return { error: null, role }
     } catch (error) {
       return {
         error: {
