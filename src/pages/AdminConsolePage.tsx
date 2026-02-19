@@ -6,6 +6,30 @@ import { supabasePublic } from '../lib/supabasePublic'
 import { supabase } from '../lib/supabase'
 import AdminDashboard from '../components/AdminDashboard'
 import { FichePratiqueEditor, FichePratiqueSection } from '../components/FichePratiqueEditor'
+import { FichesEditor, type FicheItem } from '../components/FichesEditor'
+
+// Parser le champ fiches (string) en tableau titre/lien pour l'admin
+function parseFichesString(fichesString: string): FicheItem[] {
+  if (!fichesString || !fichesString.trim()) return []
+  return fichesString
+    .split(/[,;\n]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => {
+      if (item.includes('|')) {
+        const [titre, ...lienParts] = item.split('|')
+        return { titre: titre.trim(), lien: lienParts.join('|').trim() }
+      }
+      return { titre: item, lien: item }
+    })
+}
+
+function serializeFiches(fiches: FicheItem[]): string {
+  return fiches
+    .filter((f) => f.titre.trim() || f.lien.trim())
+    .map((f) => `${f.titre.trim()}|${f.lien.trim()}`)
+    .join('\n')
+}
 
 // Fonction utilitaire pour décoder un JWT et vérifier son expiration
 const isTokenExpired = (token: string): boolean => {
@@ -61,6 +85,9 @@ interface DoctrineArticle {
   references: string
   auteur: string
   theme: string
+  image_url?: string
+  image_contenu_url?: string
+  published?: boolean
 }
 
 interface QuizQuestion {
@@ -157,6 +184,7 @@ const AdminConsolePage: React.FC = () => {
   const [doctrineContenuImageFile, setDoctrineContenuImageFile] = useState<File | null>(null)
   const [doctrineContenuImagePreview, setDoctrineContenuImagePreview] = useState<string | null>(null)
   const [uploadingDoctrineContenuImage, setUploadingDoctrineContenuImage] = useState(false)
+  const [doctrinePublished, setDoctrinePublished] = useState(true)
   const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({
     type: null,
     message: '',
@@ -166,12 +194,19 @@ const AdminConsolePage: React.FC = () => {
   const [selectedArticleId, setSelectedArticleId] = useState<number | null>(null)
   const [isArticleDropdownOpen, setIsArticleDropdownOpen] = useState(false)
   const [articleSearch, setArticleSearch] = useState('')
-  const [enrichForm, setEnrichForm] = useState({
+  const [enrichForm, setEnrichForm] = useState<{
+    numero: string
+    titre: string
+    resume: string
+    recitals: string
+    fiches: FicheItem[]
+    doc_associee: string
+  }>({
     numero: '',
     titre: '',
     resume: '',
     recitals: '',
-    fiches: '',
+    fiches: [],
     doc_associee: '',
   })
   const [isLoadingArticle, setIsLoadingArticle] = useState(false)
@@ -230,32 +265,6 @@ const AdminConsolePage: React.FC = () => {
   const [doctrineThemeFilter, setDoctrineThemeFilter] = useState('')
   const [isLoadingDoctrine, setIsLoadingDoctrine] = useState(false)
   const [editingDoctrine, setEditingDoctrine] = useState<DoctrineArticle | null>(null)
-  const [isEditDoctrineModalOpen, setIsEditDoctrineModalOpen] = useState(false)
-  const [doctrineEditForm, setDoctrineEditForm] = useState({
-    titre: '',
-    date: '',
-    abstract: '',
-    intro: '',
-    titre1: '',
-    'sous-titre1': '',
-    contenu1: '',
-    'sous-titre2': '',
-    contenu2: '',
-    titre2: '',
-    'sous-titre3': '',
-    contenu3: '',
-    'sous-titre4': '',
-    contenu4: '',
-    conclusion: '',
-    references: '',
-    auteur: '',
-    theme: '',
-    image_url: '',
-  })
-  const [doctrineEditImageFile, setDoctrineEditImageFile] = useState<File | null>(null)
-  const [doctrineEditImagePreview, setDoctrineEditImagePreview] = useState<string | null>(null)
-  const [doctrineEditContenuImageFile, setDoctrineEditContenuImageFile] = useState<File | null>(null)
-  const [doctrineEditContenuImagePreview, setDoctrineEditContenuImagePreview] = useState<string | null>(null)
   const [deleteDoctrineConfirmId, setDeleteDoctrineConfirmId] = useState<number | null>(null)
   
   // États pour la gestion du quiz
@@ -558,7 +567,6 @@ const AdminConsolePage: React.FC = () => {
       setDoctrineSearch('')
       setDoctrineThemeFilter('')
       setDeleteDoctrineConfirmId(null)
-      setIsEditDoctrineModalOpen(false)
       setEditingDoctrine(null)
     } else if (selectedAction === 'ajouter-question') {
       setQuestionForm({
@@ -590,26 +598,31 @@ const AdminConsolePage: React.FC = () => {
         langue: '',
       })
     } else if (selectedAction === 'ajouter-article-doctrine') {
-      setDoctrineForm({
-        titre: '',
-        date: '',
-        abstract: '',
-        intro: '',
-        titre1: '',
-        'sous-titre1': '',
-        contenu1: '',
-        'sous-titre2': '',
-        contenu2: '',
-        titre2: '',
-        'sous-titre3': '',
-        contenu3: '',
-        'sous-titre4': '',
-        contenu4: '',
-        conclusion: '',
-        references: '',
-        auteur: '',
-        theme: '',
-      })
+      if (!editingDoctrine) {
+        setDoctrineForm({
+          titre: '',
+          date: '',
+          abstract: '',
+          intro: '',
+          titre1: '',
+          'sous-titre1': '',
+          contenu1: '',
+          'sous-titre2': '',
+          contenu2: '',
+          titre2: '',
+          'sous-titre3': '',
+          contenu3: '',
+          'sous-titre4': '',
+          contenu4: '',
+          conclusion: '',
+          references: '',
+          auteur: '',
+          theme: '',
+          image_url: '',
+          image_contenu_url: '',
+        })
+        setDoctrinePublished(true)
+      }
     } else if (selectedAction === 'ajouter-fiche-pratique') {
       if (!editingFichePratique) {
         // Nouvelle fiche, réinitialiser
@@ -2552,169 +2565,44 @@ const AdminConsolePage: React.FC = () => {
     }
   }
 
-  // Ouvrir le modal de modification d'un article de doctrine
+  // Passer en mode édition : remplir le formulaire et afficher la vue « Ajouter un article » (comme pour les fiches pratiques)
   const handleEditDoctrine = (doctrine: DoctrineArticle) => {
     setEditingDoctrine(doctrine)
-    setDoctrineEditForm({
+    setDoctrinePublished(doctrine.published !== false)
+    // Normaliser la date au format YYYY-MM-DD pour l'input type="date" (conserver la date de création à l'édition)
+    const rawDate = doctrine.date
+    const dateForInput = rawDate
+      ? (typeof rawDate === 'string' && rawDate.length >= 10
+          ? rawDate.slice(0, 10)
+          : new Date(rawDate).toISOString().slice(0, 10))
+      : ''
+    setDoctrineForm({
       titre: doctrine.titre,
-      date: doctrine.date,
-      abstract: doctrine.abstract,
-      intro: doctrine.intro,
-      titre1: doctrine.titre1,
-      'sous-titre1': doctrine['sous-titre1'],
-      contenu1: doctrine.contenu1,
-      'sous-titre2': doctrine['sous-titre2'],
-      contenu2: doctrine.contenu2,
-      titre2: doctrine.titre2,
-      'sous-titre3': doctrine['sous-titre3'],
-      contenu3: doctrine.contenu3,
-      'sous-titre4': doctrine['sous-titre4'],
-      contenu4: doctrine.contenu4,
-      conclusion: doctrine.conclusion,
-      references: doctrine.references,
+      date: dateForInput,
+      abstract: doctrine.abstract ?? '',
+      intro: doctrine.intro ?? '',
+      titre1: doctrine.titre1 ?? '',
+      'sous-titre1': doctrine['sous-titre1'] ?? '',
+      contenu1: doctrine.contenu1 ?? '',
+      'sous-titre2': doctrine['sous-titre2'] ?? '',
+      contenu2: doctrine.contenu2 ?? '',
+      titre2: doctrine.titre2 ?? '',
+      'sous-titre3': doctrine['sous-titre3'] ?? '',
+      contenu3: doctrine.contenu3 ?? '',
+      'sous-titre4': doctrine['sous-titre4'] ?? '',
+      contenu4: doctrine.contenu4 ?? '',
+      conclusion: doctrine.conclusion ?? '',
+      references: doctrine.references ?? '',
       auteur: doctrine.auteur,
-      theme: doctrine.theme,
-      image_url: doctrine.image_url || '',
-      image_contenu_url: doctrine.image_contenu_url || '',
+      theme: doctrine.theme ?? '',
+      image_url: doctrine.image_url ?? '',
+      image_contenu_url: doctrine.image_contenu_url ?? '',
     })
-    setDoctrineEditImageFile(null)
-    setDoctrineEditImagePreview(doctrine.image_url || null)
-    setDoctrineEditContenuImageFile(null)
-    setDoctrineEditContenuImagePreview(doctrine.image_contenu_url || null)
-    setIsEditDoctrineModalOpen(true)
-  }
-
-  // Sauvegarder les modifications d'un article de doctrine
-  const handleSaveDoctrineEdit = async () => {
-    if (!editingDoctrine) return
-    
-    setIsSubmitting(true)
-    setFormStatus({ type: null, message: '' })
-
-    try {
-      let imageUrl = doctrineEditForm.image_url
-      let imageContenuUrl = doctrineEditForm.image_contenu_url
-
-      // Upload de la nouvelle image de couverture si un fichier a été sélectionné
-      if (doctrineEditImageFile) {
-        setUploadingDoctrineImage(true)
-        try {
-          const fileName = `doctrine-${Date.now()}-${doctrineEditImageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
-          const uploadUrl = `${supabaseUrl}/storage/v1/object/doctrine-images/${fileName}`
-          
-          const headers = await getAuthHeaders()
-          const uploadResponse = await fetch(uploadUrl, {
-            method: 'POST',
-            headers: {
-              ...headers,
-              'Content-Type': doctrineEditImageFile.type || 'image/jpeg',
-              'x-upsert': 'false',
-              'cache-control': '3600'
-            },
-            body: doctrineEditImageFile
-          })
-
-          if (!uploadResponse.ok) {
-            const errorText = await uploadResponse.text()
-            throw new Error(`Erreur lors de l'upload de l'image: ${errorText}`)
-          }
-
-          imageUrl = `${supabaseUrl}/storage/v1/object/public/doctrine-images/${fileName}`
-        } catch (uploadError) {
-          setUploadingDoctrineImage(false)
-          throw new Error(uploadError instanceof Error ? uploadError.message : 'Erreur lors de l\'upload de l\'image')
-        } finally {
-          setUploadingDoctrineImage(false)
-        }
-      }
-
-      // Upload de la nouvelle image de contenu si un fichier a été sélectionné
-      if (doctrineEditContenuImageFile) {
-        setUploadingDoctrineContenuImage(true)
-        try {
-          const fileName = `doctrine-contenu-${Date.now()}-${doctrineEditContenuImageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
-          const uploadUrl = `${supabaseUrl}/storage/v1/object/doctrine-images/${fileName}`
-          
-          const headers = await getAuthHeaders()
-          const uploadResponse = await fetch(uploadUrl, {
-            method: 'POST',
-            headers: {
-              ...headers,
-              'Content-Type': doctrineEditContenuImageFile.type || 'image/jpeg',
-              'x-upsert': 'false',
-              'cache-control': '3600'
-            },
-            body: doctrineEditContenuImageFile
-          })
-
-          if (!uploadResponse.ok) {
-            const errorText = await uploadResponse.text()
-            throw new Error(`Erreur lors de l'upload de l'image de contenu: ${errorText}`)
-          }
-
-          imageContenuUrl = `${supabaseUrl}/storage/v1/object/public/doctrine-images/${fileName}`
-        } catch (uploadError) {
-          setUploadingDoctrineContenuImage(false)
-          throw new Error(uploadError instanceof Error ? uploadError.message : 'Erreur lors de l\'upload de l\'image de contenu')
-        } finally {
-          setUploadingDoctrineContenuImage(false)
-        }
-      }
-
-      const headers = await getAuthHeaders()
-      const response = await fetch(`${supabaseUrl}/rest/v1/doctrine?id=eq.${editingDoctrine.id}`, {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({
-          titre: doctrineEditForm.titre.trim(),
-          date: doctrineEditForm.date,
-          abstract: doctrineEditForm.abstract.trim(),
-          intro: doctrineEditForm.intro.trim(),
-          titre1: doctrineEditForm.titre1.trim(),
-          'sous-titre1': doctrineEditForm['sous-titre1'].trim(),
-          contenu1: doctrineEditForm.contenu1.trim(),
-          'sous-titre2': doctrineEditForm['sous-titre2'].trim(),
-          contenu2: doctrineEditForm.contenu2.trim(),
-          titre2: doctrineEditForm.titre2.trim(),
-          'sous-titre3': doctrineEditForm['sous-titre3'].trim(),
-          contenu3: doctrineEditForm.contenu3.trim(),
-          'sous-titre4': doctrineEditForm['sous-titre4'].trim(),
-          contenu4: doctrineEditForm.contenu4.trim(),
-          conclusion: doctrineEditForm.conclusion.trim(),
-          references: doctrineEditForm.references.trim(),
-          auteur: doctrineEditForm.auteur.trim(),
-          theme: doctrineEditForm.theme.trim(),
-          image_url: imageUrl || null,
-          image_contenu_url: imageContenuUrl || null,
-        }),
-      })
-
-      if (!response.ok) {
-        const text = await response.text()
-        throw new Error(text || `Erreur Supabase (${response.status})`)
-      }
-
-      // Recharger la liste
-      const { data, error: reloadError } = await supabasePublic
-        .from('doctrine')
-        .select('*')
-        .order('date', { ascending: false })
-
-      if (!reloadError && data) {
-        setDoctrineList(data)
-      }
-
-      setFormStatus({ type: 'success', message: 'Article de doctrine modifié avec succès.' })
-      setIsEditDoctrineModalOpen(false)
-      setEditingDoctrine(null)
-    } catch (err) {
-      setFormStatus({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Une erreur est survenue.',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
+    setDoctrineImageFile(null)
+    setDoctrineImagePreview(doctrine.image_url || null)
+    setDoctrineContenuImageFile(null)
+    setDoctrineContenuImagePreview(doctrine.image_contenu_url || null)
+    setSelectedAction('ajouter-article-doctrine')
   }
 
   // Supprimer un article de doctrine
@@ -3838,9 +3726,21 @@ const AdminConsolePage: React.FC = () => {
                         >
                           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                             <div className="flex-1">
-                              <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                                {doctrine.titre}
-                              </h3>
+                              <div className="flex items-center gap-2 mb-3">
+                                <h3 className="text-lg font-semibold text-gray-800">
+                                  {doctrine.titre}
+                                </h3>
+                                {doctrine.published === false && (
+                                  <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full font-medium">
+                                    Brouillon
+                                  </span>
+                                )}
+                                {doctrine.published === true && (
+                                  <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full font-medium">
+                                    Publié
+                                  </span>
+                                )}
+                              </div>
                               <div className="space-y-2 text-sm text-gray-600">
                                 {doctrine.auteur && (
                                   <p>
@@ -4218,10 +4118,42 @@ const AdminConsolePage: React.FC = () => {
 
               {selectedAction === 'ajouter-article-doctrine' && (
                 <div>
-                  <h2 className="text-2xl font-semibold text-gray-800 mb-6">Ajouter un article de doctrine</h2>
-                  <p className="text-gray-600 mb-6">
-                    Les champs ci-dessous correspondent à la table <code>doctrine</code> de Supabase. L&apos;ID est généré automatiquement.
-                  </p>
+                  <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-800">
+                        {editingDoctrine ? 'Modifier l\'article de doctrine' : 'Ajouter un article de doctrine'}
+                      </h2>
+                      <p className="text-gray-600 mt-2">
+                        {editingDoctrine
+                          ? 'Modifiez les champs ci-dessous puis enregistrez.'
+                          : 'Les champs ci-dessous correspondent à la table doctrine de Supabase. L\'ID est généré automatiquement.'}
+                      </p>
+                    </div>
+                    {/* Toggle publié / brouillon */}
+                    <div className="flex items-center gap-3">
+                      <span className={`text-sm font-medium transition-colors ${!doctrinePublished ? 'text-gray-700' : 'text-gray-400'}`}>
+                        Non publié
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setDoctrinePublished(!doctrinePublished)}
+                        className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#774792] focus:ring-offset-2 ${
+                          doctrinePublished ? 'bg-[#774792]' : 'bg-gray-300'
+                        }`}
+                        role="switch"
+                        aria-checked={doctrinePublished}
+                      >
+                        <span
+                          className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                            doctrinePublished ? 'translate-x-9' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                      <span className={`text-sm font-medium transition-colors ${doctrinePublished ? 'text-[#774792]' : 'text-gray-400'}`}>
+                        Publié
+                      </span>
+                    </div>
+                  </div>
 
                   {formStatus.type && (
                     <div
@@ -4315,31 +4247,37 @@ const AdminConsolePage: React.FC = () => {
                         }
 
                         const headers = await getAuthHeaders()
-                        const response = await fetch(`${supabaseUrl}/rest/v1/doctrine`, {
-                          method: 'POST',
+                        const payload = {
+                          titre: doctrineForm.titre.trim(),
+                          date: doctrineForm.date,
+                          abstract: doctrineForm.abstract.trim(),
+                          intro: doctrineForm.intro.trim(),
+                          titre1: doctrineForm.titre1.trim(),
+                          'sous-titre1': doctrineForm['sous-titre1'].trim(),
+                          contenu1: doctrineForm.contenu1.trim(),
+                          'sous-titre2': doctrineForm['sous-titre2'].trim(),
+                          contenu2: doctrineForm.contenu2.trim(),
+                          titre2: doctrineForm.titre2.trim(),
+                          'sous-titre3': doctrineForm['sous-titre3'].trim(),
+                          contenu3: doctrineForm.contenu3.trim(),
+                          'sous-titre4': doctrineForm['sous-titre4'].trim(),
+                          contenu4: doctrineForm.contenu4.trim(),
+                          conclusion: doctrineForm.conclusion.trim(),
+                          references: doctrineForm.references.trim(),
+                          auteur: doctrineForm.auteur.trim(),
+                          theme: doctrineForm.theme.trim(),
+                          image_url: imageUrl || null,
+                          image_contenu_url: imageContenuUrl || null,
+                          published: doctrinePublished,
+                        }
+                        const isEdit = editingDoctrine !== null
+                        const url = isEdit
+                          ? `${supabaseUrl}/rest/v1/doctrine?id=eq.${editingDoctrine!.id}`
+                          : `${supabaseUrl}/rest/v1/doctrine`
+                        const response = await fetch(url, {
+                          method: isEdit ? 'PATCH' : 'POST',
                           headers,
-                          body: JSON.stringify({
-                            titre: doctrineForm.titre.trim(),
-                            date: doctrineForm.date,
-                            abstract: doctrineForm.abstract.trim(),
-                            intro: doctrineForm.intro.trim(),
-                            titre1: doctrineForm.titre1.trim(),
-                            'sous-titre1': doctrineForm['sous-titre1'].trim(),
-                            contenu1: doctrineForm.contenu1.trim(),
-                            'sous-titre2': doctrineForm['sous-titre2'].trim(),
-                            contenu2: doctrineForm.contenu2.trim(),
-                            titre2: doctrineForm.titre2.trim(),
-                            'sous-titre3': doctrineForm['sous-titre3'].trim(),
-                            contenu3: doctrineForm.contenu3.trim(),
-                            'sous-titre4': doctrineForm['sous-titre4'].trim(),
-                            contenu4: doctrineForm.contenu4.trim(),
-                            conclusion: doctrineForm.conclusion.trim(),
-                            references: doctrineForm.references.trim(),
-                            auteur: doctrineForm.auteur.trim(),
-                            theme: doctrineForm.theme.trim(),
-                            image_url: imageUrl || null,
-                            image_contenu_url: imageContenuUrl || null,
-                          }),
+                          body: JSON.stringify(payload),
                         })
 
                         if (!response.ok) {
@@ -4379,33 +4317,45 @@ const AdminConsolePage: React.FC = () => {
                           throw new Error(errorMessage)
                         }
 
-                        setFormStatus({ type: 'success', message: 'Article de doctrine ajouté avec succès.' })
-                        setDoctrineForm({
-                          titre: '',
-                          date: '',
-                          abstract: '',
-                          intro: '',
-                          titre1: '',
-                          'sous-titre1': '',
-                          contenu1: '',
-                          'sous-titre2': '',
-                          contenu2: '',
-                          titre2: '',
-                          'sous-titre3': '',
-                          contenu3: '',
-                          'sous-titre4': '',
-                          contenu4: '',
-                          conclusion: '',
-                          references: '',
-                          auteur: '',
-                          theme: '',
-                          image_url: '',
-                          image_contenu_url: '',
-                        })
-                        setDoctrineImageFile(null)
-                        setDoctrineImagePreview(null)
-                        setDoctrineContenuImageFile(null)
-                        setDoctrineContenuImagePreview(null)
+                        if (isEdit) {
+                          setFormStatus({ type: 'success', message: doctrinePublished ? 'Article modifié et publié.' : 'Brouillon modifié.' })
+                          setEditingDoctrine(null)
+                          setSelectedAction('consulter-doctrine')
+                          const { data: reloadData, error: reloadError } = await supabasePublic
+                            .from('doctrine')
+                            .select('*')
+                            .order('date', { ascending: false })
+                          if (!reloadError && reloadData) setDoctrineList(reloadData)
+                        } else {
+                          setFormStatus({ type: 'success', message: doctrinePublished ? 'Article de doctrine publié avec succès.' : 'Brouillon enregistré avec succès.' })
+                          setDoctrinePublished(true)
+                          setDoctrineForm({
+                            titre: '',
+                            date: '',
+                            abstract: '',
+                            intro: '',
+                            titre1: '',
+                            'sous-titre1': '',
+                            contenu1: '',
+                            'sous-titre2': '',
+                            contenu2: '',
+                            titre2: '',
+                            'sous-titre3': '',
+                            contenu3: '',
+                            'sous-titre4': '',
+                            contenu4: '',
+                            conclusion: '',
+                            references: '',
+                            auteur: '',
+                            theme: '',
+                            image_url: '',
+                            image_contenu_url: '',
+                          })
+                          setDoctrineImageFile(null)
+                          setDoctrineImagePreview(null)
+                          setDoctrineContenuImageFile(null)
+                          setDoctrineContenuImagePreview(null)
+                        }
                       } catch (err) {
                         setFormStatus({
                           type: 'error',
@@ -4787,41 +4737,57 @@ const AdminConsolePage: React.FC = () => {
                     </div>
 
                     <div className="flex justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDoctrineForm({
-                            titre: '',
-                            date: '',
-                            abstract: '',
-                            intro: '',
-                            titre1: '',
-                            'sous-titre1': '',
-                            contenu1: '',
-                            'sous-titre2': '',
-                            contenu2: '',
-                            titre2: '',
-                            'sous-titre3': '',
-                            contenu3: '',
-                            'sous-titre4': '',
-                            contenu4: '',
-                            conclusion: '',
-                            references: '',
-                            auteur: '',
-                            theme: '',
-                          })
-                        }
-                        className="px-5 py-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                        disabled={isSubmitting}
-                      >
-                        Réinitialiser
-                      </button>
+                      {editingDoctrine ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingDoctrine(null)
+                            setSelectedAction('consulter-doctrine')
+                          }}
+                          className="px-5 py-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                          disabled={isSubmitting}
+                        >
+                          Retour à la liste
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setDoctrineForm({
+                              titre: '',
+                              date: '',
+                              abstract: '',
+                              intro: '',
+                              titre1: '',
+                              'sous-titre1': '',
+                              contenu1: '',
+                              'sous-titre2': '',
+                              contenu2: '',
+                              titre2: '',
+                              'sous-titre3': '',
+                              contenu3: '',
+                              'sous-titre4': '',
+                              contenu4: '',
+                              conclusion: '',
+                              references: '',
+                              auteur: '',
+                              theme: '',
+                              image_url: '',
+                              image_contenu_url: '',
+                            })
+                          }
+                          className="px-5 py-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                          disabled={isSubmitting}
+                        >
+                          Réinitialiser
+                        </button>
+                      )}
                       <button
                         type="submit"
                         disabled={isSubmitting}
                         className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-[#774792] text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                       >
-                        {isSubmitting ? 'Ajout en cours...' : 'Ajouter l’article de doctrine'}
+                        {isSubmitting ? (editingDoctrine ? 'Enregistrement...' : 'Ajout en cours...') : editingDoctrine ? 'Enregistrer les modifications' : "Ajouter l'article de doctrine"}
                       </button>
                     </div>
                   </form>
@@ -6036,7 +6002,10 @@ const AdminConsolePage: React.FC = () => {
               )}
 
               {!selectedAction && (
-                <AdminDashboard onActionSelect={(action) => setSelectedAction(action as AdminAction)} />
+                <AdminDashboard onActionSelect={(action) => {
+                setSelectedAction(action as AdminAction)
+                if (action === 'ajouter-article-doctrine') setEditingDoctrine(null)
+              }} />
               )}
 
               {selectedAction === 'ajouter-question' && (
@@ -6704,7 +6673,7 @@ const AdminConsolePage: React.FC = () => {
                                             titre: data.titre ?? '',
                                             resume: data.resume ?? '',
                                             recitals: data.recitals ?? '',
-                                            fiches: data.fiches ?? '',
+                                            fiches: parseFichesString(data.fiches ?? ''),
                                             doc_associee: (data as any).doc_associee ?? '',
                                           })
                                         } catch (err) {
@@ -6758,7 +6727,7 @@ const AdminConsolePage: React.FC = () => {
                                 body: JSON.stringify({
                                   resume: enrichForm.resume.trim(),
                                   recitals: enrichForm.recitals.trim(),
-                                  fiches: enrichForm.fiches.trim(),
+                                  fiches: serializeFiches(enrichForm.fiches),
                                   doc_associee: enrichForm.doc_associee.trim() || null,
                                 }),
                               }
@@ -6831,15 +6800,14 @@ const AdminConsolePage: React.FC = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               Fiches pratiques associées (champ <code>fiches</code>)
                             </label>
-                            <textarea
-                              value={enrichForm.fiches}
-                              onChange={(e) => setEnrichForm({ ...enrichForm, fiches: e.target.value })}
-                              className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors min-h-[80px]"
-                              placeholder='Ex : "/fiches-pratiques/exactitude", "/fiches-pratiques/controle-humain"…'
-                            />
+                            <div className="rounded-xl bg-gray-50 border border-gray-200 p-4">
+                              <FichesEditor
+                                fiches={enrichForm.fiches}
+                                onChange={(fiches) => setEnrichForm({ ...enrichForm, fiches })}
+                              />
+                            </div>
                             <p className="mt-1 text-xs text-gray-500">
-                              Vous pouvez saisir des chemins internes (ex. <code>/fiches-pratiques/exactitude</code>) ou des
-                              URLs complètes, séparées par des virgules.
+                              Ajoutez une ou plusieurs fiches avec un titre et un lien (chemin interne ou URL).
                             </p>
                           </div>
 
@@ -6869,7 +6837,7 @@ const AdminConsolePage: React.FC = () => {
                                 titre: enrichForm.titre,
                                 resume: '',
                                 recitals: '',
-                                fiches: '',
+                                fiches: [],
                                 doc_associee: '',
                               })
                               setFormStatus({ type: null, message: '' })
@@ -7225,427 +7193,6 @@ const AdminConsolePage: React.FC = () => {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de modification d'un article de doctrine */}
-      {isEditDoctrineModalOpen && editingDoctrine && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto overflow-x-hidden p-4" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
-          <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto my-auto">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-gray-800">Modifier l'article de doctrine</h3>
-                <button
-                  onClick={() => {
-                    setIsEditDoctrineModalOpen(false)
-                    setEditingDoctrine(null)
-                    setFormStatus({ type: null, message: '' })
-                  }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <form
-              className="p-6 space-y-6"
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleSaveDoctrineEdit()
-              }}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Titre*
-                  </label>
-                  <input
-                    type="text"
-                    value={doctrineEditForm.titre}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, titre: e.target.value })}
-                    required
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date*
-                  </label>
-                  <input
-                    type="date"
-                    value={doctrineEditForm.date}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, date: e.target.value })}
-                    required
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Auteur*
-                  </label>
-                  <input
-                    type="text"
-                    value={doctrineEditForm.auteur}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, auteur: e.target.value })}
-                    required
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Thème
-                  </label>
-                  <input
-                    type="text"
-                    value={doctrineEditForm.theme}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, theme: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                  />
-                </div>
-                </div>
-
-              {/* Champ d'upload d'image pour l'édition */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image de l'article
-                </label>
-                <div className="space-y-4">
-                  {doctrineEditImagePreview && (
-                    <div className="relative w-full max-w-md">
-                      <img
-                        src={doctrineEditImagePreview}
-                        alt="Aperçu"
-                        className="w-full h-48 object-cover rounded-xl border border-gray-200"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDoctrineEditImageFile(null)
-                          setDoctrineEditImagePreview(null)
-                          setDoctrineEditForm({ ...doctrineEditForm, image_url: '' })
-                        }}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
-                        title="Supprimer l'image"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-4">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                        <p className="mb-2 text-sm text-gray-500">
-                          <span className="font-semibold">Cliquez pour uploader</span> ou glissez-déposez
-                        </p>
-                        <p className="text-xs text-gray-500">PNG, JPG, WEBP (MAX. 5MB)</p>
-                      </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            if (file.size > 5 * 1024 * 1024) {
-                              setFormStatus({
-                                type: 'error',
-                                message: 'L\'image est trop volumineuse. Taille maximale : 5MB'
-                              })
-                              return
-                            }
-                            setDoctrineEditImageFile(file)
-                            const reader = new FileReader()
-                            reader.onloadend = () => {
-                              setDoctrineEditImagePreview(reader.result as string)
-                            }
-                            reader.readAsDataURL(file)
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                  {uploadingDoctrineImage && (
-                    <div className="text-sm text-gray-600 flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-purple-500"></div>
-                      Upload de l'image en cours...
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Champ d'upload d'image de contenu pour l'édition */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image dans le contenu (schéma explicatif - optionnel)
-                </label>
-                <p className="text-xs text-gray-500 mb-3">Cette image apparaîtra dans le contenu de l'article, après l'introduction</p>
-                <div className="space-y-4">
-                  {doctrineEditContenuImagePreview && (
-                    <div className="relative w-full max-w-md">
-                      <img
-                        src={doctrineEditContenuImagePreview}
-                        alt="Aperçu image contenu"
-                        className="w-full h-48 object-cover rounded-xl border border-gray-200"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDoctrineEditContenuImageFile(null)
-                          setDoctrineEditContenuImagePreview(null)
-                          setDoctrineEditForm({ ...doctrineEditForm, image_contenu_url: '' })
-                        }}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
-                        title="Supprimer l'image"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-4">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <svg className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                        <p className="mb-2 text-sm text-gray-500">
-                          <span className="font-semibold">Cliquez pour uploader</span> ou glissez-déposez
-                        </p>
-                        <p className="text-xs text-gray-500">PNG, JPG, WEBP (MAX. 5MB)</p>
-                      </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            if (file.size > 5 * 1024 * 1024) {
-                              setFormStatus({
-                                type: 'error',
-                                message: 'L\'image est trop volumineuse. Taille maximale : 5MB'
-                              })
-                              return
-                            }
-                            setDoctrineEditContenuImageFile(file)
-                            const reader = new FileReader()
-                            reader.onloadend = () => {
-                              setDoctrineEditContenuImagePreview(reader.result as string)
-                            }
-                            reader.readAsDataURL(file)
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                  {uploadingDoctrineContenuImage && (
-                    <div className="text-sm text-gray-600 flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-purple-500"></div>
-                      Upload de l'image de contenu en cours...
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Résumé (abstract)*
-                  </label>
-                  <textarea
-                    value={doctrineEditForm.abstract}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, abstract: e.target.value })}
-                    required
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors min-h-[120px]"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Introduction*
-                  </label>
-                  <textarea
-                    value={doctrineEditForm.intro}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, intro: e.target.value })}
-                    required
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors min-h-[120px]"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Titre de la première partie (titre1)
-                  </label>
-                  <input
-                    type="text"
-                    value={doctrineEditForm.titre1}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, titre1: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sous-titre 1.1
-                  </label>
-                  <input
-                    type="text"
-                    value={doctrineEditForm['sous-titre1']}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, 'sous-titre1': e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contenu 1.1
-                  </label>
-                  <textarea
-                    value={doctrineEditForm.contenu1}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, contenu1: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors min-h-[120px]"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sous-titre 1.2
-                  </label>
-                  <input
-                    type="text"
-                    value={doctrineEditForm['sous-titre2']}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, 'sous-titre2': e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contenu 1.2
-                  </label>
-                  <textarea
-                    value={doctrineEditForm.contenu2}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, contenu2: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors min-h-[120px]"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Titre de la deuxième partie (titre2)
-                  </label>
-                  <input
-                    type="text"
-                    value={doctrineEditForm.titre2}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, titre2: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sous-titre 2.1
-                  </label>
-                  <input
-                    type="text"
-                    value={doctrineEditForm['sous-titre3']}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, 'sous-titre3': e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contenu 2.1
-                  </label>
-                  <textarea
-                    value={doctrineEditForm.contenu3}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, contenu3: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors min-h-[120px]"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sous-titre 2.2
-                  </label>
-                  <input
-                    type="text"
-                    value={doctrineEditForm['sous-titre4']}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, 'sous-titre4': e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contenu 2.2
-                  </label>
-                  <textarea
-                    value={doctrineEditForm.contenu4}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, contenu4: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors min-h-[120px]"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Conclusion
-                  </label>
-                  <textarea
-                    value={doctrineEditForm.conclusion}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, conclusion: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors min-h-[120px]"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Références
-                  </label>
-                  <textarea
-                    value={doctrineEditForm.references}
-                    onChange={(e) => setDoctrineEditForm({ ...doctrineEditForm, references: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 focus:border-[#774792] focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors min-h-[120px]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditDoctrineModalOpen(false)
-                    setEditingDoctrine(null)
-                    setFormStatus({ type: null, message: '' })
-                  }}
-                  className="px-5 py-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                  disabled={isSubmitting}
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-[#774792] text-white font-medium shadow-md hover:shadow-lg transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

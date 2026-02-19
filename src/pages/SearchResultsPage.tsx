@@ -187,11 +187,12 @@ export const SearchResultsPage = () => {
         searchResults.documentation = documentation || [];
       }
 
-      // Recherche dans la doctrine
+      // Recherche dans la doctrine (articles publiés uniquement)
       if (searchFilters.doctrine) {
         const { data: doctrine } = await supabasePublic
           .from('doctrine')
           .select('id, titre, abstract, auteur')
+          .eq('published', true)
           .or(`titre.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,auteur.ilike.%${searchQuery}%`);
         searchResults.doctrine = doctrine || [];
       }

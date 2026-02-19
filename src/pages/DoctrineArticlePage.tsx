@@ -39,6 +39,7 @@ const DoctrineArticlePage: React.FC = () => {
           .from('doctrine')
           .select('*')
           .eq('id', id)
+          .eq('published', true)
           .single();
 
         if (error) throw error;

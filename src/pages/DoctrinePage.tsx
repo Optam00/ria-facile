@@ -34,6 +34,7 @@ const DoctrinePage: React.FC = () => {
         const { data, error } = await supabasePublic
           .from('doctrine')
           .select('id, titre, abstract, date, theme, auteur, image_url')
+          .eq('published', true)
           .order('date', { ascending: false });
 
         if (error) throw error;
