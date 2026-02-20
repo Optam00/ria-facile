@@ -1,122 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { supabasePublic } from '../lib/supabasePublic';
+import { performSearch, defaultSearchFilters, highlight, getExcerpt, type SearchFilters } from '../lib/searchRIA';
 import { AdvancedSearch } from '../components/AdvancedSearch';
 import { CollapsibleSection } from '../components/CollapsibleSection';
-
-interface SearchFilters {
-  reglement: boolean;
-  documentation: boolean;
-  doctrine: boolean;
-  actualites: boolean;
-  considerants?: boolean;
-  annexes?: boolean;
-  fichesPratiques: boolean;
-}
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
-
-function highlight(text: string, keyword: string) {
-  if (!keyword) return text;
-  const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-  return text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
-}
-
-// Fonction utilitaire pour extraire un extrait centré sur le mot-clé
-function removeDiacritics(str: string) {
-  return str.normalize('NFD').replace(/\p{Diacritic}/gu, '');
-}
-
-function getExcerpt(text: string, keyword: string, contextLength = 40) {
-  if (!keyword) return text.slice(0, 200) + (text.length > 200 ? '…' : '');
-  // Recherche insensible à la casse et aux accents
-  const normalizedText = removeDiacritics(text.toLowerCase());
-  const normalizedKeyword = removeDiacritics(keyword.toLowerCase());
-  const index = normalizedText.indexOf(normalizedKeyword);
-  if (index === -1) return text.slice(0, 200) + (text.length > 200 ? '…' : '');
-  // Trouver l'index réel dans le texte original (pour ne pas couper un mot au milieu d'un accent)
-  let realIndex = index;
-  // On tente de retrouver la position réelle du mot-clé dans le texte original
-  // (si le mot-clé contient des accents, la position peut différer)
-  for (let i = 0, j = 0; i < text.length && j < index; i++) {
-    if (removeDiacritics(text[i].toLowerCase()) === normalizedText[j]) {
-      j++;
-    }
-    realIndex = i;
-  }
-  const start = Math.max(0, realIndex - contextLength);
-  const end = Math.min(text.length, realIndex + keyword.length + contextLength);
-  let excerpt = text.slice(start, end);
-  if (start > 0) excerpt = '…' + excerpt;
-  if (end < text.length) excerpt = excerpt + '…';
-  return excerpt;
-}
-
-// Définition des fiches pratiques pour la recherche locale
-const FICHES_PRATIQUES = [
-  {
-    id: 'exactitude',
-    titre: "Gérer l'exactitude (Accuracy) dans les systèmes IA",
-    description: "Guide pratique pour la mise en conformité opérationnelle du principe d'exactitude. Croisement RGPD et AI Act.",
-    articlesRIA: ['10', '15']
-  },
-  {
-    id: 'explicabilite',
-    titre: "Explicabilité & Interprétabilité dans les systèmes IA",
-    description: "Guide pratique pour la mise en conformité opérationnelle de l'explicabilité et l'interprétabilité. Croisement RGPD et AI Act.",
-    articlesRIA: ['13', '14', '86']
-  },
-  {
-    id: 'droits-rgpd',
-    titre: "Gestion des droits RGPD dans les systèmes d'IA",
-    description: "Guide pratique pour organiser l'exercice des droits RGPD (accès, rectification, effacement, opposition) dans les systèmes d'IA, en articulation avec le Règlement IA.",
-    articlesRIA: ['10', '13', '86']
-  },
-  {
-    id: 'rms',
-    titre: "Le système de gestion des risques (RMS)",
-    description: "Guide pratique pour la mise en place et la gestion du système de gestion des risques (RMS) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
-    articlesRIA: ['9', '16', '26', '27']
-  },
-  {
-    id: 'fria',
-    titre: "Analyse d'impact sur les droits fondamentaux (FRIA)",
-    description: "Guide pratique pour réaliser une analyse d'impact sur les droits fondamentaux (FRIA) pour les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
-    articlesRIA: ['13', '26', '27']
-  },
-  {
-    id: 'transparence',
-    titre: "Transparence et information des utilisateurs",
-    description: "Guide pratique pour la transparence et l'information des utilisateurs dans les systèmes d'IA. Croisement RGPD et AI Act.",
-    articlesRIA: ['13', '26', '50', '53']
-  },
-  {
-    id: 'controle-humain',
-    titre: "Le contrôle humain",
-    description: "Guide pratique pour la mise en place du contrôle humain dans les systèmes d'IA à haut risque. Croisement RGPD et AI Act.",
-    articlesRIA: ['14', '26']
-  },
-  {
-    id: 'secteur-bancaire',
-    titre: "L'AI Act dans le secteur bancaire & financier",
-    description: "Guide pratique pour l'application de l'AI Act dans le secteur bancaire et financier (scoring crédit, assurance, biais, FRIA et intégration dans le cadre prudentiel).",
-    articlesRIA: ['6', '17', '27']
-  },
-  {
-    id: 'exception-haut-risque',
-    titre: "L'exception de qualification \"Haut Risque\" (Article 6.3)",
-    description: "Guide pratique sur l'exception de qualification Haut Risque (Art. 6.3 AI Act) : conditions, documentation, enregistrement et articulation avec le RGPD.",
-    articlesRIA: ['6', '51']
-  },
-  {
-    id: 'maitrise-ia',
-    titre: "La maîtrise de l'IA (Article 4)",
-    description: "Guide pratique sur l'obligation de maîtrise de l'IA (Art. 4 AI Act) : formation du personnel, approche contextuelle et plan d'actions pour la conformité.",
-    articlesRIA: ['4']
-  }
-]
 
 export const SearchResultsPage = () => {
   const query = useQuery();
@@ -124,139 +15,33 @@ export const SearchResultsPage = () => {
   const initialKeyword = query.get('q')?.trim() || '';
   const [keyword, setKeyword] = useState(initialKeyword);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState<SearchFilters>({
-    reglement: true,
-    documentation: true,
-    doctrine: true,
-    actualites: true,
-    considerants: true,
-    annexes: true,
-    fichesPratiques: true,
-  });
-  const [results, setResults] = useState({
-    reglement: [] as any[],
-    documentation: [] as any[],
-    doctrine: [] as any[],
-    actualites: [] as any[],
-    considerants: [] as any[],
-    annexes: [] as any[],
-    fichesPratiques: [] as any[],
+  const [filters, setFilters] = useState<SearchFilters>(defaultSearchFilters);
+  const [results, setResults] = useState<Awaited<ReturnType<typeof performSearch>>>({
+    reglement: [],
+    documentation: [],
+    doctrine: [],
+    actualites: [],
+    considerants: [],
+    annexes: [],
+    fichesPratiques: [],
   });
 
   useEffect(() => {
-    if (initialKeyword) {
-      performSearch(initialKeyword, filters);
-    }
+    if (!initialKeyword) return;
+    setKeyword(initialKeyword);
+    setLoading(true);
+    performSearch(supabasePublic, initialKeyword, filters)
+      .then(setResults)
+      .finally(() => setLoading(false));
   }, [initialKeyword]);
 
-  const performSearch = async (searchQuery: string, searchFilters: SearchFilters) => {
+  const runSearch = async (searchQuery: string, searchFilters: SearchFilters) => {
     if (!searchQuery.trim()) return;
-    
     setLoading(true);
     setKeyword(searchQuery);
-    
-    // Mettre à jour l'URL
     navigate(`/recherche?q=${encodeURIComponent(searchQuery.trim())}`, { replace: true });
-
-    const searchResults = {
-      reglement: [] as any[],
-      documentation: [] as any[],
-      doctrine: [] as any[],
-      actualites: [] as any[],
-      considerants: [] as any[],
-      annexes: [] as any[],
-      fichesPratiques: [] as any[],
-    };
-
     try {
-      // Recherche dans le règlement IA (articles)
-      if (searchFilters.reglement) {
-        const { data: reglement } = await supabasePublic
-          .from('article')
-          .select('id_article, titre, numero, contenu')
-          .or(`titre.ilike.%${searchQuery}%,contenu.ilike.%${searchQuery}%`);
-        searchResults.reglement = reglement || [];
-      }
-
-      // Recherche dans la documentation
-      if (searchFilters.documentation) {
-        const { data: documentation } = await supabasePublic
-          .from('documentation')
-          .select('id, titre, resume, themes')
-          .or(`titre.ilike.%${searchQuery}%,resume.ilike.%${searchQuery}%,themes.ilike.%${searchQuery}%`);
-        searchResults.documentation = documentation || [];
-      }
-
-      // Recherche dans la doctrine (articles publiés uniquement)
-      if (searchFilters.doctrine) {
-        const { data: doctrine } = await supabasePublic
-          .from('doctrine')
-          .select('id, titre, abstract, auteur')
-          .eq('published', true)
-          .or(`titre.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%,auteur.ilike.%${searchQuery}%`);
-        searchResults.doctrine = doctrine || [];
-      }
-
-      // Recherche dans les actualités
-      if (searchFilters.actualites) {
-        const { data: actualites } = await supabasePublic
-          .from('Actu')
-          .select('id, Titre, Date, media, lien')
-          .ilike('Titre', `%${searchQuery}%`);
-        searchResults.actualites = actualites || [];
-      }
-
-      // Recherche dans les considérants (corrigé)
-      const { data: considerants, error: considerantsError } = await supabasePublic
-        .from('considerant')
-        .select('id_considerant, numero, contenu')
-        .ilike('contenu', `%${searchQuery}%`);
-      console.log('[DEBUG] Recherche considérants', { keyword: searchQuery, data: considerants, error: considerantsError });
-      if (considerantsError) alert('Erreur considérants: ' + considerantsError.message);
-      searchResults.considerants = considerants || [];
-
-      // Recherche dans les annexes
-      if (searchFilters.annexes) {
-        // On cherche dans la table annexes (contenu) puis on récupère le titre dans liste_annexes
-        const { data: annexesData, error: annexesError } = await supabasePublic
-          .from('annexes')
-          .select('id_annexe, titre_section, contenu')
-          .ilike('contenu', `%${searchQuery}%`);
-        if (annexesError) {
-          alert('Erreur annexes: ' + annexesError.message);
-        }
-        let annexesResults: any[] = [];
-        if (annexesData && annexesData.length > 0) {
-          // Récupérer les titres et numéros des annexes
-          const ids = annexesData.map(a => a.id_annexe);
-          const { data: listeAnnexes } = await supabasePublic
-            .from('liste_annexes')
-            .select('id_annexe, titre, numero')
-            .in('id_annexe', ids);
-          annexesResults = annexesData.map(a => {
-            const annexeInfo = listeAnnexes?.find(l => l.id_annexe === a.id_annexe);
-            return {
-              id_annexe: a.id_annexe,
-              numero: annexeInfo?.numero || a.id_annexe,
-              titre_annexe: annexeInfo?.titre || `Annexe ${a.id_annexe}`,
-              titre_section: a.titre_section,
-              contenu: a.contenu,
-            };
-          });
-        }
-        searchResults.annexes = annexesResults;
-      }
-
-      // Recherche dans les fiches pratiques (locale)
-      if (searchFilters.fichesPratiques) {
-        const q = removeDiacritics(searchQuery.toLowerCase());
-        searchResults.fichesPratiques = FICHES_PRATIQUES.filter(fiche => {
-          const titreNormalized = removeDiacritics(fiche.titre.toLowerCase());
-          const descriptionNormalized = removeDiacritics(fiche.description.toLowerCase());
-          return titreNormalized.includes(q) || descriptionNormalized.includes(q);
-        });
-      }
-
+      const searchResults = await performSearch(supabasePublic, searchQuery, searchFilters);
       setResults(searchResults);
     } catch (error) {
       console.error('Erreur lors de la recherche:', error);
@@ -267,7 +52,7 @@ export const SearchResultsPage = () => {
 
   const handleSearch = (searchQuery: string, searchFilters: SearchFilters) => {
     setFilters(searchFilters);
-    performSearch(searchQuery, searchFilters);
+    runSearch(searchQuery, searchFilters);
   };
 
   const totalResults = Object.values(results).reduce((sum, arr) => sum + arr.length, 0);

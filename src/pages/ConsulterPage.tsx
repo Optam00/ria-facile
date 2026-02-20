@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { supabasePublic } from '../lib/supabasePublic'
+import { performSearch, defaultSearchFilters, highlight, getExcerpt, type SearchResults } from '../lib/searchRIA'
 import { Sommaire } from '@/components/Sommaire'
 import { TextSettings } from '@/components/TextSettings'
 import { Helmet } from 'react-helmet-async'
@@ -255,6 +257,12 @@ export const ConsulterPage = () => {
   const [isArticleConsiderantsOpen, setIsArticleConsiderantsOpen] = useState(false)
   const [isArticleFichesOpen, setIsArticleFichesOpen] = useState(false)
   const [isArticleDocOpen, setIsArticleDocOpen] = useState(false)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(null)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [showSearchPanel, setShowSearchPanel] = useState(false)
 
   // Sauvegarder les préférences quand elles changent
   useEffect(() => {
@@ -414,7 +422,24 @@ export const ConsulterPage = () => {
     }
 
     restoreStateFromURL()
-  }, [])
+  }, [location.search])
+
+  const handleConsulterSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const q = searchQuery.trim()
+    if (!q) return
+    setSearchLoading(true)
+    setShowSearchPanel(true)
+    try {
+      const results = await performSearch(supabasePublic, q, defaultSearchFilters)
+      setSearchResults(results)
+    } catch (err) {
+      console.error('Recherche:', err)
+      setSearchResults(null)
+    } finally {
+      setSearchLoading(false)
+    }
+  }
 
   const handleConsiderantClick = async (numero: number) => {
     setLoadingContent(true)
@@ -926,7 +951,7 @@ export const ConsulterPage = () => {
           <div className={`white-container ${isFullscreen ? '' : 'rounded-2xl shadow-lg'} min-h-[70vh] relative`}>
             {/* Menu Burger et paramètres pour mobile */}
             <div className="lg:hidden px-1 mb-1">
-              <div className="flex items-center justify-between mt-1">
+              <div className="flex items-center justify-between gap-2 mt-1">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setIsOpen(!isOpen)}
@@ -947,7 +972,23 @@ export const ConsulterPage = () => {
                     </svg>
                   </button>
                 </div>
-
+                <form onSubmit={handleConsulterSearch} className="flex-1 min-w-0 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full pl-4 pr-2 py-2 hover:border-purple-300 focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-200 transition-all">
+                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" strokeWidth="2" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35" />
+                  </svg>
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Rechercher sur le site…"
+                    className="flex-1 min-w-0 bg-transparent border-none outline-none text-gray-800 text-sm placeholder:text-gray-400"
+                    aria-label="Rechercher"
+                  />
+                  <button type="submit" disabled={searchLoading || !searchQuery.trim()} className="p-1.5 rounded-full text-gray-400 hover:text-purple-600 hover:bg-purple-50 disabled:opacity-50 shrink-0 transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35" /></svg>
+                  </button>
+                </form>
                 <button
                   onClick={() => setIsFullscreen(!isFullscreen)}
                   className="flex p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg hover:bg-gray-50 transition-colors items-center gap-2"
@@ -1076,14 +1117,36 @@ export const ConsulterPage = () => {
 
               {/* Contenu */}
               <div className={`col-span-1 ${isFullscreen ? 'p-8 h-[calc(100vh-2rem)] overflow-y-auto' : 'lg:pt-2'}`}>
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
                   {(selectedConsiderant || selectedArticle) && (
                     <NavigationButtons 
                       onPrevious={selectedConsiderant ? navigateToPreviousConsiderant : navigateToPreviousArticle}
                       onNext={selectedConsiderant ? navigateToNextConsiderant : navigateToNextArticle}
                     />
                   )}
-                  <div className="flex items-center gap-2 ml-auto">
+                  <div className="flex flex-wrap items-center gap-2 ml-auto">
+                    <form onSubmit={handleConsulterSearch} className="flex items-center gap-2 flex-1 min-w-0 max-w-sm bg-gray-50 border border-gray-200 rounded-full pl-4 pr-2 py-2 hover:border-purple-300 focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-200 transition-all">
+                      <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8" strokeWidth="2" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35" />
+                      </svg>
+                      <input
+                        type="search"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Rechercher sur le site…"
+                        className="flex-1 min-w-0 bg-transparent border-none outline-none text-gray-800 text-sm placeholder:text-gray-400"
+                        aria-label="Rechercher dans le règlement et le site"
+                      />
+                      <button
+                        type="submit"
+                        disabled={searchLoading || !searchQuery.trim()}
+                        className="p-1.5 rounded-full text-gray-400 hover:text-purple-600 hover:bg-purple-50 disabled:opacity-50 shrink-0 transition-colors"
+                        aria-label="Lancer la recherche"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35" /></svg>
+                      </button>
+                    </form>
                     <button
                       onClick={() => setIsFullscreen(!isFullscreen)}
                       className="hidden lg:flex p-2 text-gray-600 hover:text-gray-900 bg-white rounded-lg hover:bg-gray-50 transition-colors items-center gap-2"
@@ -1136,6 +1199,172 @@ export const ConsulterPage = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* Panneau de résultats de recherche (sans quitter la page) */}
+                {showSearchPanel && (
+                  <div className="mb-4 rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden">
+                    <div className="flex items-center justify-between gap-2 px-4 py-2 bg-gray-50 border-b border-gray-200 flex-wrap">
+                      <span className="text-sm font-medium text-gray-700">
+                        {searchLoading ? 'Recherche…' : (
+                          <>
+                            Résultats pour « {searchQuery.trim()} »
+                            {!searchLoading && searchResults && (
+                              <a
+                                href={`/recherche?q=${encodeURIComponent(searchQuery.trim())}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="ml-2 text-[#774792] hover:underline font-normal"
+                              >
+                                Voir plus
+                              </a>
+                            )}
+                          </>
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => { setShowSearchPanel(false); setSearchResults(null); }}
+                        className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200"
+                        aria-label="Fermer les résultats"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+                    <div className="max-h-[60vh] overflow-y-auto p-4">
+                      {searchLoading ? (
+                        <p className="text-gray-500 text-sm">Chargement…</p>
+                      ) : searchResults ? (
+                        (() => {
+                          const total = Object.values(searchResults).reduce((s, arr) => s + arr.length, 0)
+                          if (total === 0) {
+                            return <p className="text-gray-500 text-sm">Aucun résultat. Essayez un autre mot-clé.</p>
+                          }
+                          const q = searchQuery.trim()
+                          return (
+                            <div className="space-y-4 text-sm">
+                              {searchResults.reglement.length > 0 && (
+                                <div>
+                                  <h3 className="font-semibold text-gray-700 mb-2">Règlement IA</h3>
+                                  <ul className="space-y-1.5">
+                                    {searchResults.reglement.slice(0, 8).map((a: any) => (
+                                      <li key={a.id_article}>
+                                        <Link to={`/consulter?type=article&id=${a.id_article}`} onClick={() => setShowSearchPanel(false)} className="text-[#774792] hover:underline" dangerouslySetInnerHTML={{ __html: highlight((a.titre || '').replace(/^Art\.? ?\d+\s*-?\s*/i, ''), q) }} />
+                                        <span className="text-gray-500 ml-1">{a.numero}</span>
+                                      </li>
+                                    ))}
+                                    {searchResults.reglement.length > 8 && (
+                                      <li>
+                                        <a href={`/recherche?q=${encodeURIComponent(q)}`} target="_blank" rel="noopener noreferrer" className="text-[#774792] hover:underline">… Voir les {searchResults.reglement.length - 8} autres (Règlement)</a>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                              {searchResults.considerants.length > 0 && (
+                                <div>
+                                  <h3 className="font-semibold text-gray-700 mb-2">Considérants</h3>
+                                  <ul className="space-y-1.5">
+                                    {searchResults.considerants.slice(0, 5).map((c: any) => (
+                                      <li key={c.id_considerant}>
+                                        <Link to={`/consulter?type=considerant&id=${c.numero}`} onClick={() => setShowSearchPanel(false)} className="text-[#774792] hover:underline">
+                                          Consid. {c.numero}
+                                        </Link>
+                                        <span className="text-gray-500 ml-1 truncate max-w-[200px] inline-block align-bottom" dangerouslySetInnerHTML={{ __html: highlight(getExcerpt(c.contenu || '', q, 25), q) }} />
+                                      </li>
+                                    ))}
+                                    {searchResults.considerants.length > 5 && (
+                                      <li>
+                                        <a href={`/recherche?q=${encodeURIComponent(q)}`} target="_blank" rel="noopener noreferrer" className="text-[#774792] hover:underline">… Voir les {searchResults.considerants.length - 5} autres (Considérants)</a>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                              {searchResults.annexes.length > 0 && (
+                                <div>
+                                  <h3 className="font-semibold text-gray-700 mb-2">Annexes</h3>
+                                  <ul className="space-y-1.5">
+                                    {searchResults.annexes.slice(0, 5).map((a: any, idx: number) => (
+                                      <li key={a.id_annexe ?? idx}>
+                                        <Link to={`/consulter?type=annexe&id=${a.id_annexe}`} onClick={() => setShowSearchPanel(false)} className="text-[#774792] hover:underline">{a.titre_annexe || `Annexe ${a.numero}`}</Link>
+                                      </li>
+                                    ))}
+                                    {searchResults.annexes.length > 5 && (
+                                      <li>
+                                        <a href={`/recherche?q=${encodeURIComponent(q)}`} target="_blank" rel="noopener noreferrer" className="text-[#774792] hover:underline">… Voir les {searchResults.annexes.length - 5} autres (Annexes)</a>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                              {searchResults.documentation.length > 0 && (
+                                <div>
+                                  <h3 className="font-semibold text-gray-700 mb-2">Documentation</h3>
+                                  <ul className="space-y-1.5">
+                                    {searchResults.documentation.slice(0, 4).map((d: any) => (
+                                      <li key={d.id}><a href={`/documentation?id=${d.id}`} target="_blank" rel="noopener noreferrer" className="text-[#774792] hover:underline" dangerouslySetInnerHTML={{ __html: highlight(d.titre, q) }} /></li>
+                                    ))}
+                                    {searchResults.documentation.length > 4 && (
+                                      <li>
+                                        <a href={`/recherche?q=${encodeURIComponent(q)}`} target="_blank" rel="noopener noreferrer" className="text-[#774792] hover:underline">… Voir les {searchResults.documentation.length - 4} autres (Documentation)</a>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                              {searchResults.doctrine.length > 0 && (
+                                <div>
+                                  <h3 className="font-semibold text-gray-700 mb-2">Doctrine</h3>
+                                  <ul className="space-y-1.5">
+                                    {searchResults.doctrine.slice(0, 4).map((d: any) => (
+                                      <li key={d.id}><a href={`/doctrine/${d.id}`} target="_blank" rel="noopener noreferrer" className="text-[#774792] hover:underline" dangerouslySetInnerHTML={{ __html: highlight(d.titre, q) }} /></li>
+                                    ))}
+                                    {searchResults.doctrine.length > 4 && (
+                                      <li>
+                                        <a href={`/recherche?q=${encodeURIComponent(q)}`} target="_blank" rel="noopener noreferrer" className="text-[#774792] hover:underline">… Voir les {searchResults.doctrine.length - 4} autres (Doctrine)</a>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                              {searchResults.fichesPratiques.length > 0 && (
+                                <div>
+                                  <h3 className="font-semibold text-gray-700 mb-2">Fiches pratiques</h3>
+                                  <ul className="space-y-1.5">
+                                    {searchResults.fichesPratiques.slice(0, 4).map((f: any) => (
+                                      <li key={f.id}><a href={`/fiches-pratiques/${f.id}`} target="_blank" rel="noopener noreferrer" className="text-[#774792] hover:underline" dangerouslySetInnerHTML={{ __html: highlight(f.titre, q) }} /></li>
+                                    ))}
+                                    {searchResults.fichesPratiques.length > 4 && (
+                                      <li>
+                                        <a href={`/recherche?q=${encodeURIComponent(q)}`} target="_blank" rel="noopener noreferrer" className="text-[#774792] hover:underline">… Voir les {searchResults.fichesPratiques.length - 4} autres (Fiches pratiques)</a>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                              {searchResults.actualites.length > 0 && (
+                                <div>
+                                  <h3 className="font-semibold text-gray-700 mb-2">Actualités</h3>
+                                  <ul className="space-y-1.5">
+                                    {searchResults.actualites.slice(0, 3).map((a: any) => (
+                                      <li key={a.id}><a href={a.lien} target="_blank" rel="noopener noreferrer" className="text-[#774792] hover:underline" dangerouslySetInnerHTML={{ __html: highlight(a.Titre, q) }} /></li>
+                                    ))}
+                                    {searchResults.actualites.length > 3 && (
+                                      <li>
+                                        <a href={`/recherche?q=${encodeURIComponent(q)}`} target="_blank" rel="noopener noreferrer" className="text-[#774792] hover:underline">… Voir les {searchResults.actualites.length - 3} autres (Actualités)</a>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })()
+                      ) : null}
+                    </div>
+                  </div>
+                )}
+
                 {error && (
                   <div className="mb-4 p-3 rounded-md bg-red-50 text-red-700 text-sm">
                     {error}
