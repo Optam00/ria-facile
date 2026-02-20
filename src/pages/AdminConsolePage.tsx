@@ -250,6 +250,12 @@ const AdminConsolePage: React.FC = () => {
   const [veilleGroups, setVeilleGroups] = useState<VeilleGroupRow[]>([])
   const [veilleLinks, setVeilleLinks] = useState<VeilleLinkRow[]>([])
   const [isLoadingVeille, setIsLoadingVeille] = useState(false)
+  const [veilleDraggingGroupId, setVeilleDraggingGroupId] = useState<number | null>(null)
+  const [veilleDraggingLinkId, setVeilleDraggingLinkId] = useState<number | null>(null)
+  const [veilleDropGroupIndex, setVeilleDropGroupIndex] = useState<number | null>(null)
+  const [veilleDropLink, setVeilleDropLink] = useState<{ groupId: number; linkIndex: number } | null>(null)
+  const [veilleDropGroupForLink, setVeilleDropGroupForLink] = useState<number | null>(null)
+  const [veilleCollapsedGroupIds, setVeilleCollapsedGroupIds] = useState<Set<number>>(new Set())
   const [availableMedias, setAvailableMedias] = useState<string[]>([])
   const [isMediaDropdownOpen, setIsMediaDropdownOpen] = useState(false)
   const [availableAuteurs, setAvailableAuteurs] = useState<string[]>([])
@@ -1286,6 +1292,24 @@ const AdminConsolePage: React.FC = () => {
     }
   }
 
+  const veilleUpdateGroupPosition = async (id: number, position: number) => {
+    try {
+      const headers = await getAuthHeaders()
+      const res = await fetch(`${supabaseUrl}/rest/v1/veille_groups?id=eq.${id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ position }),
+      })
+      if (!res.ok) {
+        setFormStatus({ type: 'error', message: await res.text() || `Erreur ${res.status}` })
+        return
+      }
+      setVeilleGroups((prev) => prev.map((g) => (g.id === id ? { ...g, position } : g)))
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors du déplacement du groupe.' })
+    }
+  }
+
   const veilleDeleteGroup = async (id: number) => {
     try {
       const headers = await getAuthHeaders()
@@ -1323,7 +1347,7 @@ const AdminConsolePage: React.FC = () => {
     }
   }
 
-  const veilleUpdateLink = async (id: number, field: 'label' | 'url' | 'note', value: string) => {
+  const veilleUpdateLink = async (id: number, field: 'label' | 'url' | 'note' | 'position' | 'group_id', value: string | number) => {
     try {
       const headers = await getAuthHeaders()
       const res = await fetch(`${supabaseUrl}/rest/v1/veille_links?id=eq.${id}`, {
@@ -1338,6 +1362,24 @@ const AdminConsolePage: React.FC = () => {
       setVeilleLinks((prev) => prev.map((l) => (l.id === id ? { ...l, [field]: value } : l)))
     } catch (err) {
       setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de la mise à jour.' })
+    }
+  }
+
+  const veilleMoveLink = async (linkId: number, targetGroupId: number, targetPosition: number) => {
+    try {
+      const headers = await getAuthHeaders()
+      const res = await fetch(`${supabaseUrl}/rest/v1/veille_links?id=eq.${linkId}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ group_id: targetGroupId, position: targetPosition }),
+      })
+      if (!res.ok) {
+        setFormStatus({ type: 'error', message: await res.text() || `Erreur ${res.status}` })
+        return
+      }
+      setVeilleLinks((prev) => prev.map((l) => (l.id === linkId ? { ...l, group_id: targetGroupId, position: targetPosition } : l)))
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors du déplacement du lien.' })
     }
   }
 
@@ -1360,6 +1402,116 @@ const AdminConsolePage: React.FC = () => {
     links.forEach((l, i) => {
       setTimeout(() => window.open(l.url.trim(), '_blank', 'noopener,noreferrer'), i * 200)
     })
+  }
+
+  const sortedVeilleGroups = [...veilleGroups].sort((a, b) => a.position - b.position)
+
+  const handleVeilleGroupDragStart = (e: React.DragEvent, groupId: number) => {
+    setVeilleDraggingGroupId(groupId)
+    e.dataTransfer.setData('application/veille-group', String(groupId))
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', '') // pour Firefox
+  }
+
+  const handleVeilleGroupDragEnd = () => {
+    setVeilleDraggingGroupId(null)
+    setVeilleDropGroupIndex(null)
+  }
+
+  const handleVeilleGroupDragOver = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setVeilleDropGroupIndex(dropIndex)
+  }
+
+  const handleVeilleGroupDrop = (e: React.DragEvent, toIndex: number) => {
+    e.preventDefault()
+    const groupIdStr = e.dataTransfer.getData('application/veille-group')
+    if (!groupIdStr) return
+    const draggedId = Number(groupIdStr)
+    const fromIndex = sortedVeilleGroups.findIndex((g) => g.id === draggedId)
+    if (fromIndex === -1 || fromIndex === toIndex) {
+      setVeilleDraggingGroupId(null)
+      setVeilleDropGroupIndex(null)
+      return
+    }
+    const newOrder = [...sortedVeilleGroups]
+    const [removed] = newOrder.splice(fromIndex, 1)
+    newOrder.splice(toIndex, 0, removed)
+    newOrder.forEach((g, idx) => {
+      if (g.position !== idx) veilleUpdateGroupPosition(g.id, idx)
+    })
+    setVeilleGroups((prev) => {
+      const byId = Object.fromEntries(prev.map((g) => [g.id, g]))
+      return newOrder.map((g, idx) => ({ ...byId[g.id], position: idx }))
+    })
+    setVeilleDraggingGroupId(null)
+    setVeilleDropGroupIndex(null)
+  }
+
+  const handleVeilleLinkDragStart = (e: React.DragEvent, linkId: number, groupId: number) => {
+    setVeilleDraggingLinkId(linkId)
+    e.dataTransfer.setData('application/veille-link', JSON.stringify({ linkId, groupId }))
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', '')
+  }
+
+  const handleVeilleLinkDragEnd = () => {
+    setVeilleDraggingLinkId(null)
+    setVeilleDropLink(null)
+    setVeilleDropGroupForLink(null)
+  }
+
+  const handleVeilleLinkDrop = (e: React.DragEvent, targetGroupId: number, targetLinkIndex: number) => {
+    e.preventDefault()
+    const raw = e.dataTransfer.getData('application/veille-link')
+    if (!raw) return
+    try {
+      const { linkId, groupId } = JSON.parse(raw)
+      const groupLinks = veilleLinks.filter((l) => l.group_id === targetGroupId).sort((a, b) => a.position - b.position)
+      if (groupId === targetGroupId) {
+        const fromIndex = groupLinks.findIndex((l) => l.id === linkId)
+        if (fromIndex === -1 || fromIndex === targetLinkIndex) {
+          handleVeilleLinkDragEnd()
+          return
+        }
+        const newOrder = [...groupLinks]
+        const [removed] = newOrder.splice(fromIndex, 1)
+        newOrder.splice(targetLinkIndex, 0, removed)
+        newOrder.forEach((l, idx) => {
+          if (l.position !== idx) veilleUpdateLink(l.id, 'position', idx)
+        })
+        setVeilleLinks((prev) =>
+          prev.map((l) => {
+            if (l.group_id !== targetGroupId) return l
+            const idx = newOrder.findIndex((o) => o.id === l.id)
+            return idx >= 0 ? { ...l, position: idx } : l
+          })
+        )
+      } else {
+        const newPosition = groupLinks.length === 0 ? 0 : Math.max(...groupLinks.map((l) => l.position)) + 1
+        veilleMoveLink(linkId, targetGroupId, newPosition)
+      }
+    } catch (_) {
+      /* ignore */
+    }
+    handleVeilleLinkDragEnd()
+  }
+
+  const handleVeilleLinkDropOnGroup = (e: React.DragEvent, targetGroupId: number) => {
+    e.preventDefault()
+    const raw = e.dataTransfer.getData('application/veille-link')
+    if (!raw) return
+    try {
+      const { linkId, groupId } = JSON.parse(raw)
+      if (groupId === targetGroupId) return
+      const groupLinks = veilleLinks.filter((l) => l.group_id === targetGroupId).sort((a, b) => a.position - b.position)
+      const newPosition = groupLinks.length === 0 ? 0 : Math.max(0, ...groupLinks.map((l) => l.position), 0) + 1
+      veilleMoveLink(linkId, targetGroupId, newPosition)
+    } catch (_) {
+      /* ignore */
+    }
+    handleVeilleLinkDragEnd()
   }
 
   // Charger la liste des questions de quiz quand on arrive sur "consulter-questions"
@@ -3721,76 +3873,176 @@ const AdminConsolePage: React.FC = () => {
                     </div>
                   ) : (
                     <div className="space-y-6">
-                      {veilleGroups.map((group) => {
+                      {sortedVeilleGroups.map((group, groupIndex) => {
                         const groupLinks = veilleLinks.filter((l) => l.group_id === group.id).sort((a, b) => a.position - b.position)
+                        const showGroupDropLine = veilleDraggingGroupId != null && veilleDropGroupIndex === groupIndex
+                        const isGroupDragging = veilleDraggingGroupId === group.id
                         return (
-                          <div key={group.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                              <input
-                                type="text"
-                                value={group.name}
-                                onChange={(e) => setVeilleGroups((prev) => prev.map((g) => (g.id === group.id ? { ...g, name: e.target.value } : g)))}
-                                onBlur={(e) => veilleUpdateGroupName(group.id, e.target.value.trim() || 'Sans nom')}
-                                onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-                                className="text-lg font-semibold text-gray-800 px-2 py-1 rounded border border-transparent hover:border-gray-300 focus:border-gray-400 focus:ring-1 focus:ring-gray-300 min-w-[200px]"
-                                placeholder="Nom du groupe"
-                              />
-                              <div className="flex items-center gap-2 ml-auto">
+                          <div key={group.id} className="relative">
+                            {/* Ligne de drop entre groupes */}
+                            {showGroupDropLine && (
+                              <div className="absolute left-0 right-0 top-0 h-0.5 bg-purple-300 rounded z-10 pointer-events-none" style={{ marginTop: '-3px' }} />
+                            )}
+                            <div
+                              className={`bg-white border border-gray-200 rounded-xl p-5 shadow-sm transition-opacity ${isGroupDragging ? 'opacity-50' : ''}`}
+                              onDragOver={(e) => {
+                                if (veilleDraggingGroupId != null) {
+                                  e.preventDefault()
+                                  e.dataTransfer.dropEffect = 'move'
+                                  setVeilleDropGroupIndex(groupIndex)
+                                }
+                              }}
+                              onDragLeave={() => {
+                                if (veilleDraggingGroupId != null) setVeilleDropGroupIndex(null)
+                              }}
+                              onDrop={(e) => {
+                                if (veilleDraggingGroupId != null) {
+                                  handleVeilleGroupDrop(e, groupIndex)
+                                } else if (veilleDraggingLinkId != null) {
+                                  handleVeilleLinkDropOnGroup(e, group.id)
+                                }
+                              }}
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                                {/* Poignée de déplacement du groupe */}
+                                <div
+                                  draggable
+                                  onDragStart={(e) => handleVeilleGroupDragStart(e, group.id)}
+                                  onDragEnd={handleVeilleGroupDragEnd}
+                                  className="flex-shrink-0 cursor-grab active:cursor-grabbing p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 touch-none"
+                                  title="Maintenir et glisser pour réordonner les groupes"
+                                >
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden><circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" /><circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" /><circle cx="9" cy="18" r="1.5" /><circle cx="15" cy="18" r="1.5" /></svg>
+                                </div>
+                                <input
+                                  type="text"
+                                  value={group.name}
+                                  onChange={(e) => setVeilleGroups((prev) => prev.map((g) => (g.id === group.id ? { ...g, name: e.target.value } : g)))}
+                                  onBlur={(e) => veilleUpdateGroupName(group.id, e.target.value.trim() || 'Sans nom')}
+                                  onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+                                  className="text-lg font-semibold text-gray-800 px-2 py-1 rounded border border-transparent hover:border-gray-300 focus:border-gray-400 focus:ring-1 focus:ring-gray-300 min-w-[200px]"
+                                  placeholder="Nom du groupe"
+                                />
                                 <button
                                   type="button"
-                                  onClick={() => veilleOpenAllInGroup(group.id)}
-                                  disabled={groupLinks.length === 0}
-                                  className="px-3 py-1.5 rounded-lg border border-purple-100 bg-purple-50 text-gray-700 text-sm hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                  onClick={() => setVeilleCollapsedGroupIds((prev) => {
+                                    const next = new Set(prev)
+                                    if (next.has(group.id)) next.delete(group.id)
+                                    else next.add(group.id)
+                                    return next
+                                  })}
+                                  className="flex-shrink-0 p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-transform"
+                                  title={veilleCollapsedGroupIds.has(group.id) ? 'Déplier le groupe' : 'Replier le groupe'}
+                                  aria-expanded={!veilleCollapsedGroupIds.has(group.id)}
                                 >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                  Ouvrir tout ({groupLinks.length})
+                                  <svg
+                                    className="w-4 h-4 transition-transform"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    style={{ transform: veilleCollapsedGroupIds.has(group.id) ? 'rotate(-90deg)' : 'none' }}
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
                                 </button>
-                                <button type="button" onClick={() => veilleAddLink(group.id)} className="px-3 py-1.5 rounded-lg border border-purple-100 bg-purple-50 text-gray-700 text-sm hover:bg-purple-100">
-                                  + Lien
-                                </button>
-                                <button type="button" onClick={() => veilleDeleteGroup(group.id)} className="px-3 py-1.5 rounded-lg border border-purple-100 bg-purple-50 text-gray-600 text-sm hover:bg-purple-100" title="Supprimer le groupe">
-                                  Supprimer le groupe
-                                </button>
+                                <div className="flex items-center gap-2 ml-auto">
+                                  <button
+                                    type="button"
+                                    onClick={() => veilleOpenAllInGroup(group.id)}
+                                    disabled={groupLinks.length === 0}
+                                    className="px-3 py-1.5 rounded-lg border border-purple-100 bg-purple-50 text-gray-700 text-sm hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                    Ouvrir tout ({groupLinks.length})
+                                  </button>
+                                  <button type="button" onClick={() => veilleAddLink(group.id)} className="px-3 py-1.5 rounded-lg border border-purple-100 bg-purple-50 text-gray-700 text-sm hover:bg-purple-100">
+                                    + Lien
+                                  </button>
+                                  <button type="button" onClick={() => veilleDeleteGroup(group.id)} className="px-3 py-1.5 rounded-lg border border-purple-100 bg-purple-50 text-gray-600 text-sm hover:bg-purple-100" title="Supprimer le groupe">
+                                    Supprimer le groupe
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                            <div className="space-y-2 pl-2 border-l-2 border-gray-200">
-                              {groupLinks.length === 0 ? (
-                                <p className="text-sm text-gray-500 italic">Aucun lien. Cliquez sur « + Lien ».</p>
-                              ) : (
-                                groupLinks.map((link) => (
-                                  <div key={link.id} className="flex flex-wrap items-center gap-2 py-1">
-                                    <input
-                                      type="text"
-                                      value={link.label ?? ''}
-                                      onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, label: e.target.value } : l)))}
-                                      onBlur={(e) => veilleUpdateLink(link.id, 'label', e.target.value)}
-                                      placeholder="Libellé"
-                                      className="w-40 px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
-                                    />
-                                    <input
-                                      type="url"
-                                      value={link.url}
-                                      onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, url: e.target.value } : l)))}
-                                      onBlur={(e) => veilleUpdateLink(link.id, 'url', e.target.value)}
-                                      placeholder="https://…"
-                                      className="flex-1 min-w-[200px] px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
-                                    />
-                                    <input
-                                      type="text"
-                                      value={link.note ?? ''}
-                                      onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, note: e.target.value } : l)))}
-                                      onBlur={(e) => veilleUpdateLink(link.id, 'note', e.target.value)}
-                                      placeholder="Note (facultatif)"
-                                      className="w-36 px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
-                                    />
-                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="Ouvrir">
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                    </a>
-                                    <button type="button" onClick={() => veilleDeleteLink(link.id)} className="p-1.5 rounded text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="Supprimer">
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    </button>
-                                  </div>
-                                ))
+                              {!veilleCollapsedGroupIds.has(group.id) && (
+                              <div
+                                className={`space-y-2 pl-2 border-l-2 border-gray-200 rounded transition-colors ${veilleDraggingLinkId != null && veilleDropGroupForLink === group.id ? 'border-purple-300 bg-purple-50/30' : ''}`}
+                                onDragOver={(e) => {
+                                  if (veilleDraggingLinkId != null) {
+                                    e.preventDefault()
+                                    e.dataTransfer.dropEffect = 'move'
+                                    setVeilleDropGroupForLink(group.id)
+                                  }
+                                }}
+                                onDragLeave={() => setVeilleDropGroupForLink(null)}
+                              >
+                                {groupLinks.length === 0 ? (
+                                  <p className="text-sm text-gray-500 italic">Aucun lien. Cliquez sur « + Lien ». Glissez-déposez un lien ici pour le déplacer.</p>
+                                ) : (
+                                  groupLinks.map((link, linkIndex) => {
+                                    const showLinkDropLine = veilleDraggingLinkId != null && veilleDropLink?.groupId === group.id && veilleDropLink?.linkIndex === linkIndex
+                                    const isLinkDragging = veilleDraggingLinkId === link.id
+                                    return (
+                                      <div key={link.id} className="relative">
+                                        {showLinkDropLine && (
+                                          <div className="absolute left-0 right-0 top-0 h-0.5 bg-purple-300 rounded z-10 pointer-events-none" style={{ marginTop: '-2px' }} />
+                                        )}
+                                        <div
+                                          className={`flex flex-wrap items-center gap-2 py-1 rounded transition-opacity ${isLinkDragging ? 'opacity-50' : ''}`}
+                                          onDragOver={(e) => {
+                                            if (veilleDraggingLinkId != null) {
+                                              e.preventDefault()
+                                              e.dataTransfer.dropEffect = 'move'
+                                              setVeilleDropLink({ groupId: group.id, linkIndex })
+                                            }
+                                          }}
+                                          onDragLeave={() => setVeilleDropLink(null)}
+                                          onDrop={(e) => handleVeilleLinkDrop(e, group.id, linkIndex)}
+                                        >
+                                          <div
+                                            draggable
+                                            onDragStart={(e) => handleVeilleLinkDragStart(e, link.id, group.id)}
+                                            onDragEnd={handleVeilleLinkDragEnd}
+                                            className="flex-shrink-0 cursor-grab active:cursor-grabbing p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 touch-none"
+                                            title="Maintenir et glisser pour réordonner ou déplacer le lien"
+                                          >
+                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden><circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" /><circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" /><circle cx="9" cy="18" r="1.5" /><circle cx="15" cy="18" r="1.5" /></svg>
+                                          </div>
+                                          <input
+                                            type="text"
+                                            value={link.label ?? ''}
+                                            onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, label: e.target.value } : l)))}
+                                            onBlur={(e) => veilleUpdateLink(link.id, 'label', e.target.value)}
+                                            placeholder="Libellé"
+                                            className="w-40 px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
+                                          />
+                                          <input
+                                            type="url"
+                                            value={link.url}
+                                            onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, url: e.target.value } : l)))}
+                                            onBlur={(e) => veilleUpdateLink(link.id, 'url', e.target.value)}
+                                            placeholder="https://…"
+                                            className="flex-1 min-w-[200px] px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
+                                          />
+                                          <input
+                                            type="text"
+                                            value={link.note ?? ''}
+                                            onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, note: e.target.value } : l)))}
+                                            onBlur={(e) => veilleUpdateLink(link.id, 'note', e.target.value)}
+                                            placeholder="Note (facultatif)"
+                                            className="w-36 px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
+                                          />
+                                          <a href={link.url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="Ouvrir">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                          </a>
+                                          <button type="button" onClick={() => veilleDeleteLink(link.id)} className="p-1.5 rounded text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="Supprimer">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )
+                                  })
+                                )}
+                              </div>
                               )}
                             </div>
                           </div>
