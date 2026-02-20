@@ -3987,7 +3987,7 @@ const AdminConsolePage: React.FC = () => {
                                           <div className="absolute left-0 right-0 top-0 h-0.5 bg-purple-300 rounded z-10 pointer-events-none" style={{ marginTop: '-2px' }} />
                                         )}
                                         <div
-                                          className={`flex flex-wrap items-center gap-2 py-1 rounded transition-opacity ${isLinkDragging ? 'opacity-50' : ''}`}
+                                          className={`flex flex-nowrap items-center gap-2 py-1 rounded transition-opacity ${isLinkDragging ? 'opacity-50' : ''}`}
                                           onDragOver={(e) => {
                                             if (veilleDraggingLinkId != null) {
                                               e.preventDefault()
@@ -4013,7 +4013,7 @@ const AdminConsolePage: React.FC = () => {
                                             onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, label: e.target.value } : l)))}
                                             onBlur={(e) => veilleUpdateLink(link.id, 'label', e.target.value)}
                                             placeholder="Libellé"
-                                            className="w-40 px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
+                                            className="flex-shrink-0 w-32 sm:w-40 px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
                                           />
                                           <input
                                             type="url"
@@ -4021,7 +4021,7 @@ const AdminConsolePage: React.FC = () => {
                                             onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, url: e.target.value } : l)))}
                                             onBlur={(e) => veilleUpdateLink(link.id, 'url', e.target.value)}
                                             placeholder="https://…"
-                                            className="flex-1 min-w-[200px] px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
+                                            className="flex-1 min-w-0 w-0 px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
                                           />
                                           <input
                                             type="text"
@@ -4029,7 +4029,7 @@ const AdminConsolePage: React.FC = () => {
                                             onChange={(e) => setVeilleLinks((prev) => prev.map((l) => (l.id === link.id ? { ...l, note: e.target.value } : l)))}
                                             onBlur={(e) => veilleUpdateLink(link.id, 'note', e.target.value)}
                                             placeholder="Note (facultatif)"
-                                            className="w-36 px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
+                                            className="flex-shrink-0 w-28 sm:w-36 px-2 py-1 text-sm border border-gray-300 rounded focus:border-gray-400 focus:ring-1 focus:ring-gray-300"
                                           />
                                           <a href={link.url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-colors" title="Ouvrir">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>

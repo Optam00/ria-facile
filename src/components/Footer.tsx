@@ -15,6 +15,11 @@ export const Footer: React.FC = () => {
                   Mentions légales
                 </Link>
               </li>
+              <li>
+                <Link to="/rag" className="text-gray-600 hover:text-[#774792] text-sm">
+                  RAG
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
@@ -59,9 +64,9 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/rag" className="text-gray-600 hover:text-[#774792] text-sm">
-                  RAG
-                </Link>
+                <a href="https://www.linkedin.com/company/ria-facile/?viewAsMember=true" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-[#774792] text-sm">
+                  LinkedIn
+                </a>
               </li>
             </ul>
           </div>
