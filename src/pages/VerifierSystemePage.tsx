@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
+import { AdherentOnlyOverlay } from '../components/AdherentOnlyOverlay'
 
 const VerifierSystemePage: React.FC = () => {
   type Answer = 'oui' | 'non' | null
@@ -55,6 +56,7 @@ const VerifierSystemePage: React.FC = () => {
   }, [answers])
 
   return (
+    <AdherentOnlyOverlay revealHeight="55vh">
     <div className="min-h-[60vh]">
       <Helmet>
         <title>Déterminer si une solution est un système d’IA — RIA Facile</title>
@@ -244,6 +246,7 @@ const VerifierSystemePage: React.FC = () => {
         </div>
       </div>
     </div>
+    </AdherentOnlyOverlay>
   )
 }
 

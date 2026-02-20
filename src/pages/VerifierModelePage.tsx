@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
+import { AdherentOnlyOverlay } from '../components/AdherentOnlyOverlay'
 
 const VerifierModelePage: React.FC = () => {
   type Answer = 'oui' | 'non' | null
@@ -49,6 +50,7 @@ const VerifierModelePage: React.FC = () => {
   }, [answers])
 
   return (
+    <AdherentOnlyOverlay revealHeight="55vh">
     <div className="min-h-[60vh]">
       <Helmet>
         <title>Déterminer si une solution est un modèle d'IA à usage général — RIA Facile</title>
@@ -223,6 +225,7 @@ const VerifierModelePage: React.FC = () => {
         </div>
       </div>
     </div>
+    </AdherentOnlyOverlay>
   )
 }
 

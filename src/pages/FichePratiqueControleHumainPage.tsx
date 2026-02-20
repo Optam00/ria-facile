@@ -13,7 +13,7 @@ const FichePratiqueControleHumainPage: React.FC = () => {
         <meta name="description" content="Guide pratique pour la mise en place du contrôle humain dans les systèmes d'IA à haut risque. Croisement RGPD et AI Act." />
       </Helmet>
 
-      <AdherentOnlyOverlay>
+      <AdherentOnlyOverlay revealHeight="55vh">
         <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Bouton retour */}
         <Link 

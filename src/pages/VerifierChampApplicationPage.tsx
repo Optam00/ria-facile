@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useSearchParams } from 'react-router-dom'
+import { AdherentOnlyOverlay } from '../components/AdherentOnlyOverlay'
 
 const VerifierChampApplicationPage: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -259,6 +260,7 @@ const VerifierChampApplicationPage: React.FC = () => {
   ]
   
   return (
+    <AdherentOnlyOverlay revealHeight="55vh">
     <div className="min-h-[60vh]">
       <Helmet>
         <title>Déterminer si je suis dans le champ d'application du règlement — RIA Facile</title>
@@ -541,6 +543,7 @@ const VerifierChampApplicationPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </AdherentOnlyOverlay>
   )
 }
 

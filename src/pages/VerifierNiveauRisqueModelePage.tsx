@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
+import { AdherentOnlyOverlay } from '../components/AdherentOnlyOverlay'
 
 type RisqueResultat = 'systemique' | 'gpai-complet' | 'gpai-allege' | 'hors-categorie' | null
 
@@ -159,6 +160,7 @@ const VerifierNiveauRisqueModelePage: React.FC = () => {
   ]
   
   return (
+    <AdherentOnlyOverlay revealHeight="55vh">
     <div className="min-h-[60vh]">
       <Helmet>
         <title>Déterminer le niveau de risque d&apos;un modèle d&apos;IA — RIA Facile</title>
@@ -358,6 +360,7 @@ const VerifierNiveauRisqueModelePage: React.FC = () => {
         </div>
       </div>
     </div>
+    </AdherentOnlyOverlay>
   )
 }
 

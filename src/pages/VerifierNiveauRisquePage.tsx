@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
+import { AdherentOnlyOverlay } from '../components/AdherentOnlyOverlay'
 
 type RisqueResultat = 'inacceptable' | 'haut-risque' | 'risque-limite-derogation' | 'risque-limite-transparence' | 'risque-minimal' | null
 
@@ -344,6 +345,7 @@ const VerifierNiveauRisquePage: React.FC = () => {
   }, [q7])
   
   return (
+    <AdherentOnlyOverlay revealHeight="55vh">
     <div className="min-h-[60vh]">
       <Helmet>
         <title>Déterminer le niveau de risque d&apos;un système d&apos;IA — RIA Facile</title>
@@ -928,6 +930,7 @@ const VerifierNiveauRisquePage: React.FC = () => {
         </div>
       </div>
     </div>
+    </AdherentOnlyOverlay>
   )
 }
 

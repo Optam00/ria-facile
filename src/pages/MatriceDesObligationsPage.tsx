@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
+import { AdherentOnlyOverlay } from '../components/AdherentOnlyOverlay'
 
 // Types
 type TypeSysteme = 'haut-risque' | 'gpai' | 'transparence' | 'interdictions' | null
@@ -484,6 +485,7 @@ const MatriceDesObligationsPage: React.FC = () => {
   }
 
   return (
+    <AdherentOnlyOverlay revealHeight="55vh">
     <div className="min-h-[60vh]">
       <Helmet>
         <title>Matrice des obligations — RIA Facile</title>
@@ -898,6 +900,7 @@ const MatriceDesObligationsPage: React.FC = () => {
         )}
       </div>
     </div>
+    </AdherentOnlyOverlay>
   )
 }
 
