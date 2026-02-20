@@ -972,7 +972,7 @@ export const ConsulterPage = () => {
                     </svg>
                   </button>
                 </div>
-                <form onSubmit={handleConsulterSearch} className="flex-1 min-w-0 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full pl-4 pr-2 py-2 hover:border-purple-300 focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-200 transition-all">
+                <form onSubmit={handleConsulterSearch} className="flex-1 min-w-0 flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5 focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-200 transition-all">
                   <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8" strokeWidth="2" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35" />
@@ -981,11 +981,11 @@ export const ConsulterPage = () => {
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Rechercher sur le site…"
-                    className="flex-1 min-w-0 bg-transparent border-none outline-none text-gray-800 text-sm placeholder:text-gray-400"
-                    aria-label="Rechercher"
+                    placeholder="Rechercher dans le RIA…"
+                    className="flex-1 min-w-0 bg-transparent border-none outline-none text-gray-800 text-xs placeholder:text-gray-400"
+                    aria-label="Rechercher dans le RIA"
                   />
-                  <button type="submit" disabled={searchLoading || !searchQuery.trim()} className="p-1.5 rounded-full text-gray-400 hover:text-purple-600 hover:bg-purple-50 disabled:opacity-50 shrink-0 transition-colors">
+                  <button type="submit" disabled={searchLoading || !searchQuery.trim()} className="p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-50 shrink-0 transition-colors">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35" /></svg>
                   </button>
                 </form>
@@ -1125,7 +1125,7 @@ export const ConsulterPage = () => {
                     />
                   )}
                   <div className="flex flex-wrap items-center gap-2 ml-auto">
-                    <form onSubmit={handleConsulterSearch} className="flex items-center gap-2 flex-1 min-w-0 max-w-sm bg-gray-50 border border-gray-200 rounded-full pl-4 pr-2 py-2 hover:border-purple-300 focus-within:border-purple-500 focus-within:ring-1 focus-within:ring-purple-200 transition-all">
+                    <form onSubmit={handleConsulterSearch} className="flex items-center gap-1.5 flex-1 min-w-0 max-w-sm bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5 focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-200 transition-all">
                       <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <circle cx="11" cy="11" r="8" strokeWidth="2" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35" />
@@ -1134,14 +1134,14 @@ export const ConsulterPage = () => {
                         type="search"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Rechercher sur le site…"
-                        className="flex-1 min-w-0 bg-transparent border-none outline-none text-gray-800 text-sm placeholder:text-gray-400"
-                        aria-label="Rechercher dans le règlement et le site"
+                        placeholder="Rechercher dans le RIA…"
+                        className="flex-1 min-w-0 bg-transparent border-none outline-none text-gray-800 text-xs placeholder:text-gray-400"
+                        aria-label="Rechercher dans le RIA"
                       />
                       <button
                         type="submit"
                         disabled={searchLoading || !searchQuery.trim()}
-                        className="p-1.5 rounded-full text-gray-400 hover:text-purple-600 hover:bg-purple-50 disabled:opacity-50 shrink-0 transition-colors"
+                        className="p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-50 shrink-0 transition-colors"
                         aria-label="Lancer la recherche"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35" /></svg>
