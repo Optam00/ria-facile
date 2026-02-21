@@ -231,7 +231,7 @@ const AdminConsolePage: React.FC = () => {
     // Même breakpoint que Tailwind "lg" (≈1024px)
     return window.innerWidth < 1024
   })
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['actus']))
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   
   // États pour la gestion des actualités
   const [actualitesList, setActualitesList] = useState<Actualite[]>([])
@@ -3384,11 +3384,11 @@ const AdminConsolePage: React.FC = () => {
         {/* Contenu principal avec sidebar */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar (en haut sur mobile, à gauche sur desktop) */}
-          <div className={`w-full lg:w-64 flex-shrink-0 ${isSidebarCollapsed ? 'lg:max-w-[68px]' : ''}`}>
-            <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl shadow-lg border border-white p-4 flex flex-col h-full">
-              <div className="flex items-center mb-4">
+          <div className={`w-full lg:w-52 flex-shrink-0 ${isSidebarCollapsed ? 'lg:max-w-[60px]' : ''}`}>
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow border border-gray-100 p-3 flex flex-col h-full">
+              <div className="flex items-center mb-3">
                 {!isSidebarCollapsed && (
-                  <h2 className="text-lg font-semibold text-[#774792]">
+                  <h2 className="text-base font-semibold text-gray-700">
                     Console admin
                   </h2>
                 )}
@@ -3406,18 +3406,18 @@ const AdminConsolePage: React.FC = () => {
 
               {!isSidebarCollapsed && (
                 <>
-                  <nav className="space-y-2">
+                  <nav className="space-y-1.5">
                     {/* Bouton Dashboard */}
                     <button
                       onClick={() => setSelectedAction(null)}
-                      className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-3 ${
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 ${
                         selectedAction === null
-                          ? 'bg-gradient-to-r from-purple-500 to-[#774792] text-white shadow-md'
-                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                          ? 'bg-[#774792] text-white shadow-sm'
+                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                       }`}
                     >
-                      <span className="text-xl">📊</span>
-                      <span className="font-medium">Dashboard</span>
+                      <span className="text-base">📊</span>
+                      <span className="text-sm font-medium">Dashboard</span>
                     </button>
 
                     {menuGroups.map((group) => {
@@ -3425,21 +3425,21 @@ const AdminConsolePage: React.FC = () => {
                       const hasActiveItem = group.items.some((item) => selectedAction === item.id)
                       
                       return (
-                        <div key={group.key} className="space-y-1">
+                        <div key={group.key} className="space-y-0.5">
                           <button
                             onClick={() => toggleGroup(group.key)}
-                            className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex items-center justify-between ${
+                            className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 flex items-center justify-between ${
                               hasActiveItem
-                                ? 'bg-gradient-to-r from-purple-500 to-[#774792] text-white shadow-md'
-                                : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                                ? 'bg-[#774792] text-white shadow-sm'
+                                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                             }`}
                           >
-                            <div className="flex items-center gap-3">
-                              <span className="text-xl">{group.icon}</span>
-                              <span className="font-medium">{group.label}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">{group.icon}</span>
+                              <span className="text-sm font-medium">{group.label}</span>
                             </div>
                             <svg
-                              className={`w-5 h-5 transition-transform duration-200 ${
+                              className={`w-4 h-4 transition-transform duration-200 ${
                                 isExpanded ? 'rotate-180' : ''
                               }`}
                               fill="none"
@@ -3456,18 +3456,18 @@ const AdminConsolePage: React.FC = () => {
                           </button>
                           
                           {isExpanded && (
-                            <div className="ml-4 space-y-1 pl-4 border-l-2 border-gray-200">
+                            <div className="ml-3 space-y-0.5 pl-3 border-l border-gray-200">
                               {group.items.map((item) => (
                                 <button
                                   key={item.id}
                                   onClick={() => setSelectedAction(item.id)}
-                                  className={`w-full text-left px-4 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm ${
+                                  className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm ${
                                     selectedAction === item.id
-                                      ? 'bg-gradient-to-r from-purple-500 to-[#774792] text-white shadow-md'
+                                      ? 'bg-[#774792] text-white shadow-sm'
                                       : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                                   }`}
                                 >
-                                  <span className="text-base">{item.icon}</span>
+                                  <span className="text-sm">{item.icon}</span>
                                   <span className="font-medium">{item.label}</span>
                                 </button>
                               ))}
@@ -3478,18 +3478,18 @@ const AdminConsolePage: React.FC = () => {
                     })}
                   </nav>
 
-                  <div className="mt-6 pt-4 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 mb-2">
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <p className="text-[11px] text-gray-500 mb-1.5">
                       Connecté en tant que{' '}
-                      <span className="font-semibold text-gray-700">
+                      <span className="font-medium text-gray-600">
                         {profile?.email ?? session?.user.email ?? 'Administrateur'}
                       </span>
                     </p>
                     <button
                       onClick={handleSignOut}
-                      className="w-full px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-medium shadow-md hover:bg-red-600 transition-all duration-200 flex items-center justify-center gap-2"
+                      className="w-full px-3 py-2 rounded-lg bg-red-500/90 text-white text-xs font-medium hover:bg-red-600 transition-all duration-200 flex items-center justify-center gap-1.5"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
                       Se déconnecter
