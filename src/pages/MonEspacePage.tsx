@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import jsPDF from 'jspdf'
@@ -932,7 +932,77 @@ const MonEspacePage: React.FC = () => {
 
           {/* Contenu principal */}
           <div className="p-6 space-y-6">
-            
+
+            {/* Rappel des accès adhérent : mettre en avant le statut adhérent */}
+            <div className="bg-white border border-purple-200 rounded-xl overflow-hidden shadow-sm">
+              {/* Bloc principal : réservé aux adhérents */}
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100 px-5 py-5">
+                <h2 className="text-lg font-semibold text-[#774792] mb-1 flex items-center gap-2">
+                  <span>✨</span> Grâce à votre adhésion
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Vous avez accès aux contenus réservés aux adhérents :
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Link to="/assistant-ria" className="flex items-center gap-3 rounded-lg bg-white/80 hover:bg-white border border-purple-100 px-4 py-3 text-[#774792] font-semibold shadow-sm hover:shadow transition-all">
+                    <span className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-[#774792]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    </span>
+                    Assistant RIA (accès illimité)
+                  </Link>
+                  <Link to="/verificateur" className="flex items-center gap-3 rounded-lg bg-white/80 hover:bg-white border border-purple-100 px-4 py-3 text-[#774792] font-semibold shadow-sm hover:shadow transition-all">
+                    <span className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-[#774792]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    </span>
+                    Questionnaires du vérificateur
+                  </Link>
+                  <Link to="/fiches-pratiques" className="flex items-center gap-3 rounded-lg bg-white/80 hover:bg-white border border-purple-100 px-4 py-3 text-[#774792] font-semibold shadow-sm hover:shadow transition-all">
+                    <span className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-[#774792]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    </span>
+                    Fiches pratiques
+                  </Link>
+                  <Link to="/matrice-des-obligations" className="flex items-center gap-3 rounded-lg bg-white/80 hover:bg-white border border-purple-100 px-4 py-3 text-[#774792] font-semibold shadow-sm hover:shadow transition-all">
+                    <span className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-[#774792]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    </span>
+                    Matrice des obligations
+                  </Link>
+                </div>
+              </div>
+              {/* Autres contenus (accessibles aussi sans adhésion) — secondaire */}
+              <div className="px-5 py-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Vous avez aussi accès à</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+                  <Link to="/consulter" className="hover:text-[#774792] hover:underline">Consultation du règlement</Link>
+                  <span className="text-gray-300">·</span>
+                  <Link to="/ria-en-5-minutes" className="hover:text-[#774792] hover:underline">RIA en 5 minutes</Link>
+                  <span className="text-gray-300">·</span>
+                  <Link to="/quiz" className="hover:text-[#774792] hover:underline">Quiz</Link>
+                  <span className="text-gray-300">·</span>
+                  <Link to="/schemas" className="hover:text-[#774792] hover:underline">Schémas</Link>
+                  <span className="text-gray-300">·</span>
+                  <Link to="/documentation" className="hover:text-[#774792] hover:underline">Documentation & actualités</Link>
+                  <span className="text-gray-300">·</span>
+                  <Link to="/lexique" className="hover:text-[#774792] hover:underline">Lexique</Link>
+                  <span className="text-gray-300">·</span>
+                  <Link to="/doctrine" className="hover:text-[#774792] hover:underline">Articles de doctrine</Link>
+                </div>
+              </div>
+              <div className="px-5 py-4 bg-gray-50/80 border-t border-gray-100">
+                <p className="text-sm text-gray-600 mb-2">
+                  Une idée de nouvelle fonctionnalité ? Nous vous invitons à nous la faire part via le formulaire de contact.
+                </p>
+                <Link
+                  to="/contact"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-[#774792] hover:underline"
+                >
+                  Suggérer une fonctionnalité via le formulaire de contact
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </Link>
+              </div>
+            </div>
+
             {/* Section Mes informations */}
             <div className="bg-white border border-gray-200 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
