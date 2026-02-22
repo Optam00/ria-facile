@@ -88,6 +88,7 @@ interface DoctrineArticle {
   image_url?: string
   image_contenu_url?: string
   published?: boolean
+  show_linkedin_cta?: boolean
 }
 
 interface VeilleGroupRow {
@@ -140,6 +141,8 @@ interface FichePratique {
   concerne_rgpd?: boolean
   show_disclaimer?: boolean
   disclaimer_text?: string | null
+  show_linkedin_cta?: boolean
+  linkedin_cta_text?: string | null
   contenu: {
     sections: FichePratiqueSection[]
   }
@@ -151,6 +154,8 @@ interface FichePratique {
 
 const DEFAULT_DISCLAIMER_TEXT =
   'Cette fiche pratique peut impliquer des simplifications pour faciliter la compréhension. Une lecture attentive du texte officiel du Règlement IA est nécessaire pour une application complète et précise.<br><br>Pour bénéficier d\'un accompagnement personnalisé par des experts, <a href="/contact" style="color: #774792; text-decoration: underline; font-weight: 600;">contactez-nous via le formulaire</a>.'
+
+const DEFAULT_LINKEDIN_CTA_TEXT = 'Pour être informé des actualités,'
 
 const AdminConsolePage: React.FC = () => {
   const { signOut, isAdmin, profile, loading, session } = useAuth()
@@ -192,6 +197,7 @@ const AdminConsolePage: React.FC = () => {
     theme: '',
     image_url: '',
     image_contenu_url: '',
+    show_linkedin_cta: true,
   })
   const [doctrineImageFile, setDoctrineImageFile] = useState<File | null>(null)
   const [doctrineImagePreview, setDoctrineImagePreview] = useState<string | null>(null)
@@ -317,6 +323,8 @@ const AdminConsolePage: React.FC = () => {
     concerne_rgpd: false,
     show_disclaimer: true,
     disclaimer_text: DEFAULT_DISCLAIMER_TEXT,
+    show_linkedin_cta: true,
+    linkedin_cta_text: DEFAULT_LINKEDIN_CTA_TEXT,
   })
   const [articlesRiaInput, setArticlesRiaInput] = useState<string>('')
   const [fichePratiquePublished, setFichePratiquePublished] = useState<boolean>(false)
@@ -645,6 +653,7 @@ const AdminConsolePage: React.FC = () => {
           theme: '',
           image_url: '',
           image_contenu_url: '',
+          show_linkedin_cta: true,
         })
         setDoctrinePublished(true)
       }
@@ -659,6 +668,8 @@ const AdminConsolePage: React.FC = () => {
           concerne_rgpd: false,
           show_disclaimer: true,
           disclaimer_text: DEFAULT_DISCLAIMER_TEXT,
+          show_linkedin_cta: true,
+          linkedin_cta_text: DEFAULT_LINKEDIN_CTA_TEXT,
           sources: [],
         })
         setArticlesRiaInput('')
@@ -2945,6 +2956,7 @@ const AdminConsolePage: React.FC = () => {
       theme: doctrine.theme ?? '',
       image_url: doctrine.image_url ?? '',
       image_contenu_url: doctrine.image_contenu_url ?? '',
+      show_linkedin_cta: doctrine.show_linkedin_cta !== false,
     })
     setDoctrineImageFile(null)
     setDoctrineImagePreview(doctrine.image_url || null)
@@ -4837,6 +4849,7 @@ const AdminConsolePage: React.FC = () => {
                           image_url: imageUrl || null,
                           image_contenu_url: imageContenuUrl || null,
                           published: doctrinePublished,
+                          show_linkedin_cta: doctrineForm.show_linkedin_cta,
                         }
                         const isEdit = editingDoctrine !== null
                         const url = isEdit
@@ -4918,6 +4931,7 @@ const AdminConsolePage: React.FC = () => {
                             theme: '',
                             image_url: '',
                             image_contenu_url: '',
+                            show_linkedin_cta: true,
                           })
                           setDoctrineImageFile(null)
                           setDoctrineImagePreview(null)
@@ -5304,6 +5318,20 @@ const AdminConsolePage: React.FC = () => {
                       />
                     </div>
 
+                    <div className="border-t border-gray-200 pt-4">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={doctrineForm.show_linkedin_cta}
+                          onChange={(e) => setDoctrineForm({ ...doctrineForm, show_linkedin_cta: e.target.checked })}
+                          className="w-5 h-5 text-[#0a66c2] border-gray-300 rounded focus:ring-[#0a66c2] focus:ring-2"
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                          Afficher l&apos;invitation LinkedIn en bas de l&apos;article
+                        </span>
+                      </label>
+                    </div>
+
                     <div className="flex justify-end gap-3">
                       {editingDoctrine ? (
                         <button
@@ -5342,6 +5370,7 @@ const AdminConsolePage: React.FC = () => {
                               theme: '',
                               image_url: '',
                               image_contenu_url: '',
+                              show_linkedin_cta: true,
                             })
                           }
                           className="px-5 py-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
@@ -5732,6 +5761,166 @@ const AdminConsolePage: React.FC = () => {
               {/* Sections pour les fiches pratiques */}
               {selectedAction === 'ajouter-fiche-pratique' && (
                 <div>
+                  <form
+                    className="space-y-6"
+                    onSubmit={async (e) => {
+                      e.preventDefault()
+                      setIsSubmitting(true)
+                      setFormStatus({ type: null, message: '' })
+
+                      try {
+                        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+                        
+                        if (!fichePratiqueForm.slug.trim()) {
+                          throw new Error('Le slug est requis')
+                        }
+                        if (!fichePratiqueForm.titre.trim()) {
+                          throw new Error('Le titre est requis')
+                        }
+                        
+                        console.log('Validation OK, envoi de la fiche pratique...')
+                        console.log('Nombre de sections:', fichePratiqueSections.length)
+                        console.log('Sections:', JSON.stringify(fichePratiqueSections, null, 2))
+
+                        let finalSections = [...fichePratiqueSections]
+
+                        console.log('Préparation des sections...', finalSections)
+                        const sectionsWithPositions = finalSections.length > 0
+                          ? finalSections.map((s, index) => {
+                              const cleanedSection: any = {
+                                type: s.type,
+                                position: index + 1,
+                              }
+                              if (s.id) cleanedSection.id = s.id
+                              if (s.titre) cleanedSection.titre = s.titre
+                              if (s.blocs && s.blocs.length > 0) {
+                                cleanedSection.blocs = s.blocs.map(block => {
+                                  const cleanedBlock: any = {
+                                    type: block.type,
+                                    id: block.id,
+                                  }
+                                  if (block.texte) cleanedBlock.texte = block.texte
+                                  if (block.contenu) cleanedBlock.contenu = block.contenu
+                                  if (block.table_data) cleanedBlock.table_data = block.table_data
+                                  if (block.style) cleanedBlock.style = block.style
+                                  return cleanedBlock
+                                })
+                              }
+                              if (s.contenu) cleanedSection.contenu = s.contenu
+                              if (s.image_url) cleanedSection.image_url = s.image_url
+                              if (s.alt) cleanedSection.alt = s.alt
+                              if (s.table_data) cleanedSection.table_data = s.table_data
+                              if (s.sources) cleanedSection.sources = s.sources
+                              return cleanedSection
+                            })
+                          : []
+                        console.log('Sections préparées:', JSON.stringify(sectionsWithPositions, null, 2))
+
+                        const headers = await getAuthHeaders()
+                        const isEdit = editingFichePratique !== null
+                        const url = isEdit
+                          ? `${supabaseUrl}/rest/v1/fiches_pratiques?id=eq.${editingFichePratique.id}`
+                          : `${supabaseUrl}/rest/v1/fiches_pratiques`
+                        const publishedValue = fichePratiquePublished
+                        
+                        const payload = {
+                          slug: fichePratiqueForm.slug.trim(),
+                          titre: fichePratiqueForm.titre.trim(),
+                          description: fichePratiqueForm.description.trim() || null,
+                          articles_ria: fichePratiqueForm.articles_ria,
+                          concerne_rgpd: fichePratiqueForm.concerne_rgpd,
+                          show_disclaimer: fichePratiqueForm.show_disclaimer,
+                          disclaimer_text: fichePratiqueForm.disclaimer_text?.trim() || null,
+                          show_linkedin_cta: fichePratiqueForm.show_linkedin_cta,
+                          linkedin_cta_text: null,
+                          contenu: {
+                            sections: sectionsWithPositions,
+                          },
+                          published: publishedValue,
+                        }
+                        
+                        console.log('Envoi de la requête:', { url, method: isEdit ? 'PATCH' : 'POST', payload })
+                        const response = await fetch(url, {
+                          method: isEdit ? 'PATCH' : 'POST',
+                          headers: {
+                            ...headers,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=representation'
+                          },
+                          body: JSON.stringify(payload),
+                        })
+
+                        console.log('Réponse reçue:', response.status, response.statusText)
+
+                        if (!response.ok) {
+                          const text = await response.text()
+                          console.error('Erreur Supabase - Status:', response.status)
+                          console.error('Erreur Supabase - Body:', text)
+                          try {
+                            const errorJson = JSON.parse(text)
+                            let errorMessage = errorJson.message || errorJson.error_description || text || `Erreur Supabase (${response.status})`
+                            if (errorJson.code === '23505') {
+                              if (errorJson.message?.includes('slug')) {
+                                errorMessage = `Le slug "${fichePratiqueForm.slug}" existe déjà. Veuillez utiliser un slug unique (ex: "${fichePratiqueForm.slug}-2" ou un autre nom).`
+                              } else {
+                                errorMessage = `Une valeur existe déjà en base de données. ${errorJson.message}`
+                              }
+                            } else if (response.status === 409) {
+                              errorMessage = `Conflit : ${errorMessage}`
+                            }
+                            throw new Error(errorMessage)
+                          } catch (parseError) {
+                            throw new Error(text || `Erreur Supabase (${response.status})`)
+                          }
+                        }
+                        
+                        const responseData = await response.json()
+                        console.log('Fiche pratique enregistrée avec succès!')
+                        setFormStatus({ 
+                          type: 'success', 
+                          message: fichePratiquePublished
+                            ? (isEdit ? 'Fiche pratique publiée et modifiée avec succès.' : 'Fiche pratique publiée avec succès.')
+                            : (isEdit ? 'Brouillon modifié avec succès. La fiche n\'est pas encore publiée.' : 'Brouillon enregistré avec succès. La fiche n\'est pas encore publiée.')
+                        })
+                        
+                        setFichePratiqueForm({
+                          slug: '',
+                          titre: '',
+                          description: '',
+                          articles_ria: [],
+                          concerne_rgpd: false,
+                          show_disclaimer: true,
+                          disclaimer_text: DEFAULT_DISCLAIMER_TEXT,
+                          show_linkedin_cta: true,
+                          linkedin_cta_text: DEFAULT_LINKEDIN_CTA_TEXT,
+                          sources: [],
+                        })
+                        setArticlesRiaInput('')
+                        setFichePratiquePublished(false)
+                        setFichePratiqueSections([])
+                        setEditingFichePratique(null)
+                        
+                        if (selectedAction === 'consulter-fiches-pratiques') {
+                          const { data, error } = await supabase
+                            .from('fiches_pratiques')
+                            .select('*')
+                            .order('created_at', { ascending: false })
+                          if (!error && data) {
+                            setFichesPratiquesList(data)
+                          }
+                        }
+                      } catch (err) {
+                        console.error('Erreur lors de l\'enregistrement de la fiche pratique:', err)
+                        const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue.'
+                        setFormStatus({
+                          type: 'error',
+                          message: errorMessage,
+                        })
+                      } finally {
+                        setIsSubmitting(false)
+                      }
+                    }}
+                  >
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h2 className="text-2xl font-semibold text-gray-800 mb-2">
@@ -5745,8 +5934,16 @@ const AdminConsolePage: React.FC = () => {
                       </p>
                     </div>
                     
-                    {/* Toggle pour publié/non publié */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="px-3 py-1.5 text-sm rounded-lg text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                      </button>
+                      {/* Toggle pour publié/non publié */}
+                      <div className="flex items-center gap-3">
                       <span className={`text-sm font-medium transition-colors ${!fichePratiquePublished ? 'text-gray-700' : 'text-gray-400'}`}>
                         Non publié
                       </span>
@@ -5769,6 +5966,7 @@ const AdminConsolePage: React.FC = () => {
                         Publié
                       </span>
                     </div>
+                    </div>
                   </div>
 
                   {formStatus.type && (
@@ -5783,197 +5981,6 @@ const AdminConsolePage: React.FC = () => {
                     </div>
                   )}
 
-                  <form
-                    className="space-y-6"
-                    onSubmit={async (e) => {
-                      e.preventDefault()
-                      setIsSubmitting(true)
-                      setFormStatus({ type: null, message: '' })
-
-                      try {
-                        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-                        
-                        // Validation
-                        if (!fichePratiqueForm.slug.trim()) {
-                          throw new Error('Le slug est requis')
-                        }
-                        if (!fichePratiqueForm.titre.trim()) {
-                          throw new Error('Le titre est requis')
-                        }
-                        // Note: On permet l'enregistrement sans sections pour l'instant, l'utilisateur peut ajouter le contenu plus tard
-                        // if (fichePratiqueSections.length === 0) {
-                        //   throw new Error('Au moins une section est requise. Cliquez sur "Ajouter une section" ou "Ajouter une image" dans la section "Contenu de la fiche".')
-                        // }
-                        
-                        console.log('Validation OK, envoi de la fiche pratique...')
-                        console.log('Nombre de sections:', fichePratiqueSections.length)
-                        console.log('Sections:', JSON.stringify(fichePratiqueSections, null, 2))
-
-                        // Utiliser directement les sections du contenu flexible
-                        let finalSections = [...fichePratiqueSections]
-
-                        // Les sections sources sont maintenant gérées directement dans l'éditeur de sections
-                        // Plus besoin de les créer depuis le formulaire
-
-                        // Préparer les sections avec positions correctes
-                        console.log('Préparation des sections...', finalSections)
-                        const sectionsWithPositions = finalSections.length > 0
-                          ? finalSections.map((s, index) => {
-                              // Nettoyer les sections : garder seulement les champs nécessaires pour la base
-                              const cleanedSection: any = {
-                                type: s.type,
-                                position: index + 1,
-                              }
-                              if (s.id) cleanedSection.id = s.id
-                              if (s.titre) cleanedSection.titre = s.titre
-                              // Préserver les blocs (nouveau format avec sous-titres, textes, tableaux)
-                              if (s.blocs && s.blocs.length > 0) {
-                                cleanedSection.blocs = s.blocs.map(block => {
-                                  const cleanedBlock: any = {
-                                    type: block.type,
-                                    id: block.id,
-                                  }
-                                  if (block.texte) cleanedBlock.texte = block.texte
-                                  if (block.contenu) cleanedBlock.contenu = block.contenu
-                                  if (block.table_data) cleanedBlock.table_data = block.table_data
-                                  if (block.style) cleanedBlock.style = block.style
-                                  return cleanedBlock
-                                })
-                              }
-                              // Préserver l'ancien format pour compatibilité
-                              if (s.contenu) cleanedSection.contenu = s.contenu
-                              if (s.image_url) cleanedSection.image_url = s.image_url
-                              if (s.alt) cleanedSection.alt = s.alt
-                              if (s.table_data) cleanedSection.table_data = s.table_data
-                              if (s.sources) cleanedSection.sources = s.sources
-                              return cleanedSection
-                            })
-                          : [] // Permettre l'enregistrement sans sections
-                        console.log('Sections préparées:', JSON.stringify(sectionsWithPositions, null, 2))
-
-                        console.log('Récupération des headers d\'authentification...')
-                        const headers = await getAuthHeaders()
-                        console.log('Headers récupérés, URL Supabase:', supabaseUrl)
-                        
-                        // Si on est en mode édition, utiliser PUT, sinon POST
-                        const isEdit = editingFichePratique !== null
-                        const url = isEdit
-                          ? `${supabaseUrl}/rest/v1/fiches_pratiques?id=eq.${editingFichePratique.id}`
-                          : `${supabaseUrl}/rest/v1/fiches_pratiques`
-                        
-                        // Utiliser le statut du toggle publié/non publié
-                        const publishedValue = fichePratiquePublished
-                        
-                        const payload = {
-                          slug: fichePratiqueForm.slug.trim(),
-                          titre: fichePratiqueForm.titre.trim(),
-                          description: fichePratiqueForm.description.trim() || null,
-                          articles_ria: fichePratiqueForm.articles_ria,
-                          concerne_rgpd: fichePratiqueForm.concerne_rgpd,
-                          show_disclaimer: fichePratiqueForm.show_disclaimer,
-                          disclaimer_text: fichePratiqueForm.disclaimer_text?.trim() || null,
-                          contenu: {
-                            sections: sectionsWithPositions,
-                          },
-                          published: publishedValue,
-                        }
-                        
-                        console.log('Envoi de la requête:', { url, method: isEdit ? 'PATCH' : 'POST', payload })
-                        console.log('Headers:', Object.keys(headers))
-                        console.log('Payload JSON:', JSON.stringify(payload, null, 2))
-                        
-                        const response = await fetch(url, {
-                          method: isEdit ? 'PATCH' : 'POST',
-                          headers: {
-                            ...headers,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=representation'
-                          },
-                          body: JSON.stringify(payload),
-                        })
-
-                        console.log('Réponse reçue:', response.status, response.statusText)
-                        console.log('Headers de réponse:', Object.fromEntries(response.headers.entries()))
-
-                        if (!response.ok) {
-                          const text = await response.text()
-                          console.error('Erreur Supabase - Status:', response.status)
-                          console.error('Erreur Supabase - Body:', text)
-                          try {
-                            const errorJson = JSON.parse(text)
-                            console.error('Erreur Supabase - JSON:', errorJson)
-                            
-                            // Gestion spécifique des erreurs courantes
-                            let errorMessage = errorJson.message || errorJson.error_description || text || `Erreur Supabase (${response.status})`
-                            
-                            if (errorJson.code === '23505') {
-                              // Erreur de contrainte unique (slug dupliqué)
-                              if (errorJson.message?.includes('slug')) {
-                                errorMessage = `Le slug "${fichePratiqueForm.slug}" existe déjà. Veuillez utiliser un slug unique (ex: "${fichePratiqueForm.slug}-2" ou un autre nom).`
-                              } else {
-                                errorMessage = `Une valeur existe déjà en base de données. ${errorJson.message}`
-                              }
-                            } else if (response.status === 409) {
-                              errorMessage = `Conflit : ${errorMessage}`
-                            }
-                            
-                            throw new Error(errorMessage)
-                          } catch (parseError) {
-                            throw new Error(text || `Erreur Supabase (${response.status})`)
-                          }
-                        }
-                        
-                        const responseData = await response.json()
-                        console.log('Données de réponse:', responseData)
-
-                        console.log('Fiche pratique enregistrée avec succès!')
-                        setFormStatus({ 
-                          type: 'success', 
-                          message: fichePratiquePublished
-                            ? (isEdit ? 'Fiche pratique publiée et modifiée avec succès.' : 'Fiche pratique publiée avec succès.')
-                            : (isEdit ? 'Brouillon modifié avec succès. La fiche n\'est pas encore publiée.' : 'Brouillon enregistré avec succès. La fiche n\'est pas encore publiée.')
-                        })
-                        
-                        // Réinitialiser le formulaire
-                        setFichePratiqueForm({
-                          slug: '',
-                          titre: '',
-                          description: '',
-                          articles_ria: [],
-                          concerne_rgpd: false,
-                          show_disclaimer: true,
-                          disclaimer_text: DEFAULT_DISCLAIMER_TEXT,
-                          sources: [],
-                        })
-                        setArticlesRiaInput('')
-                        setFichePratiquePublished(false)
-                        setFichePratiqueSections([])
-                        setEditingFichePratique(null)
-                        
-                        // Recharger la liste si on était en mode consultation
-                        if (selectedAction === 'consulter-fiches-pratiques') {
-                          // Utiliser le client authentifié pour voir toutes les fiches (publiées et brouillons)
-                          const { data, error } = await supabase
-                            .from('fiches_pratiques')
-                            .select('*')
-                            .order('created_at', { ascending: false })
-                          if (!error && data) {
-                            setFichesPratiquesList(data)
-                          }
-                        }
-                      } catch (err) {
-                        console.error('Erreur lors de l\'enregistrement de la fiche pratique:', err)
-                        const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue.'
-                        console.error('Message d\'erreur:', errorMessage)
-                        setFormStatus({
-                          type: 'error',
-                          message: errorMessage,
-                        })
-                      } finally {
-                        setIsSubmitting(false)
-                      }
-                    }}
-                  >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -6238,6 +6245,18 @@ const AdminConsolePage: React.FC = () => {
                               </p>
                             </div>
                           </details>
+
+                          <label className="flex items-center gap-3 cursor-pointer pt-2 border-t border-gray-100 mt-4">
+                            <input
+                              type="checkbox"
+                              checked={fichePratiqueForm.show_linkedin_cta}
+                              onChange={(e) => setFichePratiqueForm({ ...fichePratiqueForm, show_linkedin_cta: e.target.checked })}
+                              className="w-5 h-5 text-[#0a66c2] border-gray-300 rounded focus:ring-[#0a66c2] focus:ring-2"
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                              Afficher l&apos;invitation LinkedIn en bas de la fiche
+                            </span>
+                          </label>
                         </div>
                       </div>
 
@@ -6543,6 +6562,10 @@ const AdminConsolePage: React.FC = () => {
                                       disclaimer_text: fiche.disclaimer_text && fiche.disclaimer_text.trim().length > 0
                                         ? fiche.disclaimer_text
                                         : DEFAULT_DISCLAIMER_TEXT,
+                                      show_linkedin_cta: fiche.show_linkedin_cta !== false,
+                                      linkedin_cta_text: fiche.linkedin_cta_text && fiche.linkedin_cta_text.trim().length > 0
+                                        ? fiche.linkedin_cta_text
+                                        : DEFAULT_LINKEDIN_CTA_TEXT,
                                       sources: [],
                                     })
                                     setArticlesRiaInput(fiche.articles_ria.join(', '))

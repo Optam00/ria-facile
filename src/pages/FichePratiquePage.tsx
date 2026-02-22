@@ -51,6 +51,8 @@ interface FichePratique {
   image_url?: string
   show_disclaimer?: boolean
   disclaimer_text?: string | null
+  show_linkedin_cta?: boolean
+  linkedin_cta_text?: string | null
 }
 
 const FichePratiquePage: React.FC = () => {
@@ -61,6 +63,9 @@ const FichePratiquePage: React.FC = () => {
   const [sourcesOuvertes, setSourcesOuvertes] = useState(false)
   const defaultDisclaimerText =
     "Cette fiche pratique peut impliquer des simplifications pour faciliter la compréhension. Une lecture attentive du texte officiel du Règlement IA est nécessaire pour une application complète et précise.<br><br>Pour bénéficier d'un accompagnement personnalisé par des experts, <a href=\"/contact\" style=\"color: #774792; text-decoration: underline; font-weight: 600;\">contactez-nous via le formulaire</a>."
+
+  const defaultLinkedinCtaText = 'Pour être informé des actualités,'
+  const LINKEDIN_COMPANY_URL = 'https://www.linkedin.com/company/ria-facile/?viewAsMember=true'
 
   useEffect(() => {
     const fetchFiche = async () => {
@@ -655,6 +660,32 @@ const FichePratiquePage: React.FC = () => {
                           : defaultDisclaimerText
                       }}
                     />
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Invitation LinkedIn - Optionnel selon la fiche */}
+          {(fiche.show_linkedin_cta !== false) && (
+            <div className="bg-[#f3f6f8] border border-[#cfd5dc] rounded-lg p-6 mb-8">
+              <div className="flex items-center gap-3">
+                <svg className="w-8 h-8 text-[#0a66c2] shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+                <div className="flex-1">
+                  <p className="text-gray-700 text-sm">
+                    {(fiche.linkedin_cta_text && fiche.linkedin_cta_text.trim().length > 0)
+                      ? fiche.linkedin_cta_text
+                      : defaultLinkedinCtaText}{' '}
+                    <a
+                      href={LINKEDIN_COMPANY_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#0a66c2] font-semibold hover:underline"
+                    >
+                      Suivez RIA Facile sur LinkedIn
+                    </a>
                   </p>
                 </div>
               </div>
