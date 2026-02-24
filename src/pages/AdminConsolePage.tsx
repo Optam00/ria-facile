@@ -6834,40 +6834,48 @@ const AdminConsolePage: React.FC = () => {
                         onImageUpload={async (file, sectionId) => {
                           console.log('Upload d\'image dans section:', sectionId, 'Fichier:', file.name)
                           try {
-                            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-                            const fileName = `fiches-pratiques/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
-                            const filePath = `${fileName}`
-
-                            console.log('Upload vers:', filePath)
-                            
-                            // Créer un timeout pour l'upload
-                            const uploadPromise = supabase.storage
-                              .from('fiches-pratiques-images')
-                              .upload(filePath, file, {
-                                cacheControl: '3600',
-                                upsert: false
-                              })
-                            
-                            const timeoutPromise = new Promise<never>((_, reject) => {
-                              setTimeout(() => reject(new Error('Timeout: l\'upload de l\'image a pris trop de temps')), 30000)
-                            })
-                            
-                            const { error: uploadError } = await Promise.race([
-                              uploadPromise,
-                              timeoutPromise
-                            ])
-
-                            if (uploadError) {
-                              console.error('Erreur upload image section:', uploadError)
-                              throw uploadError
+                            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL
+                            const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+                            if (!supabaseUrl || !supabaseAnonKey) {
+                              throw new Error('Configuration Supabase manquante (URL ou clé anon).')
                             }
 
-                            console.log('Upload réussi, récupération de l\'URL publique...')
-                            const { data: { publicUrl } } = supabase.storage
-                              .from('fiches-pratiques-images')
-                              .getPublicUrl(filePath)
+                            const headers = await getAuthHeaders()
+                            const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+                            const filePath = `fiches-pratiques/${Date.now()}-${safeName}`
+                            const encodedPath = filePath.split('/').map(encodeURIComponent).join('/')
 
-                            console.log('URL publique récupérée:', publicUrl)
+                            const uploadUrl = `${supabaseUrl}/storage/v1/object/fiches-pratiques-images/${encodedPath}`
+                            console.log('Upload REST vers:', uploadUrl)
+
+                            const controller = new AbortController()
+                            const timeoutId = setTimeout(() => {
+                              controller.abort()
+                            }, 30000)
+
+                            const uploadRes = await fetch(uploadUrl, {
+                              method: 'POST',
+                              headers: {
+                                apikey: supabaseAnonKey,
+                                Authorization: (headers as { Authorization: string }).Authorization,
+                                'Content-Type': file.type || 'application/octet-stream',
+                                'x-upsert': 'false',
+                                'cache-control': '3600',
+                              },
+                              body: file,
+                              signal: controller.signal,
+                            })
+
+                            clearTimeout(timeoutId)
+
+                            if (!uploadRes.ok) {
+                              const text = await uploadRes.text()
+                              console.error('Erreur upload image section (HTTP):', uploadRes.status, text)
+                              throw new Error(text || `Erreur upload image (${uploadRes.status})`)
+                            }
+
+                            const publicUrl = `${supabaseUrl}/storage/v1/object/public/fiches-pratiques-images/${encodedPath}`
+                            console.log('URL publique image section:', publicUrl)
                             return publicUrl
                           } catch (error) {
                             console.error('Erreur complète upload image section:', error)
