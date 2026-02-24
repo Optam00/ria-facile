@@ -77,7 +77,7 @@ const DoctrineArticlePage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Helmet>
-        <title>{article.titre} - RIA Facile</title>
+        <title>{`${article.titre ?? 'Article'} - RIA Facile`}</title>
         <meta name="description" content={article.abstract} />
         {/* Open Graph */}
         <meta property="og:title" content={article.titre + ' - RIA Facile'} />

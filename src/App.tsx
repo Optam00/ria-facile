@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, Component, ErrorInfo, ReactNode } from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { Navigation } from './components/Navigation'
 import { Footer } from './components/Footer'
@@ -62,6 +62,39 @@ function ScrollToTop() {
   return null
 }
 
+class RouteErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
+  state = { hasError: false, error: null as Error | null }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('RouteErrorBoundary:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError && this.state.error) {
+      return (
+        <div className="min-h-[50vh] flex items-center justify-center p-8">
+          <div className="text-center max-w-md">
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Une erreur s&apos;est produite</h2>
+            <p className="text-gray-600 text-sm mb-4">{this.state.error.message}</p>
+            <button
+              type="button"
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700"
+            >
+              Réessayer
+            </button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 function App() {
   return (
     <HelmetProvider>
@@ -73,6 +106,7 @@ function App() {
             <Navigation />
             <Popup />
             <div className="container mx-auto px-4 py-8 flex-grow">
+              <RouteErrorBoundary>
               <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/quiz" element={<QuizIntroPage />} />
@@ -119,6 +153,7 @@ function App() {
               <Route path="/ria-en-5-minutes" element={<RIAEn5MinutesPage />} />
               <Route path="/rag" element={<RAGTestPage />} />
               </Routes>
+              </RouteErrorBoundary>
             </div>
             <Footer />
             <CookieConsentBanner />

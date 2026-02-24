@@ -4,12 +4,13 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABA
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  // On loggue plutôt que de throw pour éviter de casser le rendu en prod
   console.error('Supabase public client: variables VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY manquantes')
 }
 
-// Client "lecture seule" public, indépendant de la session admin
-export const supabasePublic = createClient(supabaseUrl, supabaseAnonKey, {
+const _url = supabaseUrl || 'https://placeholder.supabase.co'
+const _key = supabaseAnonKey || 'placeholder-anon-key'
+
+export const supabasePublic = createClient(_url, _key, {
   auth: {
     persistSession: false,
     autoRefreshToken: false,

@@ -44,7 +44,7 @@ const isTokenExpired = (token: string): boolean => {
   }
 }
 
-type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'veille' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-rag-questions' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | 'ajouter-fiche-pratique' | 'consulter-fiches-pratiques' | null
+type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'veille' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-rag-questions' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | 'ajouter-fiche-pratique' | 'consulter-fiches-pratiques' | 'gestion-schemas' | null
 
 interface Actualite {
   id: number
@@ -89,6 +89,16 @@ interface DoctrineArticle {
   image_contenu_url?: string
   published?: boolean
   show_linkedin_cta?: boolean
+}
+
+interface RiaSchema {
+  id: number
+  title: string
+  image_url: string
+  position: number
+  published: boolean
+  visible_to: 'all' | 'members'
+  created_at?: string
 }
 
 interface VeilleGroupRow {
@@ -296,6 +306,21 @@ const AdminConsolePage: React.FC = () => {
   const [isLoadingDoctrine, setIsLoadingDoctrine] = useState(false)
   const [editingDoctrine, setEditingDoctrine] = useState<DoctrineArticle | null>(null)
   const [deleteDoctrineConfirmId, setDeleteDoctrineConfirmId] = useState<number | null>(null)
+
+  // États pour la gestion des schémas (RIA en schémas)
+  const [schemasList, setSchemasList] = useState<RiaSchema[]>([])
+  const [isLoadingSchemas, setIsLoadingSchemas] = useState(false)
+  const [schemaFormTitle, setSchemaFormTitle] = useState('')
+  const [schemaFormFile, setSchemaFormFile] = useState<File | null>(null)
+  const [isUploadingSchema, setIsUploadingSchema] = useState(false)
+  const [deleteSchemaConfirmId, setDeleteSchemaConfirmId] = useState<number | null>(null)
+  const [schemaFormPublished, setSchemaFormPublished] = useState(true)
+  const [schemaFormVisibleTo, setSchemaFormVisibleTo] = useState<'all' | 'members'>('all')
+  const [schemaDraggingId, setSchemaDraggingId] = useState<number | null>(null)
+  const [schemaDropIndex, setSchemaDropIndex] = useState<number | null>(null)
+  const [schemaLoadTrigger, setSchemaLoadTrigger] = useState(0)
+  const [schemaFormKey, setSchemaFormKey] = useState(0)
+  const schemaFileInputRef = useRef<HTMLInputElement | null>(null)
   
   // États pour la gestion du quiz
   const [questionForm, setQuestionForm] = useState({
@@ -511,6 +536,14 @@ const AdminConsolePage: React.FC = () => {
       ],
     },
     {
+      key: 'schemas',
+      label: 'RIA en schémas',
+      icon: '📊',
+      items: [
+        { id: 'gestion-schemas' as AdminAction, label: 'Gérer les schémas', icon: '📋' },
+      ],
+    },
+    {
       key: 'ria',
       label: 'RIA',
       icon: '✨',
@@ -601,6 +634,10 @@ const AdminConsolePage: React.FC = () => {
       setDoctrineThemeFilter('')
       setDeleteDoctrineConfirmId(null)
       setEditingDoctrine(null)
+    } else if (selectedAction === 'gestion-schemas') {
+      setSchemaFormTitle('')
+      setSchemaFormFile(null)
+      setDeleteSchemaConfirmId(null)
     } else if (selectedAction === 'ajouter-question') {
       setQuestionForm({
         Question: '',
@@ -1201,6 +1238,70 @@ const AdminConsolePage: React.FC = () => {
 
     loadDoctrine()
   }, [selectedAction])
+
+  // Charger la liste des schémas (RIA en schémas) quand on arrive sur "gestion-schemas" — fetch avec auth comme le reste de l'admin
+  useEffect(() => {
+    if (selectedAction !== 'gestion-schemas') return
+
+    const loadSchemas = async () => {
+      setIsLoadingSchemas(true)
+      setFormStatus({ type: null, message: '' })
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      try {
+        const headers = await getAuthHeaders()
+        const res = await fetch(
+          `${supabaseUrl}/rest/v1/ria_schemas?select=*&order=position.asc`,
+          {
+            method: 'GET',
+            headers: {
+              apikey: supabaseAnonKey,
+              Authorization: (headers as { Authorization: string }).Authorization,
+              'Content-Type': 'application/json',
+            },
+            signal: controller.signal,
+          }
+        )
+        clearTimeout(timeoutId)
+
+        if (!res.ok) {
+          const text = await res.text()
+          let msg = `Erreur ${res.status}`
+          try {
+            const j = JSON.parse(text)
+            if (j.message) msg = j.message
+            else if (j.error_description) msg = j.error_description
+          } catch {
+            if (text) msg = text.slice(0, 200)
+          }
+          if (res.status === 401) msg = 'Session expirée. Reconnectez-vous.'
+          if (res.status === 403) msg = 'Droits insuffisants. Vérifiez que votre compte a le rôle admin (table profiles).'
+          throw new Error(msg)
+        }
+
+        const data = await res.json()
+        const rows = Array.isArray(data) ? data : []
+        setSchemasList(rows.map((row: Record<string, unknown>) => ({
+          id: row.id as number,
+          title: (row.title as string) ?? '',
+          image_url: (row.image_url as string) ?? '',
+          position: (row.position as number) ?? 0,
+          published: row.published !== false,
+          visible_to: (row.visible_to === 'members' ? 'members' : 'all') as 'all' | 'members',
+          created_at: row.created_at as string | undefined,
+        })))
+      } catch (err) {
+        console.error('Erreur lors du chargement des schémas:', err)
+        const message = err instanceof Error ? err.message : 'Impossible de charger les schémas.'
+        setFormStatus({ type: 'error', message })
+      } finally {
+        setIsLoadingSchemas(false)
+      }
+    }
+
+    loadSchemas()
+  }, [selectedAction, schemaLoadTrigger])
 
   // Charger les groupes et liens de veille (admin uniquement, fetch avec auth comme le reste de l'admin)
   useEffect(() => {
@@ -2999,6 +3100,255 @@ const AdminConsolePage: React.FC = () => {
         type: 'error',
         message: err instanceof Error ? err.message : 'Une erreur est survenue.',
       })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Ajouter un schéma (RIA en schémas) — upload via REST + INSERT avec timeouts courts
+  const handleAddSchema = async () => {
+    if (!schemaFormTitle.trim() || !schemaFormFile) {
+      setFormStatus({ type: 'error', message: 'Titre et image requis.' })
+      return
+    }
+    setIsUploadingSchema(true)
+    setFormStatus({ type: null, message: '' })
+    const UPLOAD_TIMEOUT_MS = 60_000
+    const INSERT_TIMEOUT_MS = 20_000
+    let currentStep: 'session' | 'upload' | 'insert' = 'session'
+
+    try {
+      setFormStatus({ type: null, message: 'Récupération de la session…' })
+      const headers = await getAuthHeaders()
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const filePath = `schemas/${Date.now()}-${schemaFormFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+
+      currentStep = 'upload'
+      setFormStatus({ type: null, message: 'Upload de l\'image…' })
+      const uploadController = new AbortController()
+      const uploadTimeoutId = setTimeout(() => uploadController.abort(), UPLOAD_TIMEOUT_MS)
+      const uploadPathEnc = filePath.split('/').map(encodeURIComponent).join('/')
+      const uploadRes = await fetch(
+        `${supabaseUrl}/storage/v1/object/ria-schemas/${uploadPathEnc}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: (headers as { Authorization: string }).Authorization,
+            apikey: supabaseAnonKey,
+            'Content-Type': schemaFormFile.type || 'image/png',
+          },
+          body: schemaFormFile,
+          signal: uploadController.signal,
+        }
+      )
+      clearTimeout(uploadTimeoutId)
+      if (!uploadRes.ok) {
+        const errText = await uploadRes.text()
+        throw new Error(`Upload échoué (${uploadRes.status}) : ${errText.slice(0, 150) || 'vérifiez le bucket ria-schemas et vos droits.'}`)
+      }
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/ria-schemas/${uploadPathEnc}`
+
+      currentStep = 'insert'
+      setFormStatus({ type: null, message: 'Enregistrement du schéma…' })
+      const insertController = new AbortController()
+      const insertTimeoutId = setTimeout(() => insertController.abort(), INSERT_TIMEOUT_MS)
+      const maxPosition = schemasList.length === 0 ? 0 : Math.max(...schemasList.map(s => s.position), 0)
+      const postHeaders = { ...headers, 'Content-Type': 'application/json', 'Prefer': 'return=representation' as const }
+      let body: Record<string, unknown> = {
+        title: schemaFormTitle.trim(),
+        image_url: publicUrl,
+        position: maxPosition + 1,
+        published: schemaFormPublished,
+        visible_to: schemaFormVisibleTo,
+      }
+      let response = await fetch(`${supabaseUrl}/rest/v1/ria_schemas`, {
+        method: 'POST',
+        headers: postHeaders as Record<string, string>,
+        body: JSON.stringify(body),
+        signal: insertController.signal,
+      })
+      clearTimeout(insertTimeoutId)
+
+      if (!response.ok) {
+        const errText = await response.text()
+        if (response.status === 400 && (errText.includes('column') || errText.includes('published') || errText.includes('visible_to'))) {
+          body = { title: body.title, image_url: body.image_url, position: body.position }
+          const retryRes = await fetch(`${supabaseUrl}/rest/v1/ria_schemas`, {
+            method: 'POST',
+            headers: postHeaders as Record<string, string>,
+            body: JSON.stringify(body),
+            signal: insertController.signal,
+          })
+          if (!retryRes.ok) throw new Error(await retryRes.text())
+          response = retryRes
+        } else {
+          throw new Error(errText || `Erreur ${response.status}`)
+        }
+      }
+
+      const responseText = await response.text()
+      let inserted: unknown
+      try {
+        inserted = responseText ? JSON.parse(responseText) : null
+      } catch {
+        inserted = null
+      }
+      if (inserted == null) {
+        setSchemaLoadTrigger(t => t + 1)
+        setSchemaFormTitle('')
+        setSchemaFormFile(null)
+        setSchemaFormPublished(true)
+        setSchemaFormVisibleTo('all')
+        setSchemaFormKey(k => k + 1)
+        setFormStatus({ type: 'success', message: 'Schéma enregistré. Liste rafraîchie.' })
+        return
+      }
+      const normalized = Array.isArray(inserted) ? inserted : [inserted]
+      const withDefaults = normalized.map((row: Record<string, unknown>) => ({
+        id: row.id as number,
+        title: (row.title as string) ?? '',
+        image_url: (row.image_url as string) ?? '',
+        position: (row.position as number) ?? 0,
+        published: row.published !== false,
+        visible_to: (row.visible_to === 'members' ? 'members' : 'all') as 'all' | 'members',
+      }))
+      setSchemasList(prev => [...prev, ...withDefaults].sort((a, b) => a.position - b.position))
+      setSchemaFormTitle('')
+      setSchemaFormFile(null)
+      setSchemaFormPublished(true)
+      setSchemaFormVisibleTo('all')
+      setSchemaFormKey(k => k + 1)
+      setFormStatus({ type: 'success', message: 'Schéma ajouté.' })
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        if (currentStep === 'upload') setFormStatus({ type: 'error', message: 'Upload trop long (60 s). Connexion lente ou fichier trop lourd — essayez une image < 2 Mo.' })
+        else if (currentStep === 'insert') setFormStatus({ type: 'error', message: 'Enregistrement trop long (20 s). Réessayez ou vérifiez Supabase.' })
+        else setFormStatus({ type: 'error', message: 'Délai dépassé. Réessayez.' })
+      } else {
+        setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de l\'ajout.' })
+      }
+    } finally {
+      setIsUploadingSchema(false)
+    }
+  }
+
+  // Mettre à jour l'ordre d'un schéma
+  const handleUpdateSchemaPosition = async (id: number, newPosition: number) => {
+    try {
+      const headers = await getAuthHeaders()
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const response = await fetch(`${supabaseUrl}/rest/v1/ria_schemas?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ position: newPosition }),
+      })
+      if (!response.ok) throw new Error(await response.text())
+      setSchemasList(prev => prev.map(s => s.id === id ? { ...s, position: newPosition } : s).sort((a, b) => a.position - b.position))
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de la mise à jour.' })
+    }
+  }
+
+  // Mettre à jour le titre d'un schéma
+  const handleUpdateSchemaTitle = async (id: number, title: string) => {
+    const trimmed = title.trim() || 'Sans titre'
+    try {
+      const headers = await getAuthHeaders()
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const response = await fetch(`${supabaseUrl}/rest/v1/ria_schemas?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: trimmed }),
+      })
+      if (!response.ok) throw new Error(await response.text())
+      setSchemasList(prev => prev.map(s => s.id === id ? { ...s, title: trimmed } : s))
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de la mise à jour du titre.' })
+    }
+  }
+
+  // Mettre à jour publié / visibilité d'un schéma
+  const handleUpdateSchemaPublished = async (id: number, published: boolean) => {
+    try {
+      const headers = await getAuthHeaders()
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const response = await fetch(`${supabaseUrl}/rest/v1/ria_schemas?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ published }),
+      })
+      if (!response.ok) throw new Error(await response.text())
+      setSchemasList(prev => prev.map(s => s.id === id ? { ...s, published } : s))
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de la mise à jour.' })
+    }
+  }
+
+  const handleUpdateSchemaVisibleTo = async (id: number, visible_to: 'all' | 'members') => {
+    try {
+      const headers = await getAuthHeaders()
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const response = await fetch(`${supabaseUrl}/rest/v1/ria_schemas?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visible_to }),
+      })
+      if (!response.ok) throw new Error(await response.text())
+      setSchemasList(prev => prev.map(s => s.id === id ? { ...s, visible_to } : s))
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de la mise à jour.' })
+    }
+  }
+
+  // Drag-and-drop réordonnancement des schémas (comme veille)
+  const sortedSchemasList = [...schemasList].sort((a, b) => a.position - b.position)
+  const handleSchemaDragStart = (e: React.DragEvent, schemaId: number) => {
+    setSchemaDraggingId(schemaId)
+    e.dataTransfer.setData('application/ria-schema', String(schemaId))
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', '')
+  }
+  const handleSchemaDragEnd = () => {
+    setSchemaDraggingId(null)
+    setSchemaDropIndex(null)
+  }
+  const handleSchemaDrop = (e: React.DragEvent, toIndex: number) => {
+    e.preventDefault()
+    const idStr = e.dataTransfer.getData('application/ria-schema')
+    if (!idStr) return
+    const draggedId = Number(idStr)
+    const fromIndex = sortedSchemasList.findIndex(s => s.id === draggedId)
+    if (fromIndex === -1 || fromIndex === toIndex) {
+      handleSchemaDragEnd()
+      return
+    }
+    const newOrder = [...sortedSchemasList]
+    const [removed] = newOrder.splice(fromIndex, 1)
+    newOrder.splice(toIndex, 0, removed)
+    newOrder.forEach((s, idx) => {
+      if (s.position !== idx) handleUpdateSchemaPosition(s.id, idx)
+    })
+    setSchemasList(prev => {
+      const byId = Object.fromEntries(prev.map(s => [s.id, s]))
+      return newOrder.map((s, idx) => ({ ...byId[s.id], position: idx }))
+    })
+    handleSchemaDragEnd()
+  }
+
+  // Supprimer un schéma
+  const handleDeleteSchema = async (id: number) => {
+    setIsSubmitting(true)
+    setFormStatus({ type: null, message: '' })
+    try {
+      const headers = await getAuthHeaders()
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const response = await fetch(`${supabaseUrl}/rest/v1/ria_schemas?id=eq.${id}`, { method: 'DELETE', headers })
+      if (!response.ok) throw new Error(await response.text())
+      setSchemasList(prev => prev.filter(s => s.id !== id))
+      setFormStatus({ type: 'success', message: 'Schéma supprimé.' })
+      setDeleteSchemaConfirmId(null)
+    } catch (err) {
+      setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de la suppression.' })
     } finally {
       setIsSubmitting(false)
     }
@@ -5753,6 +6103,220 @@ const AdminConsolePage: React.FC = () => {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* RIA en schémas */}
+              {selectedAction === 'gestion-schemas' && (
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-800">Gérer les schémas</h2>
+                      <p className="text-gray-600 mt-2">Ajoutez des schémas, modifiez les titres, choisissez l&apos;ordre par glisser-déposer, et définissez la publication et la visibilité.</p>
+                    </div>
+                  </div>
+
+                  {formStatus.type && (
+                    <div className={`mb-4 rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 ${formStatus.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                      <span>{formStatus.message}</span>
+                      {formStatus.type === 'error' && selectedAction === 'gestion-schemas' && (
+                        <button
+                          type="button"
+                          onClick={() => setSchemaLoadTrigger(t => t + 1)}
+                          className="px-3 py-1.5 rounded-lg bg-white/80 hover:bg-white border border-red-200 text-red-700 text-sm font-medium"
+                        >
+                          Réessayer
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Formulaire d'ajout */}
+                  <div className="mb-8 p-6 bg-gradient-to-br from-purple-50 to-white rounded-2xl border border-purple-100 shadow-sm">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">+</span>
+                      Ajouter un schéma
+                    </h3>
+
+                    {/* Ligne 1 : titre + fichier */}
+                    <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-4">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                        <input
+                          type="text"
+                          value={schemaFormTitle}
+                          onChange={(e) => setSchemaFormTitle(e.target.value)}
+                          placeholder="Ex: AI act. Calendrier d'entrée en application"
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-colors"
+                        />
+                      </div>
+                      <div className="w-full md:w-72">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Image (PNG, JPG)</label>
+                        <div className="flex flex-col gap-1">
+                          <input
+                            key={schemaFormKey}
+                            ref={schemaFileInputRef}
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={(e) => setSchemaFormFile(e.target.files?.[0] || null)}
+                            className="hidden"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => schemaFileInputRef.current?.click()}
+                            className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors shadow-sm"
+                          >
+                            Choisir un fichier
+                          </button>
+                          <p className="text-xs text-gray-500 truncate">
+                            {schemaFormFile ? schemaFormFile.name : 'Aucun fichier choisi'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Ligne 2 : options de visibilité + bouton aligné à droite */}
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                      <div className="flex flex-wrap gap-4 items-center">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={schemaFormPublished}
+                            onChange={(e) => setSchemaFormPublished(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                          />
+                          <span className="text-sm font-medium text-gray-700">Publié</span>
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-700">Visible par</span>
+                          <select
+                            value={schemaFormVisibleTo}
+                            onChange={(e) => setSchemaFormVisibleTo(e.target.value as 'all' | 'members')}
+                            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          >
+                            <option value="all">Tout le monde</option>
+                            <option value="members">Adhérents uniquement</option>
+                          </select>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddSchema}
+                        disabled={isUploadingSchema || !schemaFormTitle.trim() || !schemaFormFile}
+                        className="px-6 py-2.5 rounded-xl bg-purple-600 text-white font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                      >
+                        {isUploadingSchema ? 'Ajout en cours…' : 'Ajouter le schéma'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Liste des schémas avec glisser-déposer */}
+                  {isLoadingSchemas ? (
+                    <div className="text-center py-12">
+                      <div className="inline-block animate-spin rounded-full h-10 w-10 border-2 border-purple-200 border-t-purple-600"></div>
+                      <p className="mt-4 text-gray-600">Chargement des schémas…</p>
+                    </div>
+                  ) : schemasList.length === 0 ? (
+                    <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-100">
+                      <p className="text-gray-500 mb-2">Aucun schéma.</p>
+                      <p className="text-sm text-gray-400">Utilisez le formulaire ci-dessus pour en ajouter un.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-0">
+                      {sortedSchemasList.map((schema, index) => {
+                        const showDropLine = schemaDraggingId != null && schemaDropIndex === index
+                        const isDragging = schemaDraggingId === schema.id
+                        return (
+                          <div key={schema.id} className="relative">
+                            {showDropLine && (
+                              <div className="absolute left-0 right-0 top-0 h-1 bg-purple-400 rounded-full z-10 pointer-events-none" style={{ marginTop: '-2px' }} />
+                            )}
+                            <div
+                              className={`bg-white border border-gray-200 rounded-xl p-4 shadow-sm transition-all ${isDragging ? 'opacity-50 scale-[0.98]' : ''} hover:border-purple-100`}
+                              onDragOver={(e) => {
+                                if (schemaDraggingId != null) {
+                                  e.preventDefault()
+                                  e.dataTransfer.dropEffect = 'move'
+                                  setSchemaDropIndex(index)
+                                }
+                              }}
+                              onDragLeave={() => setSchemaDropIndex(null)}
+                              onDrop={(e) => handleSchemaDrop(e, index)}
+                            >
+                              <div className="flex flex-wrap items-center gap-4">
+                                <div
+                                  draggable
+                                  onDragStart={(e) => handleSchemaDragStart(e, schema.id)}
+                                  onDragEnd={handleSchemaDragEnd}
+                                  className="flex-shrink-0 cursor-grab active:cursor-grabbing p-2 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 touch-none"
+                                  title="Glisser pour réordonner"
+                                >
+                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden><circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" /><circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" /><circle cx="9" cy="18" r="1.5" /><circle cx="15" cy="18" r="1.5" /></svg>
+                                </div>
+                                <div className="w-24 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                                  <img src={schema.image_url} alt="" className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <input
+                                    type="text"
+                                    value={schema.title}
+                                    onChange={(e) => setSchemasList(prev => prev.map(s => s.id === schema.id ? { ...s, title: e.target.value } : s))}
+                                    onBlur={(e) => handleUpdateSchemaTitle(schema.id, e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+                                    className="w-full font-medium text-gray-800 px-2 py-1 rounded border border-transparent hover:border-gray-300 focus:border-purple-400 focus:ring-1 focus:ring-purple-200 bg-transparent"
+                                    placeholder="Titre du schéma"
+                                  />
+                                  <p className="text-xs text-gray-500 mt-0.5">Ordre d&apos;affichage : {index + 1}</p>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-3">
+                                  <label className="flex items-center gap-1.5 cursor-pointer" title={schema.published ? 'Publié' : 'Non publié'}>
+                                    <input
+                                      type="checkbox"
+                                      checked={schema.published}
+                                      onChange={(e) => handleUpdateSchemaPublished(schema.id, e.target.checked)}
+                                      className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                    />
+                                    <span className="text-sm text-gray-600">Publié</span>
+                                  </label>
+                                  <select
+                                    value={schema.visible_to}
+                                    onChange={(e) => handleUpdateSchemaVisibleTo(schema.id, e.target.value as 'all' | 'members')}
+                                    className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                                    title="Visibilité"
+                                  >
+                                    <option value="all">Tous</option>
+                                    <option value="members">Adhérents</option>
+                                  </select>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeleteSchemaConfirmId(schema.id)}
+                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="Supprimer"
+                                  >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Modal confirmation suppression schéma */}
+                  {deleteSchemaConfirmId !== null && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">Supprimer ce schéma ?</h3>
+                        <p className="text-gray-600 text-sm mb-6">Cette action est irréversible. Le schéma ne sera plus affiché sur la page.</p>
+                        <div className="flex justify-end gap-3">
+                          <button onClick={() => setDeleteSchemaConfirmId(null)} className="px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50">Annuler</button>
+                          <button onClick={() => handleDeleteSchema(deleteSchemaConfirmId)} className="px-4 py-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600">Supprimer</button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

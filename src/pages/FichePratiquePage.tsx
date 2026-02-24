@@ -217,7 +217,7 @@ const FichePratiquePage: React.FC = () => {
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>{fiche.titre} — Fiche pratique | RIA Facile</title>
+        <title>{`${fiche.titre ?? 'Fiche'} — Fiche pratique | RIA Facile`}</title>
         <meta name="description" content={fiche.description} />
       </Helmet>
 
