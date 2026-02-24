@@ -9,6 +9,7 @@ interface RiaSchema {
   title: string
   image_url: string
   position: number
+  visible_to?: 'all' | 'members'
 }
 
 export const SchemasPage = () => {
@@ -41,7 +42,7 @@ export const SchemasPage = () => {
           throw new Error('Configuration Supabase manquante (URL ou clé anon).')
         }
 
-        const baseUrl = `${supabaseUrl}/rest/v1/ria_schemas?select=id,title,image_url,position&published=eq.true&order=position.asc`
+        const baseUrl = `${supabaseUrl}/rest/v1/ria_schemas?select=id,title,image_url,position,visible_to&published=eq.true&order=position.asc`
         const headers: Record<string, string> = {
           apikey: supabaseAnonKey,
         }
@@ -214,37 +215,51 @@ export const SchemasPage = () => {
         </div>
       ) : (
         <>
-          <section className="mt-8 mb-8">
-            <div className="max-w-3xl mx-auto p-3 rounded-xl shadow border border-violet-200 bg-violet-50/80">
-              <button
-                className="w-full flex items-center justify-between gap-2 text-violet-700 font-extrabold text-lg md:text-xl px-2 py-2 focus:outline-none select-none"
-                onClick={() => setSommaireOuvert((v) => !v)}
-                aria-expanded={sommaireOuvert}
-                aria-controls="sommaire-list"
-              >
-                <span className="flex items-center gap-2">Sommaire des schémas</span>
-                <svg className={`w-6 h-6 transition-transform duration-200 ${sommaireOuvert ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div
-                id="sommaire-list"
-                className={`overflow-hidden transition-all duration-300 ${sommaireOuvert ? 'max-h-[600px] opacity-100 py-2' : 'max-h-0 opacity-0 py-0'}`}
-                aria-hidden={!sommaireOuvert}
-              >
-                <ul className="space-y-1 text-base md:text-lg">
-                  {schemas.map((schema, index) => (
-                    <li key={schema.id}>
-                      <a
-                        href={`#${generateId(schema.title, index)}`}
-                        className="flex items-center gap-2 text-violet-700 font-medium rounded px-2 py-1 transition-all hover:bg-violet-100 hover:underline"
-                      >
-                        <span className="inline-block w-2 h-2 bg-violet-400 rounded-full" />
-                        {schema.title}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+          <section className="mt-4 mb-10">
+            <div className="max-w-4xl mx-auto px-4">
+              <div className="rounded-2xl border border-gray-200 bg-white/95 shadow-sm">
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between gap-2 px-4 py-3 md:px-5 md:py-3 focus:outline-none select-none"
+                  onClick={() => setSommaireOuvert((v) => !v)}
+                  aria-expanded={sommaireOuvert}
+                  aria-controls="sommaire-list"
+                >
+                  <span className="text-base md:text-lg font-semibold text-gray-800">Sommaire des schémas</span>
+                  <svg
+                    className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${sommaireOuvert ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {sommaireOuvert && (
+                  <div
+                    id="sommaire-list"
+                    className="border-t border-gray-100 py-2 max-h-[70vh] overflow-y-auto"
+                  >
+                    <ul className="text-sm md:text-base pr-3">
+                      {schemas.map((schema, index) => (
+                        <li key={schema.id}>
+                          <a
+                            href={`#${generateId(schema.title, index)}`}
+                            className="flex items-center gap-1 text-purple-700 hover:text-purple-900 rounded px-3 py-0.5 transition-colors hover:bg-purple-50 leading-snug"
+                          >
+                            <span className="truncate">{schema.title}</span>
+                            {isMember && schema.visible_to === 'members' && (
+                              <span className="ml-2 inline-flex items-center px-2 py-[1px] rounded-full border border-amber-200 bg-amber-50 text-[10px] font-semibold text-amber-700">
+                                Adhérents
+                              </span>
+                            )}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </section>
