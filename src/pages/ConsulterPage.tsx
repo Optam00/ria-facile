@@ -1125,7 +1125,10 @@ export const ConsulterPage = () => {
                     />
                   )}
                   <div className="flex flex-wrap items-center gap-2 ml-auto">
-                    <form onSubmit={handleConsulterSearch} className="flex items-center gap-1.5 flex-1 min-w-0 max-w-sm bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5 focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-200 transition-all">
+                    <form
+                      onSubmit={handleConsulterSearch}
+                      className="hidden lg:flex items-center gap-1.5 flex-1 min-w-0 max-w-sm bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5 focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-200 transition-all"
+                    >
                       <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <circle cx="11" cy="11" r="8" strokeWidth="2" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m21 21-4.35-4.35" />

@@ -89,10 +89,10 @@ const ConnexionPage: React.FC = () => {
     'Consultation du règlement (recherche, navigation)',
     'RIA en 5 minutes',
     'Quiz',
-    'Schémas explicatifs',
     'Documentation et actualités',
     'Lexique français-anglais',
     'Articles de doctrine',
+    'Schémas explicatifs (sélection)',
     'Assistant RIA (accès limité)',
   ]
 
@@ -101,12 +101,12 @@ const ConnexionPage: React.FC = () => {
     'Consultation du règlement (recherche, navigation)',
     'RIA en 5 minutes',
     'Quiz',
-    'Schémas explicatifs',
     'Documentation et actualités',
     'Lexique français-anglais',
     'Articles de doctrine',
   ]
   const featuresAdherentsOnly = [
+    'Schémas explicatifs supplémentaires (adhérents)',
     'Assistant RIA (accès illimité)',
     'Questionnaires du vérificateur',
     'Fiches pratiques',

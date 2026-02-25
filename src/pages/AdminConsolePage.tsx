@@ -1386,6 +1386,25 @@ const AdminConsolePage: React.FC = () => {
     }
   }
 
+  const veilleOpenAllLinks = () => {
+    const urls = veilleLinks
+      .map((l) => (l.url || '').trim())
+      .filter((url) => url && url !== 'https://')
+
+    if (urls.length === 0) {
+      setFormStatus({ type: 'error', message: 'Aucun lien de veille valide à ouvrir.' })
+      return
+    }
+
+    urls.forEach((url) => {
+      try {
+        window.open(url, '_blank', 'noopener,noreferrer')
+      } catch (err) {
+        console.error('Erreur lors de l\'ouverture du lien de veille:', err)
+      }
+    })
+  }
+
   const veilleUpdateGroupName = async (id: number, name: string) => {
     try {
       const headers = await getAuthHeaders()
@@ -4202,13 +4221,24 @@ const AdminConsolePage: React.FC = () => {
                       <h2 className="text-2xl font-semibold text-gray-800">Veille</h2>
                       <p className="text-gray-600 mt-2">Gérez vos liens de veille par groupes. Ouvrez tous les liens d&apos;un groupe d&apos;un coup.</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={veilleAddGroup}
-                      className="px-4 py-2 rounded-xl border border-purple-100 bg-purple-50 text-gray-700 hover:bg-purple-100 transition-colors flex items-center gap-2"
-                    >
-                      <span>+</span> Ajouter un groupe
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={veilleOpenAllLinks}
+                        className="px-3 py-1.5 rounded-xl border border-purple-100 bg-white text-xs text-purple-700 hover:bg-purple-50 transition-colors flex items-center gap-1"
+                      >
+                        <span className="text-sm">↗</span>
+                        <span className="hidden sm:inline">Ouvrir tous les liens</span>
+                        <span className="sm:hidden">Tout ouvrir</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={veilleAddGroup}
+                        className="px-4 py-2 rounded-xl border border-purple-100 bg-purple-50 text-gray-700 hover:bg-purple-100 transition-colors flex items-center gap-2"
+                      >
+                        <span>+</span> Ajouter un groupe
+                      </button>
+                    </div>
                   </div>
 
                   {formStatus.type && (
