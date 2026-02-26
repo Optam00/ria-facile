@@ -419,6 +419,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onActionSelect }) => {
             <span className="text-sm font-bold">📊</span>
             <span className="text-[10px] text-gray-800 font-bold text-center leading-tight">Schémas</span>
           </button>
+          <button
+            onClick={() => onActionSelect('notes-perso')}
+            className="flex flex-col items-center gap-0.5 p-1.5 bg-[#f3f1ff] rounded-md border border-[#e0dcf7] hover:bg-[#e8e5ff] transition-all"
+          >
+            <span className="text-sm font-bold">📝</span>
+            <span className="text-[10px] text-gray-800 font-bold text-center leading-tight">Notes & to-do</span>
+          </button>
         </div>
       </div>
 

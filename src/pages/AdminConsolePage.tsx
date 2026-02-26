@@ -44,7 +44,7 @@ const isTokenExpired = (token: string): boolean => {
   }
 }
 
-type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'veille' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-rag-questions' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | 'ajouter-fiche-pratique' | 'consulter-fiches-pratiques' | 'gestion-schemas' | null
+type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'veille' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-rag-questions' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | 'ajouter-fiche-pratique' | 'consulter-fiches-pratiques' | 'gestion-schemas' | 'notes-perso' | null
 
 interface Actualite {
   id: number
@@ -445,6 +445,40 @@ const AdminConsolePage: React.FC = () => {
   const [editDescriptionData, setEditDescriptionData] = useState<{ fileName: string; description: string } | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
+  // Notes perso (to-do avec cases à cocher, brouillons LinkedIn) — stockées en base (Supabase)
+  type TodoItem = { id: string; text: string; done: boolean }
+  const [adminNotes, setAdminNotes] = useState<{ notes: string; todo: TodoItem[]; linkedin: string }>({ notes: '', todo: [], linkedin: '' })
+  const [isLoadingAdminNotes, setIsLoadingAdminNotes] = useState(false)
+  const adminNotesLoadedFromServerRef = useRef(false)
+  const adminNotesSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const ADMIN_NOTES_KEY = 'ria-facile-admin-notes'
+
+  const [adminTodoNewText, setAdminTodoNewText] = useState('')
+  const addTodoItem = () => {
+    const text = adminTodoNewText.trim()
+    if (!text) return
+    setAdminNotes((prev) => ({
+      ...prev,
+      todo: [...prev.todo, { id: crypto.randomUUID(), text, done: false }],
+    }))
+    setAdminTodoNewText('')
+  }
+  const toggleTodoItem = (id: string) => {
+    setAdminNotes((prev) => ({
+      ...prev,
+      todo: prev.todo.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
+    }))
+  }
+  const removeTodoItem = (id: string) => {
+    setAdminNotes((prev) => ({ ...prev, todo: prev.todo.filter((t) => t.id !== id) }))
+  }
+  const updateTodoItemText = (id: string, text: string) => {
+    setAdminNotes((prev) => ({
+      ...prev,
+      todo: prev.todo.map((t) => (t.id === id ? { ...t, text } : t)),
+    }))
+  }
+
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
@@ -587,6 +621,14 @@ const AdminConsolePage: React.FC = () => {
         { id: 'gestion-fichiers' as AdminAction, label: 'Gérer les fichiers', icon: '📂' },
       ],
     },
+    {
+      key: 'notes-perso',
+      label: 'Notes',
+      icon: '📝',
+      items: [
+        { id: 'notes-perso' as AdminAction, label: 'Notes & to-do', icon: '📝' },
+      ],
+    },
   ]
 
   // Ouvrir automatiquement le groupe parent quand une action est sélectionnée
@@ -606,6 +648,106 @@ const AdminConsolePage: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAction])
+
+  // Charger les notes admin depuis Supabase quand on ouvre la section Notes
+  useEffect(() => {
+    if (selectedAction !== 'notes-perso' || !session?.user?.id || !supabaseUrl) return
+    const uid = session.user.id
+    let cancelled = false
+    adminNotesLoadedFromServerRef.current = false
+    setIsLoadingAdminNotes(true)
+    const run = async () => {
+      try {
+        const headers = await getAuthHeaders()
+        const res = await fetch(
+          `${supabaseUrl}/rest/v1/admin_notes?user_id=eq.${encodeURIComponent(uid)}&select=notes,todo,linkedin`,
+          { headers }
+        )
+        if (!res.ok) throw new Error(`Erreur ${res.status}`)
+        const data = await res.json()
+        const row = Array.isArray(data) ? data[0] : data
+        if (cancelled) return
+        if (row) {
+          let todo: TodoItem[] = []
+          if (Array.isArray(row.todo)) {
+            todo = row.todo
+              .filter((t: unknown) => t && typeof t === 'object' && 'id' in t && 'text' in t && 'done' in t)
+              .map((t: { id: string; text: string; done: boolean }) => ({ id: String(t.id), text: String(t.text), done: Boolean(t.done) }))
+          }
+          setAdminNotes({
+            notes: typeof row.notes === 'string' ? row.notes : '',
+            todo,
+            linkedin: typeof row.linkedin === 'string' ? row.linkedin : '',
+          })
+        } else {
+          const fromStorage = (() => {
+            try {
+              const raw = typeof window !== 'undefined' ? localStorage.getItem(ADMIN_NOTES_KEY) : null
+              if (!raw) return null
+              const o = JSON.parse(raw)
+              let todo: TodoItem[] = []
+              if (Array.isArray(o.todo)) {
+                todo = o.todo
+                  .filter((t: unknown) => t && typeof t === 'object' && 'id' in t && 'text' in t && 'done' in t)
+                  .map((t: { id: string; text: string; done: boolean }) => ({ id: t.id || crypto.randomUUID(), text: String(t.text), done: Boolean(t.done) }))
+              } else if (typeof o.todo === 'string' && o.todo.trim()) {
+                todo = o.todo.split(/\n/).map((l: string) => l.trim()).filter(Boolean).map((text: string, i: number) => ({ id: crypto.randomUUID(), text, done: false }))
+              }
+              return { notes: String(o.notes ?? ''), todo, linkedin: String(o.linkedin ?? '') }
+            } catch { return null }
+          })()
+          if (fromStorage && (fromStorage.notes || fromStorage.todo.length || fromStorage.linkedin)) {
+            setAdminNotes(fromStorage)
+          }
+        }
+        adminNotesLoadedFromServerRef.current = true
+      } catch (err) {
+        if (!cancelled) setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Impossible de charger les notes.' })
+      } finally {
+        if (!cancelled) setIsLoadingAdminNotes(false)
+      }
+    }
+    run()
+    return () => { cancelled = true }
+  }, [selectedAction, session?.user?.id])
+
+  // Sauvegarder les notes en base (debounce) après une modification par l'utilisateur (une fois chargées)
+  useEffect(() => {
+    if (adminNotesSaveTimeoutRef.current) {
+      clearTimeout(adminNotesSaveTimeoutRef.current)
+      adminNotesSaveTimeoutRef.current = null
+    }
+    if (!adminNotesLoadedFromServerRef.current || selectedAction !== 'notes-perso') return
+    if (!session?.user?.id || !supabaseUrl) return
+    const payload = {
+      user_id: session.user.id,
+      notes: adminNotes.notes,
+      todo: adminNotes.todo,
+      linkedin: adminNotes.linkedin,
+    }
+    adminNotesSaveTimeoutRef.current = setTimeout(async () => {
+      adminNotesSaveTimeoutRef.current = null
+      try {
+        const headers = await getAuthHeaders()
+        const res = await fetch(`${supabaseUrl}/rest/v1/admin_notes`, {
+          method: 'POST',
+          headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=representation' },
+          body: JSON.stringify(payload),
+        })
+        if (!res.ok) {
+          const t = await res.text()
+          setFormStatus({ type: 'error', message: t || `Erreur ${res.status} lors de l'enregistrement des notes.` })
+        } else {
+          try { localStorage.removeItem(ADMIN_NOTES_KEY) } catch { /* migration: nettoyer l'ancien stockage */ }
+        }
+      } catch (err) {
+        setFormStatus({ type: 'error', message: err instanceof Error ? err.message : 'Erreur lors de l\'enregistrement des notes.' })
+      }
+    }, 600)
+    return () => {
+      if (adminNotesSaveTimeoutRef.current) clearTimeout(adminNotesSaveTimeoutRef.current)
+    }
+  }, [adminNotes, session?.user?.id, selectedAction])
 
   // Réinitialiser les messages et formulaires quand on change d'action
   useEffect(() => {
@@ -3802,9 +3944,29 @@ const AdminConsolePage: React.FC = () => {
                     </button>
 
                     {menuGroups.map((group) => {
-                      const isExpanded = expandedGroups.has(group.key)
+                      const isSingleItem = group.items.length === 1
                       const hasActiveItem = group.items.some((item) => selectedAction === item.id)
-                      
+
+                      if (isSingleItem) {
+                        const item = group.items[0]
+                        return (
+                          <div key={group.key} className="space-y-0.5">
+                            <button
+                              onClick={() => setSelectedAction(item.id)}
+                              className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                                selectedAction === item.id
+                                  ? 'bg-[#774792] text-white shadow-sm'
+                                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                              }`}
+                            >
+                              <span className="text-base">{group.icon}</span>
+                              <span className="text-sm font-medium">{group.label}</span>
+                            </button>
+                          </div>
+                        )
+                      }
+
+                      const isExpanded = expandedGroups.has(group.key)
                       return (
                         <div key={group.key} className="space-y-0.5">
                           <button
@@ -8899,6 +9061,105 @@ const AdminConsolePage: React.FC = () => {
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Notes perso — to-do, brouillons LinkedIn */}
+              {selectedAction === 'notes-perso' && (
+                <div>
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+                      <span>📝</span> Notes & to-do
+                    </h2>
+                    <p className="text-gray-600 mt-1">Prenez des notes, gérez votre to-do ou préparez des brouillons (ex. posts LinkedIn). Sauvegardé automatiquement en base (visible sur tous vos appareils).</p>
+                  </div>
+                  {isLoadingAdminNotes ? (
+                    <div className="flex items-center justify-center py-12 text-gray-500">
+                      <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#774792] block mr-2" aria-hidden />
+                      Chargement des notes…
+                    </div>
+                  ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                        <h3 className="text-sm font-semibold text-gray-800">Notes</h3>
+                      </div>
+                      <textarea
+                        value={adminNotes.notes}
+                        onChange={(e) => setAdminNotes((prev) => ({ ...prev, notes: e.target.value }))}
+                        placeholder="Notes diverses…"
+                        className="w-full h-48 p-4 text-sm text-gray-800 placeholder:text-gray-400 border-0 focus:ring-0 resize-y min-h-[8rem]"
+                        aria-label="Notes"
+                      />
+                    </div>
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="px-4 py-3 border-b border-gray-100 bg-amber-50">
+                        <h3 className="text-sm font-semibold text-gray-800">To-do</h3>
+                      </div>
+                      <div className="p-4 min-h-[12rem] max-h-96 overflow-y-auto">
+                        <ul className="space-y-2">
+                          {adminNotes.todo.map((item) => (
+                            <li key={item.id} className="flex items-center gap-2 group">
+                              <input
+                                type="checkbox"
+                                checked={item.done}
+                                onChange={() => toggleTodoItem(item.id)}
+                                className="rounded border-gray-300 text-amber-600 focus:ring-amber-500 shrink-0"
+                                aria-label={item.text || 'Cocher'}
+                              />
+                              <input
+                                type="text"
+                                value={item.text}
+                                onChange={(e) => updateTodoItemText(item.id, e.target.value)}
+                                onBlur={(e) => updateTodoItemText(item.id, e.target.value.trim() || item.text)}
+                                className={`flex-1 min-w-0 text-sm border-0 border-b border-transparent hover:border-gray-200 focus:border-amber-400 focus:ring-0 py-0.5 bg-transparent ${item.done ? 'text-gray-400 line-through' : 'text-gray-800'}`}
+                                aria-label="Libellé de la tâche"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeTodoItem(item.id)}
+                                className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-all shrink-0"
+                                aria-label="Supprimer la tâche"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                          <input
+                            type="text"
+                            value={adminTodoNewText}
+                            onChange={(e) => setAdminTodoNewText(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTodoItem())}
+                            placeholder="Nouvelle tâche…"
+                            className="flex-1 min-w-0 text-sm px-2 py-1.5 rounded border border-gray-200 focus:border-amber-400 focus:ring-1 focus:ring-amber-200"
+                            aria-label="Ajouter une tâche"
+                          />
+                          <button
+                            type="button"
+                            onClick={addTodoItem}
+                            className="px-3 py-1.5 text-sm font-medium rounded bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors shrink-0"
+                          >
+                            Ajouter
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="px-4 py-3 border-b border-gray-100 bg-blue-50">
+                        <h3 className="text-sm font-semibold text-gray-800">Brouillons (ex. LinkedIn)</h3>
+                      </div>
+                      <textarea
+                        value={adminNotes.linkedin}
+                        onChange={(e) => setAdminNotes((prev) => ({ ...prev, linkedin: e.target.value }))}
+                        placeholder="Brouillon de post…"
+                        className="w-full h-48 p-4 text-sm text-gray-800 placeholder:text-gray-400 border-0 focus:ring-0 resize-y min-h-[8rem]"
+                        aria-label="Brouillons LinkedIn"
+                      />
+                    </div>
+                  </div>
+                  )}
                 </div>
               )}
             </div>

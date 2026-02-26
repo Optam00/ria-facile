@@ -25,7 +25,7 @@ export const LegalNoticePage = () => {
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-gray-800">Directeur de la publication et réalisation éditoriale</h2>
               <p className="text-gray-700">
-                Matthieu Polaina, fondateur de RIA Facile.
+                Matthieu P., fondateur de RIA Facile.
               </p>
             </section>
 
