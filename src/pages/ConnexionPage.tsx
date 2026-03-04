@@ -104,14 +104,17 @@ const ConnexionPage: React.FC = () => {
 
     setResetLoading(true)
     try {
-      const redirectTo =
-        typeof window !== 'undefined'
-          ? `${window.location.origin}/reset-password`
-          : undefined
+      let redirectTo: string | undefined
+      if (typeof window !== 'undefined') {
+        const origin = window.location.origin
+        // En production, on redirige explicitement vers le domaine public.
+        // En dev/local, on laisse Supabase utiliser la SITE_URL configurée.
+        if (origin.includes('ria-facile.com')) {
+          redirectTo = `${origin}/reset-password`
+        }
+      }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(emailToUse, {
-        redirectTo,
-      })
+      const { error } = await supabase.auth.resetPasswordForEmail(emailToUse, { redirectTo })
 
       if (error) {
         setResetError(error.message || 'Erreur lors de l’envoi de l’email de réinitialisation.')
