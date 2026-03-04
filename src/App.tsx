@@ -8,6 +8,7 @@ import { QuizIntroPage } from './pages/QuizIntroPage'
 import { LegalNoticePage } from './pages/LegalNoticePage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import ConnexionPage from './pages/ConnexionPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import InscriptionPage from './pages/InscriptionPage'
 import MonEspacePage from './pages/MonEspacePage'
 import { HomePage } from './pages/HomePage'
@@ -117,6 +118,7 @@ function App() {
               <Route path="/documentation" element={<DocumentationPage />} />
               <Route path="/mentions-legales" element={<LegalNoticePage />} />
               <Route path="/connexion" element={<ConnexionPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/inscription" element={<InscriptionPage />} />
               <Route path="/mon-espace" element={<MonEspacePage />} />
               <Route path="/admin/console" element={<AdminConsolePage />} />
