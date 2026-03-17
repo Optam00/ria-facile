@@ -12,19 +12,21 @@ const ResetPasswordPage: React.FC = () => {
   const [success, setSuccess] = useState(false)
   const [isValidLink, setIsValidLink] = useState<boolean | null>(null)
 
-  // Vérifier que le lien contient bien un type=recovery (lien de réinitialisation Supabase)
+  // Vérifier qu'il existe bien une session active (lien magique / connexion depuis un email)
   useEffect(() => {
-    const hash = window.location.hash
-    if (!hash) {
-      setIsValidLink(false)
-      return
+    let cancelled = false
+    const checkUser = async () => {
+      try {
+        const { data } = await supabase.auth.getUser()
+        if (cancelled) return
+        setIsValidLink(!!data?.user)
+      } catch {
+        if (!cancelled) setIsValidLink(false)
+      }
     }
-    const params = new URLSearchParams(hash.substring(1))
-    const type = params.get('type')
-    if (type === 'recovery') {
-      setIsValidLink(true)
-    } else {
-      setIsValidLink(false)
+    checkUser()
+    return () => {
+      cancelled = true
     }
   }, [])
 
@@ -65,7 +67,7 @@ const ResetPasswordPage: React.FC = () => {
   return (
     <div className="min-h-screen p-4">
       <Helmet>
-        <title>Réinitialisation du mot de passe — RIA Facile</title>
+        <title>Définir un mot de passe — RIA Facile</title>
         <meta
           name="description"
           content="Choisissez un nouveau mot de passe pour votre compte RIA Facile."
@@ -74,9 +76,9 @@ const ResetPasswordPage: React.FC = () => {
 
       <div className="max-w-md mx-auto">
         <div className="bg-white bg-opacity-95 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-100">
-          <h1 className="text-2xl font-semibold text-gray-800 mb-2">Réinitialiser votre mot de passe</h1>
+          <h1 className="text-2xl font-semibold text-gray-800 mb-2">Définir un nouveau mot de passe</h1>
           <p className="text-sm text-gray-600 mb-6">
-            Choisissez un nouveau mot de passe pour votre compte. Ce lien est valable pendant un temps limité.
+            Choisissez un nouveau mot de passe pour votre compte après avoir cliqué sur le lien reçu par email.
           </p>
 
           {isValidLink === false && (

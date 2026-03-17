@@ -104,31 +104,34 @@ const ConnexionPage: React.FC = () => {
 
     setResetLoading(true)
     try {
-      let redirectTo: string | undefined
+      let emailRedirectTo: string | undefined
       if (typeof window !== 'undefined') {
         const origin = window.location.origin
         // En production, on redirige explicitement vers le domaine public.
         // En dev/local, on laisse Supabase utiliser la SITE_URL configurée.
         if (origin.includes('ria-facile.com')) {
-          redirectTo = `${origin}/reset-password`
+          emailRedirectTo = `${origin}/definir-mot-de-passe`
         }
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(emailToUse, { redirectTo })
+      const { error } = await supabase.auth.signInWithOtp({
+        email: emailToUse,
+        options: { emailRedirectTo },
+      })
 
       if (error) {
-        setResetError(error.message || 'Erreur lors de l’envoi de l’email de réinitialisation.')
+        setResetError(error.message || 'Erreur lors de l’envoi de l’email de connexion sécurisée.')
         return
       }
 
       setResetMessage(
-        'Si un compte existe avec cet email, un lien de réinitialisation vient de vous être envoyé.'
+        'Si un compte existe avec cet email, un lien de connexion sécurisé vient de vous être envoyé. Il vous permettra de définir un nouveau mot de passe.'
       )
     } catch (err) {
       setResetError(
         err instanceof Error
           ? err.message
-          : 'Erreur lors de l’envoi de l’email de réinitialisation.'
+          : "Erreur lors de l’envoi de l’email de connexion sécurisée."
       )
     } finally {
       setResetLoading(false)

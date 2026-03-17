@@ -118,7 +118,7 @@ function App() {
               <Route path="/documentation" element={<DocumentationPage />} />
               <Route path="/mentions-legales" element={<LegalNoticePage />} />
               <Route path="/connexion" element={<ConnexionPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/definir-mot-de-passe" element={<ResetPasswordPage />} />
               <Route path="/inscription" element={<InscriptionPage />} />
               <Route path="/mon-espace" element={<MonEspacePage />} />
               <Route path="/admin/console" element={<AdminConsolePage />} />
