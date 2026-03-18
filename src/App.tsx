@@ -51,6 +51,7 @@ import { RIAEn5MinutesPage } from './pages/RIAEn5MinutesPage'
 import RAGTestPage from './pages/RAGTestPage'
 import { AuthProvider } from './contexts/AuthContext'
 import { InactivityWarning } from './components/InactivityWarning'
+import { LinkedInPostsPage } from './pages/LinkedInPostsPage'
 
 // Composant pour scroller vers le haut à chaque changement de route
 function ScrollToTop() {
@@ -154,6 +155,7 @@ function App() {
               <Route path="/fiches-pratiques/maitrise-ia" element={<FichePratiqueMaitriseIAPage />} />
               <Route path="/ria-en-5-minutes" element={<RIAEn5MinutesPage />} />
               <Route path="/rag" element={<RAGTestPage />} />
+              <Route path="/linkedin-posts" element={<LinkedInPostsPage />} />
               </Routes>
               </RouteErrorBoundary>
             </div>

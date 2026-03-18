@@ -8,12 +8,52 @@ import verificateurImage from '../assets/Vérificateur.png'
 import { ActuCarousel } from '../components/ActuCarousel'
 import { LastDoctrineArticle } from '../components/LastDoctrineArticle'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SchemaPreviewHome } from '../components/SchemaPreviewHome'
 import { Helmet } from 'react-helmet'
+import { supabasePublic } from '../lib/supabasePublic'
+
+const getLinkedInEmbedUrl = (raw: string | null | undefined): string | null => {
+  if (!raw) return null
+
+  // Si l'utilisateur colle directement un <iframe> d'intégration, on essaie d'en extraire le src
+  const iframeSrcMatch = raw.match(/<iframe[^>]+src=["']([^"']+)["']/i)
+  if (iframeSrcMatch && iframeSrcMatch[1]) {
+    return iframeSrcMatch[1]
+  }
+
+  try {
+    const parsed = new URL(raw)
+
+    // Si l'URL est déjà une URL d'embed LinkedIn, on la renvoie telle quelle
+    if (parsed.hostname === 'www.linkedin.com' && parsed.pathname.startsWith('/embed/feed/update')) {
+      return raw
+    }
+
+    // Cas classique : URL de type .../posts/...activity-1234567890123456789-...
+    const activityMatch = parsed.pathname.match(/activity-(\d+)-/)
+    if (activityMatch && activityMatch[1]) {
+      const id = activityMatch[1]
+      return `https://www.linkedin.com/embed/feed/update/urn:li:share:${id}`
+    }
+
+    // Autres URLs de posts : on tente de récupérer le dernier gros identifiant numérique du chemin
+    const genericIdMatch = parsed.pathname.match(/-(\d+)(?:\/|$)/)
+    if (genericIdMatch && genericIdMatch[1]) {
+      const id = genericIdMatch[1]
+      return `https://www.linkedin.com/embed/feed/update/urn:li:share:${id}`
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
 
 export const HomePage = () => {
   const [openQuestion, setOpenQuestion] = useState<number | null>(null)
+  const [featuredLinkedinInput, setFeaturedLinkedinInput] = useState<string | null>(null)
+  const [isLoadingFeaturedLinkedin, setIsLoadingFeaturedLinkedin] = useState<boolean>(false)
 
   const faqItems = [
     {
@@ -82,6 +122,59 @@ export const HomePage = () => {
       }
     }))
   }
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadFeaturedLinkedin = async () => {
+      try {
+        setIsLoadingFeaturedLinkedin(true)
+
+        // 1) Priorité : nouvelle table "historique"
+        const { data: postsData, error: postsError } = await supabasePublic
+          .from('homepage_linkedin_posts')
+          .select('embed_input')
+          .order('created_at', { ascending: false })
+          .limit(1)
+
+        if (!postsError) {
+          const raw = Array.isArray(postsData) ? postsData?.[0]?.embed_input : null
+          if (isMounted && raw) {
+            setFeaturedLinkedinInput(raw)
+            return
+          }
+        } else {
+          // On fallback sur l'ancienne table si la nouvelle n'existe pas / pas encore remplie
+          console.warn('Impossible de charger homepage_linkedin_posts, fallback sur homepage_settings.', postsError)
+        }
+
+        // 2) Fallback : ancienne table
+        const { data: settingsData, error: settingsError } = await supabasePublic
+          .from('homepage_settings')
+          .select('linkedin_post_url')
+          .eq('id', 1)
+          .maybeSingle()
+
+        if (!settingsError && isMounted) {
+          setFeaturedLinkedinInput(settingsData?.linkedin_post_url ?? null)
+        } else if (settingsError) {
+          console.error('Erreur lors du chargement de homepage_settings :', settingsError)
+        }
+      } catch (err) {
+        console.error('Erreur inattendue lors du chargement du post LinkedIn :', err)
+      } finally {
+        if (isMounted) {
+          setIsLoadingFeaturedLinkedin(false)
+        }
+      }
+    }
+
+    loadFeaturedLinkedin()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   return (
     <div className="min-h-screen">
@@ -264,6 +357,86 @@ export const HomePage = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Bloc LinkedIn (si configuré) */}
+      <div className="mb-8 max-w-5xl mx-auto px-4">
+        {isLoadingFeaturedLinkedin ? (
+          <div className="p-2 text-sm text-gray-500">
+            Chargement du dernier post LinkedIn…
+          </div>
+        ) : featuredLinkedinInput ? (
+          <div className="overflow-hidden">
+            <div className="p-6 md:p-8">
+              <div className="flex flex-col items-center text-center mb-5">
+                <h2 className="inline-block text-2xl md:text-3xl font-bold text-[#774792] mb-2 px-4 py-1 bg-white rounded-lg border border-gray-100 shadow-sm">
+                  Dernier post LinkedIn
+                </h2>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                <Link
+                  to="/linkedin-posts"
+                  className="text-sm font-semibold text-[#774792] hover:underline inline-flex items-center gap-1 justify-center"
+                >
+                  Voir tous les posts
+                  <span aria-hidden>→</span>
+                </Link>
+
+                <a
+                  href="https://www.linkedin.com/company/ria-facile/?viewAsMember=true"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-[#774792] text-white text-sm font-medium shadow hover:bg-[#653a7a]"
+                >
+                  Suivre la page LinkedIn
+                  <span className="ml-2" aria-hidden>
+                    ↗
+                  </span>
+                </a>
+              </div>
+            {(() => {
+              const embedUrl = getLinkedInEmbedUrl(featuredLinkedinInput)
+              if (!embedUrl) {
+                const canOpenDirectUrl = featuredLinkedinInput.startsWith('http')
+                return (
+                    <div className="space-y-3">
+                    <p className="text-gray-600 text-sm md:text-base">
+                      Impossible d&apos;afficher un aperçu intégré pour ce lien, mais vous pouvez le consulter directement sur LinkedIn.
+                    </p>
+                    {canOpenDirectUrl ? (
+                      <a
+                        href={featuredLinkedinInput || undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-4 py-2 rounded-xl bg-[#774792] text-white text-sm font-medium shadow hover:bg-[#653a7a]"
+                      >
+                        Voir le post sur LinkedIn
+                        <span className="ml-2">↗</span>
+                      </a>
+                    ) : null}
+                  </div>
+                )
+              }
+
+              return (
+                  <div className="w-full overflow-hidden">
+                    <iframe
+                      src={embedUrl}
+                      className="w-full h-[430px] md:h-[520px]"
+                      loading="lazy"
+                      frameBorder="0"
+                      allowFullScreen
+                      title="Dernier post LinkedIn RIA Facile"
+                    />
+                  </div>
+              )
+            })()}
+            {/* Petite marge en bas pour aérer l'encart */}
+            <div className="h-2" />
+          </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Aperçu schéma aléatoire */}

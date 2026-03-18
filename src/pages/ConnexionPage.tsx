@@ -14,10 +14,6 @@ const ConnexionPage: React.FC = () => {
   const [error, setError] = useState('')
   const [emailConfirmed, setEmailConfirmed] = useState(false)
   const [showReset, setShowReset] = useState(false)
-  const [resetEmail, setResetEmail] = useState('')
-  const [resetLoading, setResetLoading] = useState(false)
-  const [resetMessage, setResetMessage] = useState<string | null>(null)
-  const [resetError, setResetError] = useState<string | null>(null)
 
   // Détecter si l'utilisateur vient de confirmer son email
   useEffect(() => {
@@ -88,53 +84,6 @@ const ConnexionPage: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Erreur lors de la connexion')
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setResetError(null)
-    setResetMessage(null)
-
-    const emailToUse = resetEmail.trim() || email.trim()
-    if (!emailToUse) {
-      setResetError('Indiquez votre adresse email pour recevoir le lien de réinitialisation.')
-      return
-    }
-
-    setResetLoading(true)
-    try {
-      let emailRedirectTo: string | undefined
-      if (typeof window !== 'undefined') {
-        const origin = window.location.origin
-        // En production, on redirige explicitement vers le domaine public.
-        // En dev/local, on laisse Supabase utiliser la SITE_URL configurée.
-        if (origin.includes('ria-facile.com')) {
-          emailRedirectTo = `${origin}/definir-mot-de-passe`
-        }
-      }
-
-      const { error } = await supabase.auth.signInWithOtp({
-        email: emailToUse,
-        options: { emailRedirectTo },
-      })
-
-      if (error) {
-        setResetError(error.message || 'Erreur lors de l’envoi de l’email de connexion sécurisée.')
-        return
-      }
-
-      setResetMessage(
-        'Si un compte existe avec cet email, un lien de connexion sécurisé vient de vous être envoyé. Il vous permettra de définir un nouveau mot de passe.'
-      )
-    } catch (err) {
-      setResetError(
-        err instanceof Error
-          ? err.message
-          : "Erreur lors de l’envoi de l’email de connexion sécurisée."
-      )
-    } finally {
-      setResetLoading(false)
     }
   }
 
@@ -262,9 +211,6 @@ const ConnexionPage: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setShowReset((v) => !v)
-                  setResetError(null)
-                  setResetMessage(null)
-                  if (!resetEmail && email) setResetEmail(email)
                 }}
                 className="text-xs text-[#774792] hover:underline font-medium"
               >
@@ -272,52 +218,17 @@ const ConnexionPage: React.FC = () => {
               </button>
             </div>
             {showReset && (
-              <form
-                onSubmit={handleResetPassword}
-                className="mt-3 p-3 rounded-xl border border-purple-100 bg-purple-50/60 space-y-2 text-sm"
-              >
-                <p className="text-xs text-gray-700">
-                  Entrez votre adresse email pour recevoir un lien de réinitialisation de mot de passe.
+              <div className="mt-3 p-3 rounded-xl border border-purple-100 bg-purple-50/60 text-xs text-gray-700">
+                <p>
+                  Pour l&apos;instant, la réinitialisation automatique du mot de passe n&apos;est pas disponible.
+                  Si vous avez perdu votre mot de passe, écrivez-nous via le{' '}
+                  <Link to="/contact" className="text-[#774792] font-semibold underline">
+                    formulaire de contact
+                  </Link>{' '}
+                  en utilisant l&apos;adresse email de votre compte. Nous vous enverrons un mot de passe
+                  temporaire.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
-                  <div className="flex-1">
-                    <label
-                      htmlFor="reset-email"
-                      className="block text-[11px] font-medium text-gray-600 mb-1"
-                    >
-                      Email
-                    </label>
-                    <input
-                      id="reset-email"
-                      type="email"
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 focus:border-[#774792] focus:ring-1 focus:ring-[#774792]/30 text-xs"
-                      placeholder="exemple@email.com"
-                      disabled={resetLoading}
-                    />
-                  </div>
-                  <div className="sm:shrink-0">
-                    <button
-                      type="submit"
-                      disabled={resetLoading}
-                      className="w-full sm:w-auto py-2 px-4 rounded-xl bg-[#774792] text-white font-medium text-xs shadow-sm hover:shadow disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
-                    >
-                      {resetLoading ? 'Envoi…' : 'Envoyer le lien'}
-                    </button>
-                  </div>
-                </div>
-                {resetError && (
-                  <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5 mt-1">
-                    {resetError}
-                  </p>
-                )}
-                {resetMessage && (
-                  <p className="text-xs text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5 mt-1">
-                    {resetMessage}
-                  </p>
-                )}
-              </form>
+              </div>
             )}
           </form>
         </div>

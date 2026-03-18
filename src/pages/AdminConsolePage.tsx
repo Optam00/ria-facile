@@ -44,7 +44,71 @@ const isTokenExpired = (token: string): boolean => {
   }
 }
 
-type AdminAction = 'ajouter-actualite' | 'consulter-actus' | 'veille' | 'ajouter-article-doctrine' | 'consulter-doctrine' | 'ajouter-document' | 'consulter-docs' | 'enrichir-article' | 'ajouter-question' | 'consulter-questions' | 'consulter-assistant-ria' | 'consulter-rag-questions' | 'consulter-adherents' | 'supprimer-adherent' | 'gestion-fichiers' | 'demandes-suppression' | 'ajouter-fiche-pratique' | 'consulter-fiches-pratiques' | 'gestion-schemas' | 'notes-perso' | null
+const getLinkedInEmbedUrl = (raw: string | null | undefined): string | null => {
+  if (!raw) return null
+
+  // Si l'admin colle directement un <iframe ...>, on extrait le src
+  const iframeSrcMatch = raw.match(/<iframe[^>]+src=["']([^"']+)["']/i)
+  if (iframeSrcMatch?.[1]) return iframeSrcMatch[1]
+
+  try {
+    const parsed = new URL(raw)
+
+    // URL d'embed déjà prête
+    if (parsed.hostname === 'www.linkedin.com' && parsed.pathname.startsWith('/embed/feed/update')) return raw
+
+    // URL de type .../activity-<id>-...
+    const activityMatch = parsed.pathname.match(/activity-(\d+)-/)
+    if (activityMatch?.[1]) {
+      const id = activityMatch[1]
+      return `https://www.linkedin.com/embed/feed/update/urn:li:share:${id}`
+    }
+
+    // Fallback: on tente d'extraire un identifiant numérique du chemin
+    const genericIdMatch = parsed.pathname.match(/-(\d+)(?:\/|$)/)
+    if (genericIdMatch?.[1]) {
+      const id = genericIdMatch[1]
+      return `https://www.linkedin.com/embed/feed/update/urn:li:share:${id}`
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
+
+const formatDateFr = (iso: string) => {
+  try {
+    const d = new Date(iso)
+    return d.toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: '2-digit' })
+  } catch {
+    return iso
+  }
+}
+
+type AdminAction =
+  | 'ajouter-actualite'
+  | 'consulter-actus'
+  | 'veille'
+  | 'actus-linkedin'
+  | 'ajouter-article-doctrine'
+  | 'consulter-doctrine'
+  | 'ajouter-document'
+  | 'consulter-docs'
+  | 'enrichir-article'
+  | 'ajouter-question'
+  | 'consulter-questions'
+  | 'consulter-assistant-ria'
+  | 'consulter-rag-questions'
+  | 'consulter-adherents'
+  | 'supprimer-adherent'
+  | 'gestion-fichiers'
+  | 'demandes-suppression'
+  | 'ajouter-fiche-pratique'
+  | 'consulter-fiches-pratiques'
+  | 'gestion-schemas'
+  | 'notes-perso'
+  | null
 
 interface Actualite {
   id: number
@@ -445,6 +509,18 @@ const AdminConsolePage: React.FC = () => {
   const [editDescriptionData, setEditDescriptionData] = useState<{ fileName: string; description: string } | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
+  // Historique LinkedIn (bloc homepage + page dédiée)
+  type LinkedInPostRow = {
+    id: number
+    embed_input: string
+    created_at: string
+  }
+  const [linkedinPosts, setLinkedinPosts] = useState<LinkedInPostRow[]>([])
+  const [isLoadingLinkedinPosts, setIsLoadingLinkedinPosts] = useState(false)
+  const [linkedinPostsStatus, setLinkedinPostsStatus] = useState<string | null>(null)
+  const [linkedinNewInput, setLinkedinNewInput] = useState('')
+  const [expandedLinkedinPostId, setExpandedLinkedinPostId] = useState<number | null>(null)
+
   // Notes perso (to-do avec cases à cocher, brouillons LinkedIn) — stockées en base (Supabase)
   type TodoItem = { id: string; text: string; done: boolean }
   const [adminNotes, setAdminNotes] = useState<{ notes: string; todo: TodoItem[]; linkedin: string }>({ notes: '', todo: [], linkedin: '' })
@@ -540,6 +616,7 @@ const AdminConsolePage: React.FC = () => {
         { id: 'ajouter-actualite' as AdminAction, label: 'Ajouter une actualité', icon: '➕' },
         { id: 'consulter-actus' as AdminAction, label: 'Consulter et modifier', icon: '📋' },
         { id: 'veille' as AdminAction, label: 'Veille', icon: '🔗' },
+        { id: 'actus-linkedin' as AdminAction, label: 'LinkedIn (home)', icon: '🔗' },
       ],
     },
     {
@@ -780,6 +857,60 @@ const AdminConsolePage: React.FC = () => {
       setSchemaFormTitle('')
       setSchemaFormFile(null)
       setDeleteSchemaConfirmId(null)
+    } else if (selectedAction === 'actus-linkedin') {
+      setLinkedinPostsStatus(null)
+      setLinkedinNewInput('')
+      setExpandedLinkedinPostId(null)
+      ;(async () => {
+        try {
+          setIsLoadingLinkedinPosts(true)
+          const headers = await getAuthHeaders()
+
+          const loadPosts = async () => {
+            const res = await fetch(
+              `${supabaseUrl}/rest/v1/homepage_linkedin_posts?select=id,embed_input,created_at&order=created_at.desc`,
+              { headers },
+            )
+            if (!res.ok) throw new Error((await res.text()) || `Erreur ${res.status}`)
+            const data = await res.json()
+            return (Array.isArray(data) ? data : []).map((r) => ({
+              ...r,
+              id: Number(r.id),
+            }))
+          }
+
+          let posts = await loadPosts()
+
+          // Si la table historique est vide, on convertit l'ancien réglage en 1 entrée
+          if (!posts.length) {
+            const resSettings = await fetch(
+              `${supabaseUrl}/rest/v1/homepage_settings?id=eq.1&select=linkedin_post_url`,
+              { headers },
+            )
+            if (resSettings.ok) {
+              const settingsData = await resSettings.json()
+              const row = Array.isArray(settingsData) ? settingsData[0] : settingsData
+              const raw = row?.linkedin_post_url
+              if (typeof raw === 'string' && raw.trim()) {
+                await fetch(`${supabaseUrl}/rest/v1/homepage_linkedin_posts`, {
+                  method: 'POST',
+                  headers: { ...headers, Prefer: 'return=representation' },
+                  body: JSON.stringify([{ embed_input: raw.trim() }]),
+                }).catch(() => null)
+                posts = await loadPosts()
+              }
+            }
+          }
+
+          setLinkedinPosts(posts)
+        } catch (err) {
+          setLinkedinPostsStatus(
+            err instanceof Error ? err.message : 'Erreur lors du chargement de l’historique LinkedIn.',
+          )
+        } finally {
+          setIsLoadingLinkedinPosts(false)
+        }
+      })()
     } else if (selectedAction === 'ajouter-question') {
       setQuestionForm({
         Question: '',
@@ -4604,6 +4735,206 @@ const AdminConsolePage: React.FC = () => {
                       })}
                     </div>
                   )}
+                </div>
+              )}
+
+              {selectedAction === 'actus-linkedin' && (
+                <div>
+                  <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+                    LinkedIn — page d&apos;accueil
+                  </h2>
+                  <p className="text-gray-600 mb-4 text-sm">
+                    Ajoutez l&apos;URL du post LinkedIn (ou le code d&apos;intégration <code>&lt;iframe&gt;</code>)
+                    que vous souhaitez afficher sur la page d&apos;accueil. Le dernier ajouté est celui mis en avant.
+                  </p>
+
+                  {linkedinPostsStatus && (
+                    <div className="mb-3 text-sm px-3 py-2 rounded-lg border bg-purple-50 text-purple-800">
+                      {linkedinPostsStatus}
+                    </div>
+                  )}
+
+                  <div className="space-y-6">
+                    <div className="space-y-3 max-w-2xl">
+                      <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4">
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          URL du post LinkedIn ou code d&apos;intégration <code>&lt;iframe&gt;</code>
+                        </label>
+                        <textarea
+                          value={linkedinNewInput}
+                          onChange={(e) => setLinkedinNewInput(e.target.value)}
+                          placeholder="https://www.linkedin.com/posts/... (ou collez le <iframe ...>)"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm min-h-[88px]"
+                        />
+                        <div className="text-xs text-gray-500 mt-2">
+                          Astuce : pour une intégration “propre”, collez plutôt l&apos;URL de la page du post.
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const raw = linkedinNewInput.trim()
+                          if (!raw) return
+                          try {
+                            setLinkedinPostsStatus(null)
+                            const headers = await getAuthHeaders()
+                            const res = await fetch(`${supabaseUrl}/rest/v1/homepage_linkedin_posts`, {
+                              method: 'POST',
+                              headers: { ...headers, Prefer: 'return=representation' },
+                              body: JSON.stringify({ embed_input: raw }),
+                            })
+                            if (!res.ok) throw new Error((await res.text()) || `Erreur ${res.status}`)
+
+                            setLinkedinNewInput('')
+                            setExpandedLinkedinPostId(null)
+
+                            // Recharger la liste
+                            const reloadRes = await fetch(
+                              `${supabaseUrl}/rest/v1/homepage_linkedin_posts?select=id,embed_input,created_at&order=created_at.desc`,
+                              { headers },
+                            )
+                            if (reloadRes.ok) {
+                              const reloadData = await reloadRes.json()
+                              setLinkedinPosts(
+                                (Array.isArray(reloadData) ? reloadData : []).map((r) => ({
+                                  ...r,
+                                  id: Number(r.id),
+                                })),
+                              )
+                            }
+                            setLinkedinPostsStatus('Post LinkedIn ajouté.')
+                          } catch (err) {
+                            setLinkedinPostsStatus(err instanceof Error ? err.message : 'Erreur lors de l’ajout.')
+                          }
+                        }}
+                        className="px-4 py-2 rounded-xl bg-[#774792] text-white text-sm font-medium shadow hover:bg-[#653a7a]"
+                      >
+                        Ajouter au site
+                      </button>
+                    </div>
+
+                    <div className="max-w-3xl">
+                      <div className="flex items-center justify-between gap-4 mb-3">
+                        <h3 className="text-lg font-semibold text-gray-800">Historique des posts</h3>
+                        <div className="text-sm text-gray-500">
+                          {linkedinPosts.length} post{linkedinPosts.length > 1 ? 's' : ''}
+                        </div>
+                      </div>
+
+                      {isLoadingLinkedinPosts ? (
+                        <p className="text-sm text-gray-500">Chargement…</p>
+                      ) : linkedinPosts.length === 0 ? (
+                        <p className="text-sm text-gray-600">Aucun post partagé pour le moment.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {linkedinPosts.map((post) => {
+                            const embedUrl = getLinkedInEmbedUrl(post.embed_input)
+                            const canOpenDirectUrl = post.embed_input.startsWith('http')
+                            const isExpanded = expandedLinkedinPostId === post.id
+                            return (
+                              <div key={post.id} className="bg-white border border-gray-100 rounded-2xl p-4">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <div className="text-xs text-gray-500">
+                                      Ajouté le {formatDateFr(post.created_at)}
+                                    </div>
+                                    <div className="text-sm font-semibold text-gray-800 truncate">
+                                      {canOpenDirectUrl ? post.embed_input : 'Post (intégration)'}
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    {embedUrl ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => setExpandedLinkedinPostId(isExpanded ? null : post.id)}
+                                        className="px-2 py-1.5 rounded-lg border text-sm font-semibold text-[#774792] border-[#774792]/30 hover:bg-[#774792]/10"
+                                      >
+                                        {isExpanded ? 'Masquer aperçu' : 'Aperçu'}
+                                      </button>
+                                    ) : null}
+
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        try {
+                                          setLinkedinPostsStatus(null)
+                                          const headers = await getAuthHeaders()
+                                          const delRes = await fetch(
+                                            `${supabaseUrl}/rest/v1/homepage_linkedin_posts?id=eq.${post.id}`,
+                                            { method: 'DELETE', headers },
+                                          )
+                                          if (!delRes.ok) throw new Error((await delRes.text()) || `Erreur ${delRes.status}`)
+
+                                          setExpandedLinkedinPostId(null)
+                                          const reloadRes = await fetch(
+                                            `${supabaseUrl}/rest/v1/homepage_linkedin_posts?select=id,embed_input,created_at&order=created_at.desc`,
+                                            { headers },
+                                          )
+                                          if (reloadRes.ok) {
+                                            const reloadData = await reloadRes.json()
+                                            setLinkedinPosts(
+                                              (Array.isArray(reloadData) ? reloadData : []).map((r) => ({
+                                                ...r,
+                                                id: Number(r.id),
+                                              })),
+                                            )
+                                          }
+                                          setLinkedinPostsStatus('Post supprimé.')
+                                        } catch (err) {
+                                          setLinkedinPostsStatus(
+                                            err instanceof Error ? err.message : 'Erreur lors de la suppression.',
+                                          )
+                                        }
+                                      }}
+                                      className="p-2 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                                      title="Supprimer"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                        />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {canOpenDirectUrl ? (
+                                  <div className="mt-2">
+                                    <a
+                                      href={post.embed_input}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-sm text-[#774792] font-semibold hover:underline"
+                                    >
+                                      Ouvrir le post ↗
+                                    </a>
+                                  </div>
+                                ) : null}
+
+                                {isExpanded && embedUrl ? (
+                                  <div className="mt-3 rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
+                                    <iframe
+                                      src={embedUrl}
+                                      className="w-full h-[260px]"
+                                      loading="lazy"
+                                      frameBorder="0"
+                                      allowFullScreen
+                                      title="Aperçu post LinkedIn"
+                                    />
+                                  </div>
+                                ) : null}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 
